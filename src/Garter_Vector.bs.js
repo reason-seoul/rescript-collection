@@ -2,9 +2,69 @@
 'use strict';
 
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
-var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
 var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
 var Caml_option = require("bs-platform/lib/js/caml_option.js");
+var Garter_Array$TestProject = require("./Garter_Array.bs.js");
+
+function hasRoom(node) {
+  return node._0.length < 2;
+}
+
+function lastChild(node) {
+  if (!node.TAG) {
+    return Garter_Array$TestProject.lastUnsafe(node._0);
+  }
+  throw {
+        RE_EXN_ID: "Assert_failure",
+        _1: [
+          "Garter_Vector.re",
+          20,
+          17
+        ],
+        Error: new Error()
+      };
+}
+
+function makeEmptyInner(param) {
+  return {
+          TAG: /* Inner */0,
+          _0: new Array(2)
+        };
+}
+
+function makeEmptyLeaf(param) {
+  return {
+          TAG: /* Leaf */1,
+          _0: new Array(2)
+        };
+}
+
+function makeInner(x) {
+  var ar = new Array(2);
+  ar[0] = x;
+  return {
+          TAG: /* Inner */0,
+          _0: ar
+        };
+}
+
+function makeLeaf(x) {
+  var ar = new Array(2);
+  ar[0] = x;
+  return {
+          TAG: /* Leaf */1,
+          _0: ar
+        };
+}
+
+var $$Node = {
+  hasRoom: hasRoom,
+  lastChild: lastChild,
+  makeEmptyInner: makeEmptyInner,
+  makeEmptyLeaf: makeEmptyLeaf,
+  makeInner: makeInner,
+  makeLeaf: makeLeaf
+};
 
 function make(param) {
   return {
@@ -17,17 +77,16 @@ function make(param) {
         };
 }
 
-function getPath(i, d) {
-  console.log(i, d);
-  if (d === 0) {
+function getPath(i, depth) {
+  if (depth === 0) {
     return {
             hd: i,
             tl: /* [] */0
           };
   }
-  var denom = Math.pow(2, d);
+  var denom = Math.pow(2, depth);
   console.log("denom: " + String(denom));
-  return Belt_List.add(getPath(Caml_int32.mod_(i, denom), d - 1 | 0), Caml_int32.div(i, denom));
+  return Belt_List.add(getPath(Caml_int32.mod_(i, denom), depth - 1 | 0), Caml_int32.div(i, denom));
 }
 
 function getUnsafe(param, i) {
@@ -61,7 +120,7 @@ function setUnsafe(vec, i, x) {
     var index = Belt_List.headExn(path);
     if (node.TAG) {
       var m = node._0.slice(0);
-      Belt_Array.set(m, index, x);
+      m[index] = x;
       return {
               TAG: /* Leaf */1,
               _0: m
@@ -69,7 +128,7 @@ function setUnsafe(vec, i, x) {
     }
     var n = node._0;
     var m$1 = n.slice(0);
-    Belt_Array.set(m$1, index, traverse(Belt_List.tailExn(path), n[index]));
+    m$1[index] = traverse(Belt_List.tailExn(path), n[index]);
     return {
             TAG: /* Inner */0,
             _0: m$1
@@ -82,8 +141,107 @@ function setUnsafe(vec, i, x) {
         };
 }
 
+function getLastLeaf(param) {
+  var _node = param.root;
+  while(true) {
+    var node = _node;
+    if (node.TAG) {
+      return node;
+    }
+    var n = node._0;
+    _node = n[n.length - 1 | 0];
+    continue ;
+  };
+}
+
+function isMaxed(param) {
+  return param.size === Math.pow(2, param.depth);
+}
+
 function push(vec, x) {
-  return vec;
+  var root = vec.root;
+  var depth = vec.depth;
+  var size = vec.size;
+  if (hasRoom(getLastLeaf(vec))) {
+    var traverse = function (node) {
+      if (node.TAG) {
+        var ar = node._0;
+        var newAr = ar.slice(0);
+        newAr[ar.length] = x;
+        return {
+                TAG: /* Leaf */1,
+                _0: newAr
+              };
+      }
+      var ar$1 = node._0;
+      var newAr$1 = ar$1.slice(0);
+      newAr$1[ar$1.length - 1 | 0] = traverse(Garter_Array$TestProject.lastUnsafe(ar$1));
+      return {
+              TAG: /* Inner */0,
+              _0: newAr$1
+            };
+    };
+    var newRoot = traverse(root);
+    return {
+            size: size + 1 | 0,
+            depth: vec.depth,
+            root: newRoot
+          };
+  }
+  var traverse$1 = function (node, height) {
+    if (node.TAG) {
+      throw {
+            RE_EXN_ID: "Assert_failure",
+            _1: [
+              "Garter_Vector.re",
+              182,
+              21
+            ],
+            Error: new Error()
+          };
+    }
+    var ar = node._0;
+    if (hasRoom(node)) {
+      if (height === 1) {
+        var newAr = ar.slice(0);
+        newAr[ar.length] = makeLeaf(x);
+        return {
+                TAG: /* Inner */0,
+                _0: newAr
+              };
+      }
+      var newAr$1 = ar.slice(0);
+      newAr$1[ar.length] = traverse$1({
+            TAG: /* Inner */0,
+            _0: new Array(2)
+          }, height - 1 | 0);
+      return {
+              TAG: /* Inner */0,
+              _0: newAr$1
+            };
+    }
+    var last = Garter_Array$TestProject.lastUnsafe(ar);
+    var newAr$2 = ar.slice(0);
+    newAr$2[ar.length - 1 | 0] = traverse$1(last, height - 1 | 0);
+    return {
+            TAG: /* Inner */0,
+            _0: newAr$2
+          };
+  };
+  if (isMaxed(vec)) {
+    var newRoot$1 = traverse$1(makeInner(root), depth);
+    return {
+            size: size + 1 | 0,
+            depth: depth + 1 | 0,
+            root: newRoot$1
+          };
+  }
+  var newRoot$2 = traverse$1(root, depth - 1 | 0);
+  return {
+          size: size + 1 | 0,
+          depth: vec.depth,
+          root: newRoot$2
+        };
 }
 
 function pop(vec) {
@@ -93,11 +251,14 @@ function pop(vec) {
 var numBranches = 2;
 
 exports.numBranches = numBranches;
+exports.$$Node = $$Node;
 exports.make = make;
 exports.getPath = getPath;
 exports.getUnsafe = getUnsafe;
 exports.get = get;
 exports.setUnsafe = setUnsafe;
+exports.getLastLeaf = getLastLeaf;
+exports.isMaxed = isMaxed;
 exports.push = push;
 exports.pop = pop;
 /* No side effect */

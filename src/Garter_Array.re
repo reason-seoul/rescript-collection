@@ -22,12 +22,12 @@ let last = ar => isEmpty(ar) ? None : Some(lastUnsafe(ar));
 let groupBy = (xs, ~keyFn, ~id) => {
   let empty = Belt.Map.make(~id);
 
-  Belt.Array.reduce(
+  Belt.Array.reduceU(
     xs,
     empty,
-    (res, x) => {
-      let k = keyFn(x);
-      Belt.Map.update(res, k, v =>
+    (. res, x) => {
+      let k = keyFn(. x);
+      Belt.Map.updateU(res, k, (. v) =>
         switch (v) {
         | Some(l) => Some([x, ...l])
         | None => Some([x])

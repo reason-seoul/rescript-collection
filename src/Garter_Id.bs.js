@@ -11,5 +11,14 @@ var StringComparable = Belt_Id.MakeComparableU({
       cmp: cmp
     });
 
+function cmp$1(a, b) {
+  return a - b | 0;
+}
+
+var IntComparable = Belt_Id.MakeComparableU({
+      cmp: cmp$1
+    });
+
 exports.StringComparable = StringComparable;
+exports.IntComparable = IntComparable;
 /* StringComparable Not a pure module */

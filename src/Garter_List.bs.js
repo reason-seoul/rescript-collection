@@ -2,6 +2,7 @@
 'use strict';
 
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
+var Pervasives = require("bs-platform/lib/js/pervasives.js");
 
 function takeExn(list, cnt) {
   var l = Belt_List.take(list, cnt);
@@ -25,6 +26,21 @@ function dropExn(list, cnt) {
       };
 }
 
+function orderedPairs(xs) {
+  if (!xs) {
+    return /* [] */0;
+  }
+  var ys = xs.tl;
+  var x = xs.hd;
+  return Pervasives.$at(Belt_List.map(ys, (function (y) {
+                    return [
+                            x,
+                            y
+                          ];
+                  })), orderedPairs(ys));
+}
+
 exports.takeExn = takeExn;
 exports.dropExn = dropExn;
+exports.orderedPairs = orderedPairs;
 /* No side effect */

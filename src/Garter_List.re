@@ -11,3 +11,10 @@ let dropExn = (list, cnt) => {
   | None => raise(Not_found)
   };
 };
+
+let rec orderedPairs = xs => {
+  switch (xs) {
+  | [] => []
+  | [x, ...ys] => Belt.List.map(ys, y => (x, y)) @ orderedPairs(ys)
+  };
+};

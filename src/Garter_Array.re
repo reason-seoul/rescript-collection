@@ -1,8 +1,15 @@
-let isEmpty = xs => Belt.Array.length(xs) === 0;
+open Belt.Array;
 
-let lastUnsafe = ar => Belt.Array.getUnsafe(ar, Belt.Array.length(ar) - 1);
+let isEmpty = xs => length(xs) === 0;
+
+let lastUnsafe = ar => getUnsafe(ar, length(ar) - 1);
 
 let last = ar => isEmpty(ar) ? None : Some(lastUnsafe(ar));
+
+let updateUnsafe = (ar, i, f) => {
+  let v = getUnsafe(ar, i);
+  setUnsafe(ar, i, f(v));
+};
 
 /**
     {|
@@ -19,21 +26,55 @@ let last = ar => isEmpty(ar) ? None : Some(lastUnsafe(ar));
       )
     |}
  */
+
 let groupBy = (xs, ~keyFn, ~id) => {
   let empty = Belt.Map.make(~id);
 
-  Belt.Array.reduceU(
+  reduceU(xs, empty, (. res, x) => {
+    Belt.Map.updateU(res, keyFn(x), (. v) =>
+      switch (v) {
+      | Some(l) => Some([x, ...l])
+      | None => Some([x])
+      }
+    )
+  })
+  ->Belt.Map.map(Belt.List.toArray);
+};
+
+let frequencies = (ar, ~id) => {
+  groupBy(ar, ~keyFn=x => x, ~id)
+  ->Belt.Map.map(Belt.Array.length);
+};
+
+/** reduce와 비슷하나 중간 결과를 모두 포함한 array를 반환해줌 */
+let scan = (xs, init, f) => {
+  let state = makeUninitializedUnsafe(length(xs));
+  let cur = ref(init);
+  forEachWithIndex(
     xs,
-    empty,
-    (. res, x) => {
-      let k = keyFn(. x);
-      Belt.Map.updateU(res, k, (. v) =>
-        switch (v) {
-        | Some(l) => Some([x, ...l])
-        | None => Some([x])
-        }
-      );
+    (idx, x) => {
+      cur := f(cur^, x);
+      setUnsafe(state, idx, cur^);
+    },
+  );
+  state;
+};
+
+let max = xs => {
+  let res = getUnsafe(xs, 0);
+  reduce(xs, res, (x, res) => max(x, res));
+};
+
+/** Returns (max_value, index). Array may not be empty. */
+let maxIndex = xs => {
+  let init = (getUnsafe(xs, 0), 0);
+  reduceWithIndex(
+    xs,
+    init,
+    (acc, v, idx) => {
+      let (curMax, curIdx) = acc;
+      compare(v, curMax) > 0 ? (v, idx) : (curMax, curIdx);
     },
   )
-  ->Belt.Map.map(Belt.List.toArray);
+  ->snd;
 };

@@ -2,7 +2,30 @@
 'use strict';
 
 
+function charCode(s) {
+  return s.charCodeAt(0) | 0;
+}
+
+var $$String = {
+  charCode: charCode
+};
+
+function first(param) {
+  return param[0];
+}
+
+function second(param) {
+  return param[1];
+}
+
+var Pair = {
+  first: first,
+  second: second
+};
+
 var $$Array;
+
+var Id;
 
 var Int;
 
@@ -13,8 +36,11 @@ var Obj;
 var Vector;
 
 exports.$$Array = $$Array;
+exports.Id = Id;
 exports.Int = Int;
 exports.List = List;
 exports.Obj = Obj;
 exports.Vector = Vector;
+exports.$$String = $$String;
+exports.Pair = Pair;
 /* No side effect */

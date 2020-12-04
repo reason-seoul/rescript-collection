@@ -2,11 +2,16 @@
 'use strict';
 
 
+function toArray(s) {
+  return Array.from(s);
+}
+
 function charCode(s) {
   return s.charCodeAt(0) | 0;
 }
 
 var $$String = {
+  toArray: toArray,
   charCode: charCode
 };
 

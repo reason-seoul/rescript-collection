@@ -13,6 +13,8 @@ module Vector = Garter_Vector
 module String = {
   include Js.String2;
 
+  let toArray = s => Js.String2.castToArrayLike(s)->Js.Array2.from;
+
   let charCode = s => {
     int_of_float(Js.String2.charCodeAt(s, 0));
   };

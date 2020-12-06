@@ -42,8 +42,7 @@ let groupBy = (xs, ~keyFn, ~id) => {
 };
 
 let frequencies = (ar, ~id) => {
-  groupBy(ar, ~keyFn=x => x, ~id)
-  ->Belt.Map.map(Belt.Array.length);
+  groupBy(ar, ~keyFn=x => x, ~id)->Belt.Map.map(Belt.Array.length);
 };
 
 /** reduce와 비슷하나 중간 결과를 모두 포함한 array를 반환해줌 */
@@ -77,4 +76,12 @@ let maxIndex = xs => {
     },
   )
   ->snd;
+};
+
+let reduce1 = (xs, f) => {
+  let r = ref(xs->Belt.Array.getUnsafe(0));
+  for (i in 1 to length(xs) - 1) {
+    r := f(r^, xs->Belt.Array.getUnsafe(i));
+  };
+  r^;
 };

@@ -97,6 +97,14 @@ function maxIndex(xs) {
                 }))[1];
 }
 
+function reduce1(xs, f) {
+  var r = xs[0];
+  for(var i = 1 ,i_finish = xs.length; i < i_finish; ++i){
+    r = Curry._2(f, r, xs[i]);
+  }
+  return r;
+}
+
 exports.isEmpty = isEmpty;
 exports.lastUnsafe = lastUnsafe;
 exports.last = last;
@@ -106,4 +114,5 @@ exports.frequencies = frequencies;
 exports.scan = scan;
 exports.max = max;
 exports.maxIndex = maxIndex;
+exports.reduce1 = reduce1;
 /* No side effect */

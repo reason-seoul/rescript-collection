@@ -41,6 +41,22 @@ let groupBy = (xs, ~keyFn, ~id) => {
   ->Belt.Map.map(Belt.List.toArray);
 };
 
+module Int = {
+  let groupBy = (xs, ~keyFn) => {
+    let empty = Belt.Map.Int.empty;
+
+    reduceU(xs, empty, (. res, x) => {
+      Belt.Map.Int.updateU(res, keyFn(x), (. v) =>
+        switch (v) {
+        | Some(l) => Some([x, ...l])
+        | None => Some([x])
+        }
+      )
+    })
+    ->Belt.Map.Int.map(Belt.List.toArray);
+  };
+};
+
 let frequencies = (ar, ~id) => {
   groupBy(ar, ~keyFn=x => x, ~id)->Belt.Map.map(Belt.Array.length);
 };

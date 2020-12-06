@@ -6,6 +6,7 @@ var Belt_Map = require("bs-platform/lib/js/belt_Map.js");
 var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
 var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
+var Belt_MapInt = require("bs-platform/lib/js/belt_MapInt.js");
 var Caml_option = require("bs-platform/lib/js/caml_option.js");
 
 function isEmpty(xs) {
@@ -48,6 +49,28 @@ function groupBy(xs, keyFn, id) {
                                 }));
                   })), Belt_List.toArray);
 }
+
+function groupBy$1(xs, keyFn) {
+  return Belt_MapInt.map(Belt_Array.reduceU(xs, undefined, (function (res, x) {
+                    return Belt_MapInt.updateU(res, Curry._1(keyFn, x), (function (v) {
+                                  if (v !== undefined) {
+                                    return {
+                                            hd: x,
+                                            tl: v
+                                          };
+                                  } else {
+                                    return {
+                                            hd: x,
+                                            tl: /* [] */0
+                                          };
+                                  }
+                                }));
+                  })), Belt_List.toArray);
+}
+
+var Int = {
+  groupBy: groupBy$1
+};
 
 function frequencies(ar, id) {
   return Belt_Map.map(groupBy(ar, (function (x) {
@@ -110,6 +133,7 @@ exports.lastUnsafe = lastUnsafe;
 exports.last = last;
 exports.updateUnsafe = updateUnsafe;
 exports.groupBy = groupBy;
+exports.Int = Int;
 exports.frequencies = frequencies;
 exports.scan = scan;
 exports.max = max;

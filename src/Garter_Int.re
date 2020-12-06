@@ -4,3 +4,6 @@ let fromStringExn = s => {
   | None => raise(Failure("fromStringExn"))
   };
 };
+
+[@bs.val]
+external fromStringWithRadix: (string, ~radix: int) => int = "parseInt";

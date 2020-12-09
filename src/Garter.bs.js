@@ -2,19 +2,6 @@
 'use strict';
 
 
-function toArray(s) {
-  return Array.from(s);
-}
-
-function charCode(s) {
-  return s.charCodeAt(0) | 0;
-}
-
-var $$String = {
-  toArray: toArray,
-  charCode: charCode
-};
-
 function first(param) {
   return param[0];
 }
@@ -39,6 +26,8 @@ var List;
 var Obj;
 
 var Vector;
+
+var $$String;
 
 exports.$$Array = $$Array;
 exports.Id = Id;

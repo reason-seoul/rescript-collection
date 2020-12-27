@@ -14,6 +14,13 @@ module Node = {
     };
   };
 
+  let hasSiblings = node => {
+    switch (node) {
+    | Inner(ar) => ar->Array.length > 1
+    | Leaf(ar) => ar->Array.length > 1
+    };
+  };
+
   let lastChild = node => {
     switch (node) {
     | Inner(n) => n->Garter_Array.lastUnsafe
@@ -49,6 +56,12 @@ type t('a) = {
 
 let make = () => {size: 0, depth: 1, root: Node.makeEmptyLeaf()};
 
+// TODO: optimize with LUT
+let pow = (~base, ~exp) => {
+  Js.Math.pow_float(~base=base->float_of_int, ~exp=exp->float_of_int)
+  ->int_of_float;
+};
+
 /**
  * Path from root to i'th leaf
  */
@@ -56,7 +69,7 @@ let rec getPath = (i, ~depth) =>
   if (depth == 0) {
     [i];
   } else {
-    let denom = Js.Math.pow_int(~base=numBranches, ~exp=depth);
+    let denom = pow(~base=numBranches, ~exp=depth);
     Js.log("denom: " ++ Belt.Int.toString(denom));
     getPath(i mod denom, ~depth=depth - 1)->Belt.List.add(i / denom);
   };
@@ -105,8 +118,6 @@ let setUnsafe: (t('a), int, 'a) => t('a) =
     {...vec, root: traverse(path, root)};
   };
 
-// getPath(1, 2)->Js.log;
-
 let getLastLeaf = ({root}) => {
   let rec traverse = node => {
     switch (node) {
@@ -117,8 +128,7 @@ let getLastLeaf = ({root}) => {
   traverse(root);
 };
 
-let isMaxed = ({size, depth}) =>
-  size === Js.Math.pow_int(~base=numBranches, ~exp=depth);
+let isMaxed = ({size, depth}) => size == pow(~base=numBranches, ~exp=depth);
 
 /**
  * 3가지 경우를 고려해야 함.
@@ -153,10 +163,6 @@ let push: (t('a), 'a) => t('a) =
       //  - 1. inner가 꽉 찼으면 제일 오른쪽 타고 감
       //  - 2. 안찼으면 노드 만들고 거기를 타고 감 (depth-1 도달했으면 leaf 만들고, 도달 안했으면 inner 만들고)
       let rec traverse = (node, height) => {
-        // if (!node->hasRoom) {
-        //   node->lastChild
-        // } else {
-        // }
         switch (node) {
         | Inner(ar) =>
           if (!node->Node.hasRoom) {
@@ -167,7 +173,7 @@ let push: (t('a), 'a) => t('a) =
               traverse(last, height - 1),
             );
             Inner(newAr);
-          } else if (height === 1) {
+          } else if (height == 1) {
             let newAr = ar->Array.copy;
             newAr->Array.setUnsafe(ar->Array.length, Node.makeLeaf(x));
             Inner(newAr);
@@ -193,7 +199,76 @@ let push: (t('a), 'a) => t('a) =
       };
     };
 
-let pop: t('a) => option(t('a)) =
-  vec => {
-    Some(vec);
+/**
+ * 1) leaf has more than 1 nodes
+ * 2) leaf has only in node
+ * 3) after 2), root has only 1 inner node
+ */
+let pop: t('a) => t('a) =
+  ({size, depth, root} as vec) => {
+    let leaf = getLastLeaf(vec);
+    if (leaf->Node.hasSiblings) {
+      // case 1)
+      let rec traverse = node => {
+        switch (node) {
+        | Inner(ar) =>
+          let newAr = ar->Array.copy;
+          newAr->Array.setUnsafe(
+            ar->Array.length - 1,
+            traverse(ar->Garter_Array.lastUnsafe),
+          );
+          Inner(newAr);
+
+        | Leaf(ar) =>
+          let newAr = ar->Array.slice(~offset=0, ~len=Array.length(ar) - 1);
+          Leaf(newAr);
+        };
+      };
+      let newRoot = traverse(root);
+      {...vec, size: size - 1, root: newRoot};
+    } else {
+      let path = getPath(size - 1, ~depth);
+      let rec traverse = (path, curNode) => {
+        let subIdx = path->List.headExn;
+        switch (curNode) {
+        | Inner(ar) =>
+          let child =
+            traverse(path->List.tailExn, ar->Array.getUnsafe(subIdx));
+          switch (child) {
+          | Some(n) =>
+            // copy and replace
+            let newAr = ar->Array.copy;
+            newAr->Array.setUnsafe(subIdx, Node.makeInner(n));
+            Some(Inner(newAr));
+          | None =>
+            if (subIdx == 0) {
+              None;
+            } else {
+              // copy and remove
+              let newAr =
+                ar->Array.slice(~offset=0, ~len=Array.length(ar) - 1);
+              Some(Inner(newAr));
+            }
+          };
+        | Leaf(_) =>
+          // can be merged with case 1)
+          assert(subIdx == 0);
+          None;
+        };
+      };
+      switch (traverse(path, root)) {
+      | Some(newRoot) =>
+        switch (newRoot) {
+        | Inner(ar) when !newRoot->Node.hasSiblings =>
+          let firstChild = ar->Array.getUnsafe(0);
+          // case 3) kill root
+          {depth: depth - 1, size: size - 1, root: firstChild};
+        | _ => {...vec, size: size - 1, root: newRoot}
+        }
+      | None =>
+        assert(size == 1);
+        assert(depth == 2);
+        make();
+      };
+    };
   };

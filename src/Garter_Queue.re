@@ -5,7 +5,7 @@
 type t('a) = (list('a), list('a));
 
 let empty = ([], []);
-let isEmpty = ((f, _)) => Garter.List.isEmpty(f);
+let isEmpty = ((f, _)) => Garter_List.isEmpty(f);
 
 let checkf =
   fun

@@ -6,9 +6,14 @@ var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
 var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
 var Caml_option = require("bs-platform/lib/js/caml_option.js");
 var Garter_Array = require("./Garter_Array.bs.js");
+var Caml_splice_call = require("bs-platform/lib/js/caml_splice_call.js");
 
-function numChildren(n) {
-  return n._0.length;
+function isInner(param) {
+  if (param.TAG) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 function hasRoom(node) {
@@ -57,14 +62,63 @@ function makeLeaf(x) {
         };
 }
 
+function clone(ar) {
+  if (ar.TAG) {
+    return {
+            TAG: /* Leaf */1,
+            _0: ar._0.slice(0)
+          };
+  } else {
+    return {
+            TAG: /* Inner */0,
+            _0: ar._0.slice(0)
+          };
+  }
+}
+
+function setInner(node, idx, v) {
+  if (!node.TAG) {
+    node._0[idx] = v;
+    return ;
+  }
+  throw {
+        RE_EXN_ID: "Assert_failure",
+        _1: [
+          "Garter_Vector.re",
+          63,
+          17
+        ],
+        Error: new Error()
+      };
+}
+
+function getInner(node, idx) {
+  if (!node.TAG) {
+    return node._0[idx];
+  }
+  throw {
+        RE_EXN_ID: "Assert_failure",
+        _1: [
+          "Garter_Vector.re",
+          70,
+          17
+        ],
+        Error: new Error()
+      };
+}
+
 var $$Node = {
+  isInner: isInner,
   hasRoom: hasRoom,
   hasSiblings: hasSiblings,
   makeEmptyInner: makeEmptyInner,
   makeEmptyLeaf: makeEmptyLeaf,
   makeInner: makeInner,
   makeInner2: makeInner2,
-  makeLeaf: makeLeaf
+  makeLeaf: makeLeaf,
+  clone: clone,
+  setInner: setInner,
+  getInner: getInner
 };
 
 function make(param) {
@@ -86,20 +140,19 @@ function pow(base, exp) {
   return Math.pow(base, exp) | 0;
 }
 
-function getPath(i, depth) {
-  if (depth === 0) {
+function getPathIdx(i, depth) {
+  if (depth === 1) {
     return {
             hd: i,
             tl: /* [] */0
           };
   }
-  var denom = pow(2, depth);
-  console.log("denom: " + String(denom));
-  return Belt_List.add(getPath(Caml_int32.mod_(i, denom), depth - 1 | 0), Caml_int32.div(i, denom));
+  var denom = pow(2, depth - 1 | 0);
+  return Belt_List.add(getPathIdx(Caml_int32.mod_(i, denom), depth - 1 | 0), Caml_int32.div(i, denom));
 }
 
 function getUnsafe(param, i) {
-  var path = getPath(i, param.depth - 1 | 0);
+  var path = getPathIdx(i, param.depth);
   var _path = path;
   var _node = param.root;
   while(true) {
@@ -124,7 +177,7 @@ function get(v, i) {
 }
 
 function setUnsafe(vec, i, x) {
-  var path = getPath(i, vec.depth - 1 | 0);
+  var path = getPathIdx(i, vec.depth);
   var traverse = function (path, node) {
     var index = Belt_List.headExn(path);
     if (node.TAG) {
@@ -150,45 +203,49 @@ function setUnsafe(vec, i, x) {
         };
 }
 
-function getLastLeaf(param) {
+function getTail(param) {
+  var path = getPathIdx(param.size - 1 | 0, param.depth);
+  var _path = path;
   var _node = param.root;
   while(true) {
     var node = _node;
+    var path$1 = _path;
+    var subIdx = Belt_List.headExn(path$1);
     if (node.TAG) {
       return node;
     }
-    var n = node._0;
-    _node = n[n.length - 1 | 0];
+    _node = node._0[subIdx];
+    _path = Belt_List.tailExn(path$1);
     continue ;
   };
 }
 
-function isRootOverflow(param) {
-  return param.size === pow(2, param.depth);
+var logging = {
+  contents: false
+};
+
+function log(x) {
+  if (logging.contents) {
+    console.info(x);
+    return ;
+  }
+  
 }
 
-function debug(param) {
-  var traverse = function (node, depth) {
-    if (node.TAG) {
-      console.log("L " + String(depth));
-      return Belt_Array.forEach(node._0, (function (n) {
-                    console.log(n);
-                    
-                  }));
-    }
-    console.log("I " + String(depth));
-    return Belt_Array.forEach(node._0, (function (n) {
-                  return traverse(n, depth + 1 | 0);
-                }));
-  };
-  return traverse(param.root, 1);
+function log2(x, y) {
+  if (logging.contents) {
+    console.info(x, y);
+    return ;
+  }
+  
 }
 
 function push(vec, x) {
   var root = vec.root;
   var depth = vec.depth;
   var size = vec.size;
-  if (hasRoom(getLastLeaf(vec))) {
+  if (hasRoom(getTail(vec))) {
+    log2("[push: case1]", x);
     var traverse = function (node) {
       if (node.TAG) {
         var ar = node._0;
@@ -214,22 +271,24 @@ function push(vec, x) {
             root: newRoot
           };
   }
-  if (isRootOverflow(vec)) {
-    var newPath = function (_depth, _node) {
-      while(true) {
-        var node = _node;
-        var depth = _depth;
-        if (depth === 0) {
-          return node;
-        }
-        _node = {
-          TAG: /* Inner */0,
-          _0: Belt_Array.make(1, node)
-        };
-        _depth = depth - 1 | 0;
-        continue ;
+  var isRootOverflow = size === pow(2, depth);
+  var newPath = function (_depth, _node) {
+    while(true) {
+      var node = _node;
+      var depth = _depth;
+      if (depth === 0) {
+        return node;
+      }
+      _node = {
+        TAG: /* Inner */0,
+        _0: Belt_Array.make(1, node)
       };
+      _depth = depth - 1 | 0;
+      continue ;
     };
+  };
+  if (isRootOverflow) {
+    log2("[push: case3]", x);
     var newRoot$1 = makeInner2(root, newPath(depth - 1 | 0, {
               TAG: /* Leaf */1,
               _0: Belt_Array.make(1, x)
@@ -240,46 +299,44 @@ function push(vec, x) {
             root: newRoot$1
           };
   }
-  var traverse$1 = function (node, height) {
-    if (node.TAG) {
+  log2("[push: case2]", x);
+  var pushTail = function (depth, parent, path) {
+    var ret = clone(parent);
+    var subIdx = Belt_List.headExn(path);
+    if (depth === 2) {
+      setInner(ret, subIdx, {
+            TAG: /* Leaf */1,
+            _0: Belt_Array.make(1, x)
+          });
+      return ret;
+    }
+    if (parent.TAG) {
       throw {
             RE_EXN_ID: "Assert_failure",
             _1: [
               "Garter_Vector.re",
-              218,
-              21
+              239,
+              25
             ],
             Error: new Error()
           };
     }
-    var ar = node._0;
-    if (height === 1) {
-      return {
-              TAG: /* Leaf */1,
-              _0: Belt_Array.make(1, x)
-            };
+    var ar = parent._0;
+    var newChild;
+    if (subIdx < ar.length) {
+      var child = ar[subIdx];
+      newChild = pushTail(depth - 1 | 0, child, Belt_List.tailExn(path));
+    } else {
+      newChild = newPath(depth - 2 | 0, {
+            TAG: /* Leaf */1,
+            _0: Belt_Array.make(1, x)
+          });
     }
-    if (hasRoom(node)) {
-      var newAr = new Array(ar.length + 1 | 0);
-      Belt_Array.blit(ar, 0, newAr, 0, ar.length);
-      newAr[ar.length] = traverse$1({
-            TAG: /* Inner */0,
-            _0: []
-          }, height - 1 | 0);
-      return {
-              TAG: /* Inner */0,
-              _0: newAr
-            };
-    }
-    var last = Garter_Array.lastUnsafe(ar);
-    var newAr$1 = ar.slice(0);
-    newAr$1[ar.length - 1 | 0] = traverse$1(last, height - 1 | 0);
-    return {
-            TAG: /* Inner */0,
-            _0: newAr$1
-          };
+    setInner(ret, subIdx, newChild);
+    return ret;
   };
-  var newRoot$2 = traverse$1(root, depth);
+  var path = getPathIdx(size, depth);
+  var newRoot$2 = pushTail(depth, root, path);
   return {
           size: size + 1 | 0,
           depth: vec.depth,
@@ -291,7 +348,7 @@ function pop(vec) {
   var root = vec.root;
   var depth = vec.depth;
   var size = vec.size;
-  var leaf = getLastLeaf(vec);
+  var leaf = getTail(vec);
   if (hasSiblings(leaf)) {
     var traverse = function (node) {
       if (node.TAG) {
@@ -317,7 +374,7 @@ function pop(vec) {
             root: newRoot
           };
   }
-  var path = getPath(size - 1 | 0, depth);
+  var path = getPathIdx(size - 1 | 0, depth);
   var traverse$1 = function (path, curNode) {
     var subIdx = Belt_List.headExn(path);
     if (curNode.TAG) {
@@ -326,7 +383,7 @@ function pop(vec) {
               RE_EXN_ID: "Assert_failure",
               _1: [
                 "Garter_Vector.re",
-                288,
+                303,
                 10
               ],
               Error: new Error()
@@ -377,7 +434,7 @@ function pop(vec) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Garter_Vector.re",
-            302,
+            317,
             8
           ],
           Error: new Error()
@@ -388,7 +445,7 @@ function pop(vec) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Garter_Vector.re",
-            303,
+            318,
             8
           ],
           Error: new Error()
@@ -415,22 +472,57 @@ function fromArray(ar) {
             }, push);
 }
 
+function toArray(param) {
+  var data = [];
+  var traverse = function (node) {
+    if (!node.TAG) {
+      return Belt_Array.forEach(node._0, traverse);
+    }
+    Caml_splice_call.spliceObjApply(data, "push", [node._0]);
+    
+  };
+  traverse(param.root);
+  return data;
+}
+
+function debug(param) {
+  var traverse = function (node, depth) {
+    if (node.TAG) {
+      console.log("L " + String(depth));
+      return Belt_Array.forEach(node._0, (function (n) {
+                    console.log(n);
+                    
+                  }));
+    }
+    console.log("I " + String(depth));
+    return Belt_Array.forEach(node._0, (function (n) {
+                  return traverse(n, depth + 1 | 0);
+                }));
+  };
+  return traverse(param.root, 1);
+}
+
 var numBranches = 2;
 
+var toString = toArray;
+
 exports.numBranches = numBranches;
-exports.numChildren = numChildren;
 exports.$$Node = $$Node;
 exports.make = make;
 exports.length = length;
 exports.pow = pow;
-exports.getPath = getPath;
+exports.getPathIdx = getPathIdx;
 exports.getUnsafe = getUnsafe;
 exports.get = get;
 exports.setUnsafe = setUnsafe;
-exports.getLastLeaf = getLastLeaf;
-exports.isRootOverflow = isRootOverflow;
-exports.debug = debug;
+exports.getTail = getTail;
+exports.logging = logging;
+exports.log = log;
+exports.log2 = log2;
 exports.push = push;
 exports.pop = pop;
 exports.fromArray = fromArray;
+exports.toArray = toArray;
+exports.toString = toString;
+exports.debug = debug;
 /* No side effect */

@@ -2,18 +2,17 @@ open Belt;
 
 let numBranches = 2;
 
+// optimize away inner/leaf distinction
 type node('a) =
   | Inner(array(node('a)))
   | Leaf(array('a));
 
-let numChildren = n => {
-  switch (n) {
-  | Inner(ar) => ar->Array.length
-  | Leaf(ar) => ar->Array.length
-  };
-};
-
 module Node = {
+  let isInner =
+    fun
+    | Inner(_) => true
+    | Leaf(_) => false;
+
   let hasRoom = node => {
     switch (node) {
     | Inner(ar) => ar->Array.length < numBranches
@@ -52,6 +51,25 @@ module Node = {
   };
 
   let makeLeaf = x => Leaf(Array.make(1, x));
+
+  let clone =
+    fun
+    | Inner(ar) => Inner(ar->Array.copy)
+    | Leaf(ar) => Leaf(ar->Array.copy);
+
+  let setInner = (node, idx, v) => {
+    switch (node) {
+    | Inner(ar) => ar->Array.setUnsafe(idx, v)
+    | Leaf(_) => assert(false)
+    };
+  };
+
+  let getInner = (node, idx) => {
+    switch (node) {
+    | Inner(ar) => ar->Array.getUnsafe(idx)
+    | Leaf(_) => assert(false)
+    };
+  };
 };
 
 type t('a) = {
@@ -73,17 +91,16 @@ let pow = (~base, ~exp) => {
 /**
  * Path from root to i'th leaf
  */
-let rec getPath = (i, ~depth) =>
-  if (depth == 0) {
+let rec getPathIdx = (i, ~depth) =>
+  if (depth == 1) {
     [i];
   } else {
-    let denom = pow(~base=numBranches, ~exp=depth);
-    Js.log("denom: " ++ Belt.Int.toString(denom));
-    getPath(i mod denom, ~depth=depth - 1)->Belt.List.add(i / denom);
+    let denom = pow(~base=numBranches, ~exp=depth - 1);
+    getPathIdx(i mod denom, ~depth=depth - 1)->Belt.List.add(i / denom);
   };
 
 let getUnsafe = ({depth, root}, i) => {
-  let path = getPath(i, ~depth=depth - 1);
+  let path = getPathIdx(i, ~depth);
   let rec traverse = (path, node) => {
     let index = path->Belt.List.headExn;
     switch (node) {
@@ -103,7 +120,7 @@ let get = ({size} as v, i) =>
 
 let setUnsafe: (t('a), int, 'a) => t('a) =
   ({depth, root} as vec, i, x) => {
-    let path = getPath(i, ~depth=depth - 1);
+    let path = getPathIdx(i, ~depth);
 
     let rec traverse = (path, node) => {
       let index = path->Belt.List.headExn;
@@ -126,31 +143,16 @@ let setUnsafe: (t('a), int, 'a) => t('a) =
     {...vec, root: traverse(path, root)};
   };
 
-let getLastLeaf = ({root}) => {
-  let rec traverse = node => {
+let getTail = ({size, depth, root}) => {
+  let rec traverse = (path, node) => {
+    let subIdx = path->List.headExn;
     switch (node) {
-    | Inner(n) => traverse(n->Array.getUnsafe(n->Array.length - 1))
+    | Inner(n) => traverse(path->List.tailExn, n->Array.getUnsafe(subIdx))
     | Leaf(_) => node
     };
   };
-  traverse(root);
-};
-
-let isRootOverflow = ({size, depth}) =>
-  size == pow(~base=numBranches, ~exp=depth);
-
-let debug = ({root}) => {
-  let rec traverse = (node, depth) => {
-    switch (node) {
-    | Inner(ar) =>
-      Js.log("I " ++ depth->string_of_int);
-      Belt.Array.forEach(ar, n => traverse(n, depth + 1));
-    | Leaf(ar) =>
-      Js.log("L " ++ depth->string_of_int);
-      Belt.Array.forEach(ar, n => Js.log(n));
-    };
-  };
-  traverse(root, 1);
+  let path = getPathIdx(size - 1, ~depth);
+  traverse(path, root);
 };
 
 /**
@@ -159,11 +161,23 @@ let debug = ({root}) => {
  * 2. 루트 노드에는 공간이 있지만 가장 오른쪽 노드에는 공간이 없을 때
  * 3. 현재 루트 노드에 공간이 없을 때
  */
+
+let logging = ref(false);
+let log = x =>
+  if (logging^) {
+    Js.Console.info(x);
+  };
+
+let log2 = (x, y) =>
+  if (logging^) {
+    Js.Console.info2(x, y);
+  };
+
 let push: (t('a), 'a) => t('a) =
   ({size, depth, root} as vec, x) =>
     // case 1
-    if (getLastLeaf(vec)->Node.hasRoom) {
-      // Js.Console.info("push: case1");
+    if (getTail(vec)->Node.hasRoom) {
+      log2("[push: case1]", x);
       let rec traverse = node => {
         switch (node) {
         | Inner(ar) =>
@@ -182,54 +196,55 @@ let push: (t('a), 'a) => t('a) =
       };
       let newRoot = traverse(root);
       {...vec, size: size + 1, root: newRoot};
-    } else if (!isRootOverflow(vec)) {
-      // case 2: all leaf nodes are full but we have room for a new inner node.
-      // Js.Console.info("push: case2");
-      let rec traverse = (node, height) => {
-        //  - 1. inner가 꽉 찼으면 제일 오른쪽 타고 감
-        //  - 2. 안찼으면 노드 만들고 거기를 타고 감 (depth-1 도달했으면 leaf 만들고, 도달 안했으면 inner 만들고)
-        switch (node) {
-        | Inner(ar) =>
-          if (height == 1) {
-            Node.makeLeaf(x);
-          } else if (!node->Node.hasRoom) {
-            let last = ar->Garter_Array.lastUnsafe;
-            let newAr = ar->Array.copy;
-            newAr->Array.setUnsafe(
-              ar->Array.length - 1,
-              traverse(last, height - 1),
-            );
-            Inner(newAr);
-          } else {
-            let newAr = Array.makeUninitializedUnsafe(ar->Array.length + 1);
-            Belt.Array.blit(
-              ~src=ar,
-              ~srcOffset=0,
-              ~dst=newAr,
-              ~dstOffset=0,
-              ~len=ar->Array.length,
-            );
-            newAr->Array.setUnsafe(
-              ar->Array.length,
-              traverse(Node.makeEmptyInner(), height - 1),
-            );
-            Inner(newAr);
-          }
-        | Leaf(_) => assert(false)
-        };
-      };
-      let newRoot = traverse(root, depth);
-      {...vec, size: size + 1, root: newRoot};
     } else {
-      // case 3: when there's no room to append
-      // Js.Console.info("push: case3");
+      // case 2 & 3
+      let isRootOverflow = size == pow(~base=numBranches, ~exp=depth);
+
+      /** create onyl child tree
+        * depth := length
+        */
       let rec newPath = (depth, node) =>
         depth == 0 ? node : newPath(depth - 1, Node.makeInner(node));
 
-      let newRoot =
-        Node.makeInner2(root, newPath(depth - 1, Node.makeLeaf(x)));
+      if (isRootOverflow) {
+        // case 3: when there's no room to append
+        log2("[push: case3]", x);
+        let newRoot =
+          Node.makeInner2(root, newPath(depth - 1, Node.makeLeaf(x)));
 
-      {size: size + 1, depth: depth + 1, root: newRoot};
+        {size: size + 1, depth: depth + 1, root: newRoot};
+      } else {
+        // case 2: all leaf nodes are full but we have room for a new inner node.
+        log2("[push: case2]", x);
+
+        let rec pushTail = (depth, parent, path) => {
+          let ret = Node.clone(parent);
+          let subIdx = List.headExn(path);
+          if (depth == 2) {
+            Node.setInner(ret, subIdx, Node.makeLeaf(x));
+            ret;
+          } else {
+            switch (parent) {
+            | Inner(ar) =>
+              let newChild =
+                if (subIdx < ar->Array.length) {
+                  let child = ar->Array.getUnsafe(subIdx);
+                  pushTail(depth - 1, child, List.tailExn(path));
+                } else {
+                  newPath(depth - 2, Node.makeLeaf(x));
+                };
+
+              Node.setInner(ret, subIdx, newChild);
+              ret;
+            | Leaf(_) => assert(false)
+            };
+          };
+        };
+
+        let path = getPathIdx(size, ~depth);
+        let newRoot = pushTail(depth, root, path);
+        {...vec, size: size + 1, root: newRoot};
+      };
     };
 
 /**
@@ -239,7 +254,7 @@ let push: (t('a), 'a) => t('a) =
  */
 let pop: t('a) => t('a) =
   ({size, depth, root} as vec) => {
-    let leaf = getLastLeaf(vec);
+    let leaf = getTail(vec);
     if (leaf->Node.hasSiblings) {
       // case 1)
       let rec traverse = node => {
@@ -260,7 +275,7 @@ let pop: t('a) => t('a) =
       let newRoot = traverse(root);
       {...vec, size: size - 1, root: newRoot};
     } else {
-      let path = getPath(size - 1, ~depth);
+      let path = getPathIdx(size - 1, ~depth);
       let rec traverse = (path, curNode) => {
         let subIdx = path->List.headExn;
         switch (curNode) {
@@ -308,4 +323,32 @@ let pop: t('a) => t('a) =
 
 let fromArray = ar => {
   Belt.Array.reduce(ar, make(), (v, i) => push(v, i));
+};
+
+let toArray = ({root}) => {
+  let data = [||];
+  let rec traverse = node => {
+    switch (node) {
+    | Inner(ar) => ar->Array.forEach(traverse)
+    | Leaf(ar) => data->Js.Array2.pushMany(ar)->ignore
+    };
+  };
+  traverse(root);
+  data;
+};
+
+let toString = toArray;
+
+let debug = ({root}) => {
+  let rec traverse = (node, depth) => {
+    switch (node) {
+    | Inner(ar) =>
+      Js.log("I " ++ depth->string_of_int);
+      Belt.Array.forEach(ar, n => traverse(n, depth + 1));
+    | Leaf(ar) =>
+      Js.log("L " ++ depth->string_of_int);
+      Belt.Array.forEach(ar, n => Js.log(n));
+    };
+  };
+  traverse(root, 1);
 };

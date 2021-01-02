@@ -7,6 +7,10 @@ var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
 var Caml_option = require("bs-platform/lib/js/caml_option.js");
 var Garter_Array = require("./Garter_Array.bs.js");
 
+function numChildren(n) {
+  return n._0.length;
+}
+
 function hasRoom(node) {
   return node._0.length < 2;
 }
@@ -15,38 +19,31 @@ function hasSiblings(node) {
   return node._0.length > 1;
 }
 
-function lastChild(node) {
-  if (!node.TAG) {
-    return Garter_Array.lastUnsafe(node._0);
-  }
-  throw {
-        RE_EXN_ID: "Assert_failure",
-        _1: [
-          "Garter_Vector.re",
-          27,
-          17
-        ],
-        Error: new Error()
-      };
-}
-
 function makeEmptyInner(param) {
   return {
           TAG: /* Inner */0,
-          _0: new Array(2)
+          _0: []
         };
 }
 
 function makeEmptyLeaf(param) {
   return {
           TAG: /* Leaf */1,
-          _0: new Array(2)
+          _0: []
         };
 }
 
 function makeInner(x) {
+  return {
+          TAG: /* Inner */0,
+          _0: Belt_Array.make(1, x)
+        };
+}
+
+function makeInner2(x, y) {
   var ar = new Array(2);
   ar[0] = x;
+  ar[1] = y;
   return {
           TAG: /* Inner */0,
           _0: ar
@@ -54,21 +51,19 @@ function makeInner(x) {
 }
 
 function makeLeaf(x) {
-  var ar = new Array(2);
-  ar[0] = x;
   return {
           TAG: /* Leaf */1,
-          _0: ar
+          _0: Belt_Array.make(1, x)
         };
 }
 
 var $$Node = {
   hasRoom: hasRoom,
   hasSiblings: hasSiblings,
-  lastChild: lastChild,
   makeEmptyInner: makeEmptyInner,
   makeEmptyLeaf: makeEmptyLeaf,
   makeInner: makeInner,
+  makeInner2: makeInner2,
   makeLeaf: makeLeaf
 };
 
@@ -78,9 +73,13 @@ function make(param) {
           depth: 1,
           root: {
             TAG: /* Leaf */1,
-            _0: new Array(2)
+            _0: []
           }
         };
+}
+
+function length(v) {
+  return v.size;
 }
 
 function pow(base, exp) {
@@ -164,8 +163,25 @@ function getLastLeaf(param) {
   };
 }
 
-function isMaxed(param) {
+function isRootOverflow(param) {
   return param.size === pow(2, param.depth);
+}
+
+function debug(param) {
+  var traverse = function (node, depth) {
+    if (node.TAG) {
+      console.log("L " + String(depth));
+      return Belt_Array.forEach(node._0, (function (n) {
+                    console.log(n);
+                    
+                  }));
+    }
+    console.log("I " + String(depth));
+    return Belt_Array.forEach(node._0, (function (n) {
+                  return traverse(n, depth + 1 | 0);
+                }));
+  };
+  return traverse(param.root, 1);
 }
 
 function push(vec, x) {
@@ -198,55 +214,72 @@ function push(vec, x) {
             root: newRoot
           };
   }
-  var traverse$1 = function (node, height) {
-    if (node.TAG) {
-      throw {
-            RE_EXN_ID: "Assert_failure",
-            _1: [
-              "Garter_Vector.re",
-              188,
-              21
-            ],
-            Error: new Error()
-          };
-    }
-    var ar = node._0;
-    if (hasRoom(node)) {
-      if (height === 1) {
-        var newAr = ar.slice(0);
-        newAr[ar.length] = makeLeaf(x);
-        return {
-                TAG: /* Inner */0,
-                _0: newAr
-              };
-      }
-      var newAr$1 = ar.slice(0);
-      newAr$1[ar.length] = traverse$1({
-            TAG: /* Inner */0,
-            _0: new Array(2)
-          }, height - 1 | 0);
-      return {
-              TAG: /* Inner */0,
-              _0: newAr$1
-            };
-    }
-    var last = Garter_Array.lastUnsafe(ar);
-    var newAr$2 = ar.slice(0);
-    newAr$2[ar.length - 1 | 0] = traverse$1(last, height - 1 | 0);
-    return {
-            TAG: /* Inner */0,
-            _0: newAr$2
-          };
-  };
-  if (isMaxed(vec)) {
-    var newRoot$1 = traverse$1(makeInner(root), depth);
+  if (isRootOverflow(vec)) {
+    var newPath = function (_depth, _node) {
+      while(true) {
+        var node = _node;
+        var depth = _depth;
+        if (depth === 0) {
+          return node;
+        }
+        _node = {
+          TAG: /* Inner */0,
+          _0: Belt_Array.make(1, node)
+        };
+        _depth = depth - 1 | 0;
+        continue ;
+      };
+    };
+    var newRoot$1 = makeInner2(root, newPath(depth - 1 | 0, {
+              TAG: /* Leaf */1,
+              _0: Belt_Array.make(1, x)
+            }));
     return {
             size: size + 1 | 0,
             depth: depth + 1 | 0,
             root: newRoot$1
           };
   }
-  var newRoot$2 = traverse$1(root, depth - 1 | 0);
+  var traverse$1 = function (node, height) {
+    if (node.TAG) {
+      throw {
+            RE_EXN_ID: "Assert_failure",
+            _1: [
+              "Garter_Vector.re",
+              218,
+              21
+            ],
+            Error: new Error()
+          };
+    }
+    var ar = node._0;
+    if (height === 1) {
+      return {
+              TAG: /* Leaf */1,
+              _0: Belt_Array.make(1, x)
+            };
+    }
+    if (hasRoom(node)) {
+      var newAr = new Array(ar.length + 1 | 0);
+      Belt_Array.blit(ar, 0, newAr, 0, ar.length);
+      newAr[ar.length] = traverse$1({
+            TAG: /* Inner */0,
+            _0: []
+          }, height - 1 | 0);
+      return {
+              TAG: /* Inner */0,
+              _0: newAr
+            };
+    }
+    var last = Garter_Array.lastUnsafe(ar);
+    var newAr$1 = ar.slice(0);
+    newAr$1[ar.length - 1 | 0] = traverse$1(last, height - 1 | 0);
+    return {
+            TAG: /* Inner */0,
+            _0: newAr$1
+          };
+  };
+  var newRoot$2 = traverse$1(root, depth);
   return {
           size: size + 1 | 0,
           depth: vec.depth,
@@ -293,7 +326,7 @@ function pop(vec) {
               RE_EXN_ID: "Assert_failure",
               _1: [
                 "Garter_Vector.re",
-                255,
+                288,
                 10
               ],
               Error: new Error()
@@ -305,7 +338,10 @@ function pop(vec) {
     var child = traverse$1(Belt_List.tailExn(path), ar[subIdx]);
     if (child !== undefined) {
       var newAr = ar.slice(0);
-      newAr[subIdx] = makeInner(child);
+      newAr[subIdx] = {
+        TAG: /* Inner */0,
+        _0: Belt_Array.make(1, child)
+      };
       return {
               TAG: /* Inner */0,
               _0: newAr
@@ -341,7 +377,7 @@ function pop(vec) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Garter_Vector.re",
-            269,
+            302,
             8
           ],
           Error: new Error()
@@ -352,27 +388,49 @@ function pop(vec) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Garter_Vector.re",
-            270,
+            303,
             8
           ],
           Error: new Error()
         };
   }
-  return make(undefined);
+  return {
+          size: 0,
+          depth: 1,
+          root: {
+            TAG: /* Leaf */1,
+            _0: []
+          }
+        };
+}
+
+function fromArray(ar) {
+  return Belt_Array.reduce(ar, {
+              size: 0,
+              depth: 1,
+              root: {
+                TAG: /* Leaf */1,
+                _0: []
+              }
+            }, push);
 }
 
 var numBranches = 2;
 
 exports.numBranches = numBranches;
+exports.numChildren = numChildren;
 exports.$$Node = $$Node;
 exports.make = make;
+exports.length = length;
 exports.pow = pow;
 exports.getPath = getPath;
 exports.getUnsafe = getUnsafe;
 exports.get = get;
 exports.setUnsafe = setUnsafe;
 exports.getLastLeaf = getLastLeaf;
-exports.isMaxed = isMaxed;
+exports.isRootOverflow = isRootOverflow;
+exports.debug = debug;
 exports.push = push;
 exports.pop = pop;
+exports.fromArray = fromArray;
 /* No side effect */

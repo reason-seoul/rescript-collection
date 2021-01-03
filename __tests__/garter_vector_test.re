@@ -1,5 +1,5 @@
 open Jest;
-open Expect;
+open ExpectJs;
 
 module A = Belt.Array;
 module V = Garter.Vector;
@@ -58,36 +58,55 @@ describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", () => {
   });
 });
 
-// describe("Vector.push", () => {
-//   testAll(
-//     "fromArray",
-//     Array.range(1, 32)->List.fromArray,
-//     n => {
-//       let v = fromArray(Array.range(1, n));
-//       expect(v->length) |> toBe(n);
-//     },
-//   );
+describe("Vector.push", () => {
+  testAll(
+    "fromArray",
+    A.range(1, 32)->Belt.List.fromArray,
+    n => {
+      let v = V.fromArray(A.range(1, n));
+      expect(v->V.length) |> toBe(n);
+    },
+  );
 
-//   testAll(
-//     "fromArray (large)",
-//     Array.rangeBy(100, 10000, ~step=100)->List.fromArray,
-//     n => {
-//       let v = fromArray(Array.range(1, n));
-//       expect(v->length) |> toBe(n);
-//     },
-//   );
-// });
+  testAll(
+    "fromArray (large)",
+    A.rangeBy(100, 10000, ~step=100)->Belt.List.fromArray,
+    n => {
+      let v = V.fromArray(A.range(1, n));
+      expect(v->V.length) |> toBe(n);
+    },
+  );
+});
 
-// describe("Vector.pop", () => {
-//   let pushpop = (n, m) => {
-//     let v = fromArray(Array.range(1, n));
-//     Array.range(1, m)->Array.reduce(v, (v, _) => v->pop);
-//   };
+let pushpop = (n, m) => {
+  let v = V.fromArray(A.range(1, n));
+  A.range(1, m)->A.reduce(v, (v, _) => v->V.pop);
+};
 
-//   testAll(
-//     "pushpop (push > pop)",
-//     Garter.List.orderedPairs(Array.range(1, 100)->List.fromArray),
-//     ((m, n)) =>
-//     expect(pushpop(n, m)->length) |> toBe(n - m)
-//   );
-// });
+describe("Vector.pop", () => {
+  testAll(
+    "pushpop (push > pop)",
+    [(100, 50), (100, 100), (10000, 5000)],
+    ((n, m)) =>
+    expect(pushpop(n, m)->V.length) |> toBe(n - m)
+  )
+});
+
+describe("Vector.get", () => {
+  let v = pushpop(20000, 10000);
+  test("random access (10,000 times)", () => {
+    let every =
+      A.range(1, 10000)
+      ->A.every(_ => {
+          let idx = Js.Math.random_int(0, 10000);
+          v->V.getExn(idx) == idx + 1;
+        });
+    expect(every) |> toBeTruthy;
+  });
+
+  testAll("out of bounds", [(-1), 10000], idx => {
+    expect(() =>
+      v->V.getExn(idx)
+    ) |> toThrow
+  });
+});

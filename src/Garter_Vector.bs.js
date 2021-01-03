@@ -3,6 +3,7 @@
 
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
 var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
+var Caml_array = require("bs-platform/lib/js/caml_array.js");
 var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
 var Caml_option = require("bs-platform/lib/js/caml_option.js");
 var Garter_Array = require("./Garter_Array.bs.js");
@@ -84,58 +85,6 @@ function getPathIdx(i, depth) {
   }
   var denom = pow(32, depth - 1 | 0);
   return Belt_List.add(getPathIdx(Caml_int32.mod_(i, denom), depth - 1 | 0), Caml_int32.div(i, denom));
-}
-
-function getUnsafe(param, i) {
-  var path = getPathIdx(i, param.depth);
-  var _path = path;
-  var _node = param.root;
-  while(true) {
-    var node = _node;
-    var path$1 = _path;
-    var index = Belt_List.headExn(path$1);
-    if (node.TAG) {
-      return node._0[index];
-    }
-    _node = node._0[index];
-    _path = Belt_List.tailExn(path$1);
-    continue ;
-  };
-}
-
-function get(v, i) {
-  if (i < 0 || i >= v.size) {
-    return ;
-  } else {
-    return Caml_option.some(getUnsafe(v, i));
-  }
-}
-
-function setUnsafe(vec, i, x) {
-  var path = getPathIdx(i, vec.depth);
-  var traverse = function (path, node) {
-    var index = Belt_List.headExn(path);
-    if (node.TAG) {
-      var m = node._0.slice(0);
-      m[index] = x;
-      return {
-              TAG: /* Leaf */1,
-              _0: m
-            };
-    }
-    var n = node._0;
-    var m$1 = n.slice(0);
-    m$1[index] = traverse(Belt_List.tailExn(path), n[index]);
-    return {
-            TAG: /* Node */0,
-            _0: m$1
-          };
-  };
-  return {
-          size: vec.size,
-          depth: vec.depth,
-          root: traverse(path, vec.root)
-        };
 }
 
 function getTail(param) {
@@ -239,7 +188,7 @@ function push(vec, x) {
             RE_EXN_ID: "Assert_failure",
             _1: [
               "Garter_Vector.re",
-              235,
+              184,
               25
             ],
             Error: new Error()
@@ -278,7 +227,7 @@ function peek(v) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "Garter_Vector.re",
-          249,
+          198,
           15
         ],
         Error: new Error()
@@ -324,7 +273,7 @@ function pop(vec) {
               RE_EXN_ID: "Assert_failure",
               _1: [
                 "Garter_Vector.re",
-                298,
+                247,
                 10
               ],
               Error: new Error()
@@ -373,7 +322,7 @@ function pop(vec) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Garter_Vector.re",
-            316,
+            265,
             8
           ],
           Error: new Error()
@@ -386,6 +335,68 @@ function pop(vec) {
             TAG: /* Leaf */1,
             _0: []
           }
+        };
+}
+
+function getUnsafe(param, i) {
+  var path = getPathIdx(i, param.depth);
+  var _path = path;
+  var _node = param.root;
+  while(true) {
+    var node = _node;
+    var path$1 = _path;
+    var index = Belt_List.headExn(path$1);
+    if (node.TAG) {
+      return Caml_array.get(node._0, index);
+    }
+    _node = Caml_array.get(node._0, index);
+    _path = Belt_List.tailExn(path$1);
+    continue ;
+  };
+}
+
+function get(v, i) {
+  if (i < 0 || i >= v.size) {
+    return ;
+  } else {
+    return Caml_option.some(getUnsafe(v, i));
+  }
+}
+
+function getExn(v, i) {
+  if (i < 0 || i >= v.size) {
+    throw {
+          RE_EXN_ID: "Not_found",
+          Error: new Error()
+        };
+  }
+  return getUnsafe(v, i);
+}
+
+function setUnsafe(vec, i, x) {
+  var path = getPathIdx(i, vec.depth);
+  var traverse = function (path, node) {
+    var index = Belt_List.headExn(path);
+    if (node.TAG) {
+      var m = node._0.slice(0);
+      m[index] = x;
+      return {
+              TAG: /* Leaf */1,
+              _0: m
+            };
+    }
+    var n = node._0;
+    var m$1 = n.slice(0);
+    m$1[index] = traverse(Belt_List.tailExn(path), n[index]);
+    return {
+            TAG: /* Node */0,
+            _0: m$1
+          };
+  };
+  return {
+          size: vec.size,
+          depth: vec.depth,
+          root: traverse(path, vec.root)
         };
 }
 
@@ -436,6 +447,7 @@ exports.push = push;
 exports.pop = pop;
 exports.peek = peek;
 exports.get = get;
+exports.getExn = getExn;
 exports.getUnsafe = getUnsafe;
 exports.setUnsafe = setUnsafe;
 exports.fromArray = fromArray;

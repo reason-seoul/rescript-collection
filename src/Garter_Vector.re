@@ -99,50 +99,6 @@ let rec getPathIdx = (i, ~depth) =>
     getPathIdx(i mod denom, ~depth=depth - 1)->Belt.List.add(i / denom);
   };
 
-let getUnsafe = ({depth, root}, i) => {
-  let path = getPathIdx(i, ~depth);
-  let rec traverse = (path, node) => {
-    let index = path->Belt.List.headExn;
-    switch (node) {
-    | Node(n) => traverse(path->Belt.List.tailExn, n->A.getUnsafe(index))
-    | Leaf(n) => n->A.getUnsafe(index)
-    };
-  };
-  traverse(path, root);
-};
-
-let get = ({size} as v, i) =>
-  if (i < 0 || i >= size) {
-    None;
-  } else {
-    Some(getUnsafe(v, i));
-  };
-
-let setUnsafe: (t('a), int, 'a) => t('a) =
-  ({depth, root} as vec, i, x) => {
-    let path = getPathIdx(i, ~depth);
-
-    let rec traverse = (path, node) => {
-      let index = path->Belt.List.headExn;
-      switch (node) {
-      | Node(n) =>
-        let m = A.copy(n);
-        m->A.setUnsafe(
-          index,
-          traverse(path->Belt.List.tailExn, n->A.getUnsafe(index)),
-        );
-        Node(m);
-
-      | Leaf(n) =>
-        let m = A.copy(n);
-        m->A.setUnsafe(index, x);
-        Leaf(m);
-      };
-    };
-
-    {...vec, root: traverse(path, root)};
-  };
-
 let getTail = ({size, depth, root}) => {
   let rec traverse = (path, node) => {
     let subIdx = path->Belt.List.headExn;
@@ -154,13 +110,6 @@ let getTail = ({size, depth, root}) => {
   let path = getPathIdx(size - 1, ~depth);
   traverse(path, root);
 };
-
-/**
- * 3가지 경우를 고려해야 함.
- * 1. 가장 오른쪽 노드에 공간이 있을 때
- * 2. 루트 노드에는 공간이 있지만 가장 오른쪽 노드에는 공간이 없을 때
- * 3. 현재 루트 노드에 공간이 없을 때
- */
 
 let logging = ref(false);
 let log = x =>
@@ -175,7 +124,7 @@ let log2 = (x, y) =>
 
 let push: (t('a), 'a) => t('a) =
   ({size, depth, root} as vec, x) =>
-    // case 1
+    // case 1: when tail has room to append
     if (getTail(vec)->Tree.hasRoom) {
       // log2("[push: case1]", x);
       let rec traverse = node =>
@@ -317,6 +266,51 @@ let pop: t('a) => t('a) =
         make();
       };
     };
+
+// accessors
+
+let getUnsafe = ({depth, root}, i) => {
+  let path = getPathIdx(i, ~depth);
+  let rec traverse = (path, node) => {
+    let index = path->Belt.List.headExn;
+    switch (node) {
+    | Node(n) => traverse(path->Belt.List.tailExn, n[index])
+    | Leaf(n) => n[index]
+    };
+  };
+  traverse(path, root);
+};
+
+let get = ({size} as v, i) =>
+  i < 0 || i >= size ? None : Some(getUnsafe(v, i));
+
+let getExn = ({size} as v, i) =>
+  i < 0 || i >= size ? raise(Not_found) : getUnsafe(v, i);
+
+let setUnsafe: (t('a), int, 'a) => t('a) =
+  ({depth, root} as vec, i, x) => {
+    let path = getPathIdx(i, ~depth);
+
+    let rec traverse = (path, node) => {
+      let index = path->Belt.List.headExn;
+      switch (node) {
+      | Node(n) =>
+        let m = A.copy(n);
+        m->A.setUnsafe(
+          index,
+          traverse(path->Belt.List.tailExn, n->A.getUnsafe(index)),
+        );
+        Node(m);
+
+      | Leaf(n) =>
+        let m = A.copy(n);
+        m->A.setUnsafe(index, x);
+        Leaf(m);
+      };
+    };
+
+    {...vec, root: traverse(path, root)};
+  };
 
 let fromArray = ar => {
   A.reduce(ar, make(), (v, i) => push(v, i));

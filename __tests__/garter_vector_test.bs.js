@@ -2,6 +2,7 @@
 'use strict';
 
 var Jest = require("@glennsl/bs-jest/src/jest.bs.js");
+var Js_math = require("bs-platform/lib/js/js_math.js");
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
 var Js_vector = require("bs-platform/lib/js/js_vector.js");
 var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
@@ -9,7 +10,7 @@ var Garter_Vector = require("../src/Garter_Vector.bs.js");
 
 Jest.describe("Vector.init", (function (param) {
         return Jest.test("empty", (function (param) {
-                      return Jest.Expect.toBe(0, Jest.Expect.expect(Garter_Vector.length(Garter_Vector.make(undefined))));
+                      return Jest.ExpectJs.toBe(0, Jest.ExpectJs.expect(Garter_Vector.length(Garter_Vector.make(undefined))));
                     }));
       }));
 
@@ -21,7 +22,7 @@ Jest.describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", (function (pa
               var ar = Belt_Array.reduce(Belt_Array.range(1, n), Belt_Array.make(0, 0), (function (ar, v) {
                       return Belt_Array.concat(ar, [v]);
                     }));
-              return Jest.Expect.toBe(n, Jest.Expect.expect(ar.length));
+              return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(ar.length));
             })
         ];
         var targets_1 = {
@@ -31,7 +32,7 @@ Jest.describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", (function (pa
                 var ar = Belt_Array.reduce(Belt_Array.range(1, n), Belt_Array.make(0, 0), (function (ar, v) {
                         return ar.concat([v]);
                       }));
-                return Jest.Expect.toBe(n, Jest.Expect.expect(ar.length));
+                return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(ar.length));
               })
           ],
           tl: {
@@ -41,7 +42,7 @@ Jest.describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", (function (pa
                   var ar = Belt_Array.reduce(Belt_Array.range(1, n), Belt_Array.make(0, 0), (function (ar, v) {
                           return Js_vector.append(v, ar);
                         }));
-                  return Jest.Expect.toBe(n, Jest.Expect.expect(ar.length));
+                  return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(ar.length));
                 })
             ],
             tl: {
@@ -49,7 +50,7 @@ Jest.describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", (function (pa
                 "Vector.push",
                 (function (n) {
                     var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
-                    return Jest.Expect.toBe(n, Jest.Expect.expect(Garter_Vector.length(v)));
+                    return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(Garter_Vector.length(v)));
                   })
               ],
               tl: /* [] */0
@@ -77,10 +78,77 @@ Jest.describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", (function (pa
                     }));
       }));
 
+Jest.describe("Vector.push", (function (param) {
+        Jest.testAll("fromArray", Belt_List.fromArray(Belt_Array.range(1, 32)), (function (n) {
+                var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
+                return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(Garter_Vector.length(v)));
+              }));
+        return Jest.testAll("fromArray (large)", Belt_List.fromArray(Belt_Array.rangeBy(100, 10000, 100)), (function (n) {
+                      var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
+                      return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(Garter_Vector.length(v)));
+                    }));
+      }));
+
+function pushpop(n, m) {
+  var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
+  return Belt_Array.reduce(Belt_Array.range(1, m), v, (function (v, param) {
+                return Garter_Vector.pop(v);
+              }));
+}
+
+Jest.describe("Vector.pop", (function (param) {
+        return Jest.testAll("pushpop (push > pop)", {
+                    hd: [
+                      100,
+                      50
+                    ],
+                    tl: {
+                      hd: [
+                        100,
+                        100
+                      ],
+                      tl: {
+                        hd: [
+                          10000,
+                          5000
+                        ],
+                        tl: /* [] */0
+                      }
+                    }
+                  }, (function (param) {
+                      var m = param[1];
+                      var n = param[0];
+                      return Jest.ExpectJs.toBe(n - m | 0, Jest.ExpectJs.expect(Garter_Vector.length(pushpop(n, m))));
+                    }));
+      }));
+
+Jest.describe("Vector.get", (function (param) {
+        var v = pushpop(20000, 10000);
+        Jest.test("random access (10,000 times)", (function (param) {
+                var every = Belt_Array.every(Belt_Array.range(1, 10000), (function (param) {
+                        var idx = Js_math.random_int(0, 10000);
+                        return Garter_Vector.getExn(v, idx) === (idx + 1 | 0);
+                      }));
+                return Jest.ExpectJs.toBeTruthy(Jest.ExpectJs.expect(every));
+              }));
+        return Jest.testAll("out of bounds", {
+                    hd: -1,
+                    tl: {
+                      hd: 10000,
+                      tl: /* [] */0
+                    }
+                  }, (function (idx) {
+                      return Jest.ExpectJs.toThrow(Jest.ExpectJs.expect(function (param) {
+                                      return Garter_Vector.getExn(v, idx);
+                                    }));
+                    }));
+      }));
+
 var A;
 
 var V;
 
 exports.A = A;
 exports.V = V;
+exports.pushpop = pushpop;
 /*  Not a pure module */

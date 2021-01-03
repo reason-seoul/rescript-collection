@@ -8,9 +8,7 @@ let pop: t('a) => t('a);
 let peek: t('a) => option('a);
 
 let get: (t('a), int) => option('a);
-
-// let getExn: (t('a), int) => 'a
-
+let getExn: (t('a), int) => 'a;
 let getUnsafe: (t('a), int) => 'a;
 
 // let set: (t('a), int, 'a) => bool;

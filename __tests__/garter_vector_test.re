@@ -1,10 +1,10 @@
 open Garter.Vector;
-open Jest;
 open Belt;
+open Jest;
+open Expect;
 
 // 초기화 테스트
 describe("Vector", () => {
-  open Expect;
   test("empty", () =>
     expect(make()->length) |> toBe(0)
   );
@@ -28,6 +28,20 @@ describe("Vector", () => {
   );
 });
 
+describe("Vector.pop", () => {
+  let pushpop = (n, m) => {
+    let v = fromArray(Array.range(1, n));
+    Array.range(1, m)->Array.reduce(v, (v, _) => v->pop);
+  };
+
+  testAll(
+    "pushpop (push > pop)",
+    Garter.List.orderedPairs(Array.range(1, 50)->List.fromArray),
+    ((m, n)) =>
+    expect(pushpop(n, m)->length) |> toBe(n - m)
+  );
+});
+
 // make()->debug;
 // make()->push(1)->debug;
 // make()->push(1)->push(2)->debug;
@@ -48,5 +62,3 @@ describe("Vector", () => {
 // N > M
 // => size
 // list에 한거랑
-
-testAll("1");

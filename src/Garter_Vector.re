@@ -1,6 +1,6 @@
 open Belt;
 
-let numBranches = 2;
+let numBranches = 32;
 
 // optimize away inner/leaf distinction
 type node('a) =
@@ -33,10 +33,6 @@ module Node = {
   //   | Leaf(_) => assert(false)
   //   };
   // };
-
-  let makeEmptyInner = () => {
-    Inner([||]);
-  };
 
   let makeEmptyLeaf = () => {
     Leaf([||]);
@@ -177,7 +173,7 @@ let push: (t('a), 'a) => t('a) =
   ({size, depth, root} as vec, x) =>
     // case 1
     if (getTail(vec)->Node.hasRoom) {
-      log2("[push: case1]", x);
+      // log2("[push: case1]", x);
       let rec traverse = node => {
         switch (node) {
         | Inner(ar) =>
@@ -199,24 +195,19 @@ let push: (t('a), 'a) => t('a) =
     } else {
       // case 2 & 3
       let isRootOverflow = size == pow(~base=numBranches, ~exp=depth);
-
-      /** create onyl child tree
-        * depth := length
-        */
       let rec newPath = (depth, node) =>
         depth == 0 ? node : newPath(depth - 1, Node.makeInner(node));
 
       if (isRootOverflow) {
         // case 3: when there's no room to append
-        log2("[push: case3]", x);
+        // log2("[push: case3]", x);
         let newRoot =
           Node.makeInner2(root, newPath(depth - 1, Node.makeLeaf(x)));
 
         {size: size + 1, depth: depth + 1, root: newRoot};
       } else {
         // case 2: all leaf nodes are full but we have room for a new inner node.
-        log2("[push: case2]", x);
-
+        // log2("[push: case2]", x);
         let rec pushTail = (depth, parent, path) => {
           let ret = Node.clone(parent);
           let subIdx = List.headExn(path);
@@ -247,16 +238,18 @@ let push: (t('a), 'a) => t('a) =
       };
     };
 
-/**
- * 1) leaf has more than 1 nodes
- * 2) leaf has only in node
- * 3) after 2), root has only 1 inner node
- */
+let peek = v => {
+  switch (getTail(v)) {
+  | Leaf(ar) => ar[Array.length(ar) - 1]
+  | Inner(_) => assert(false)
+  };
+};
+
 let pop: t('a) => t('a) =
-  ({size, depth, root} as vec) => {
-    let leaf = getTail(vec);
-    if (leaf->Node.hasSiblings) {
-      // case 1)
+  ({size, depth, root} as vec) =>
+    if (getTail(vec)->Node.hasSiblings) {
+      // case 1: tail leaf has more than 1 nodes
+      log2("[pop case1]", peek(vec));
       let rec traverse = node => {
         switch (node) {
         | Inner(ar) =>
@@ -275,51 +268,51 @@ let pop: t('a) => t('a) =
       let newRoot = traverse(root);
       {...vec, size: size - 1, root: newRoot};
     } else {
-      let path = getPathIdx(size - 1, ~depth);
-      let rec traverse = (path, curNode) => {
+      // case 2 & 3: tail leaf has an only child
+      log2("[pop case2&3]", peek(vec));
+      let rec popTail = (parent, path) => {
         let subIdx = path->List.headExn;
-        switch (curNode) {
+        switch (parent) {
         | Inner(ar) =>
-          let child =
-            traverse(path->List.tailExn, ar->Array.getUnsafe(subIdx));
-          switch (child) {
-          | Some(n) =>
+          switch (popTail(ar->Array.getUnsafe(subIdx), path->List.tailExn)) {
+          | Some(child) =>
             // copy and replace
-            let newAr = ar->Array.copy;
-            newAr->Array.setUnsafe(subIdx, Node.makeInner(n));
+            let ret = Node.clone(parent);
+            ret->Node.setInner(subIdx, child);
+            Some(ret);
+          | None when subIdx == 0 =>
+            // remove
+            None
+          | _ =>
+            // copy and remove
+            let newAr =
+              ar->Array.slice(~offset=0, ~len=Array.length(ar) - 1);
             Some(Inner(newAr));
-          | None =>
-            if (subIdx == 0) {
-              None;
-            } else {
-              // copy and remove
-              let newAr =
-                ar->Array.slice(~offset=0, ~len=Array.length(ar) - 1);
-              Some(Inner(newAr));
-            }
-          };
+          }
         | Leaf(_) =>
           // can be merged with case 1)
           assert(subIdx == 0);
           None;
         };
       };
-      switch (traverse(path, root)) {
+
+      let path = getPathIdx(size - 1, ~depth);
+      switch (popTail(root, path)) {
       | Some(newRoot) =>
         switch (newRoot) {
         | Inner(ar) when !newRoot->Node.hasSiblings =>
+          // case 3: root has only 1 inner node
           let firstChild = ar->Array.getUnsafe(0);
-          // case 3) kill root
+          // kill root
           {depth: depth - 1, size: size - 1, root: firstChild};
         | _ => {...vec, size: size - 1, root: newRoot}
         }
       | None =>
+        // back to initial state
         assert(size == 1);
-        assert(depth == 2);
         make();
       };
     };
-  };
 
 let fromArray = ar => {
   Belt.Array.reduce(ar, make(), (v, i) => push(v, i));

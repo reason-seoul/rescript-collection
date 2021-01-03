@@ -4,6 +4,7 @@
 var Jest = require("@glennsl/bs-jest/src/jest.bs.js");
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
 var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
+var Garter_List = require("../src/Garter_List.bs.js");
 var Garter_Vector = require("../src/Garter_Vector.bs.js");
 
 Jest.describe("Vector", (function (param) {
@@ -17,6 +18,20 @@ Jest.describe("Vector", (function (param) {
         return Jest.testAll("fromArray (large)", Belt_List.fromArray(Belt_Array.rangeBy(100, 10000, 100)), (function (n) {
                       var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
                       return Jest.Expect.toBe(n, Jest.Expect.expect(Garter_Vector.length(v)));
+                    }));
+      }));
+
+Jest.describe("Vector.pop", (function (param) {
+        var pushpop = function (n, m) {
+          var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
+          return Belt_Array.reduce(Belt_Array.range(1, m), v, (function (v, param) {
+                        return Garter_Vector.pop(v);
+                      }));
+        };
+        return Jest.testAll("pushpop (push > pop)", Garter_List.orderedPairs(Belt_List.fromArray(Belt_Array.range(1, 50))), (function (param) {
+                      var n = param[1];
+                      var m = param[0];
+                      return Jest.Expect.toBe(n - m | 0, Jest.Expect.expect(Garter_Vector.length(pushpop(n, m))));
                     }));
       }));
 

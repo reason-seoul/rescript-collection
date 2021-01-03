@@ -11,9 +11,9 @@ describe("Vector.init", () => {
   )
 });
 
-describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", () => {
+describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Garter.Vector", () => {
   let smallSet = A.rangeBy(1000, 5000, ~step=1000)->Belt.List.fromArray;
-  let largeSet = [10000, 20000, 30000];
+  let largeSet = [10000, 30000, 50000];
 
   let targets = [
     (
@@ -44,7 +44,7 @@ describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", () => {
       },
     ),
     (
-      "Vector.push",
+      "Garter.Vector.push",
       n => {
         let v = V.fromArray(A.range(1, n));
         expect(v->V.length) |> toBe(n);
@@ -108,5 +108,29 @@ describe("Vector.get", () => {
     expect(() =>
       v->V.getExn(idx)
     ) |> toThrow
+  });
+});
+
+describe("Vector.set", () => {
+  let size = 100000;
+  let v = V.fromArray(A.range(1, size));
+  test({j|random update ($size times)|j}, () => {
+    let v' =
+      A.range(1, size)
+      ->A.shuffle
+      ->A.reduce(v, (v, idx) => v->V.setExn(idx - 1, idx * (-1)));
+    let every = v'->V.toArray->A.every(x => x < 0);
+
+    expect(every) |> toBeTruthy;
+  });
+
+  let ar = A.range(1, size);
+  test({j|mutable random update ($size times)|j}, () => {
+    A.range(1, size)
+    ->A.shuffle
+    ->A.forEach(idx => ar->A.setUnsafe(idx - 1, idx * (-1)));
+    let every = ar->A.every(x => x < 0);
+
+    expect(every) |> toBeTruthy;
   });
 });

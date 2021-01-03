@@ -14,7 +14,7 @@ Jest.describe("Vector.init", (function (param) {
                     }));
       }));
 
-Jest.describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", (function (param) {
+Jest.describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Garter.Vector", (function (param) {
         var smallSet = Belt_List.fromArray(Belt_Array.rangeBy(1000, 5000, 1000));
         var targets_0 = [
           "Belt.Array.concat",
@@ -47,7 +47,7 @@ Jest.describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", (function (pa
             ],
             tl: {
               hd: [
-                "Vector.push",
+                "Garter.Vector.push",
                 (function (n) {
                     var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
                     return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(Garter_Vector.length(v)));
@@ -68,9 +68,9 @@ Jest.describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", (function (pa
                       return Jest.testAll(name + " (large)", {
                                   hd: 10000,
                                   tl: {
-                                    hd: 20000,
+                                    hd: 30000,
                                     tl: {
-                                      hd: 30000,
+                                      hd: 50000,
                                       tl: /* [] */0
                                     }
                                   }
@@ -141,6 +141,30 @@ Jest.describe("Vector.get", (function (param) {
                       return Jest.ExpectJs.toThrow(Jest.ExpectJs.expect(function (param) {
                                       return Garter_Vector.getExn(v, idx);
                                     }));
+                    }));
+      }));
+
+Jest.describe("Vector.set", (function (param) {
+        var v = Garter_Vector.fromArray(Belt_Array.range(1, 100000));
+        Jest.test("random update (" + 100000 + " times)", (function (param) {
+                var v$prime = Belt_Array.reduce(Belt_Array.shuffle(Belt_Array.range(1, 100000)), v, (function (v, idx) {
+                        return Garter_Vector.setExn(v, idx - 1 | 0, Math.imul(idx, -1));
+                      }));
+                var every = Belt_Array.every(Garter_Vector.toArray(v$prime), (function (x) {
+                        return x < 0;
+                      }));
+                return Jest.ExpectJs.toBeTruthy(Jest.ExpectJs.expect(every));
+              }));
+        var ar = Belt_Array.range(1, 100000);
+        return Jest.test("mutable random update (" + 100000 + " times)", (function (param) {
+                      Belt_Array.forEach(Belt_Array.shuffle(Belt_Array.range(1, 100000)), (function (idx) {
+                              ar[idx - 1 | 0] = Math.imul(idx, -1);
+                              
+                            }));
+                      var every = Belt_Array.every(ar, (function (x) {
+                              return x < 0;
+                            }));
+                      return Jest.ExpectJs.toBeTruthy(Jest.ExpectJs.expect(every));
                     }));
       }));
 

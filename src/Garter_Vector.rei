@@ -9,33 +9,15 @@ let peek: t('a) => option('a);
 
 let get: (t('a), int) => option('a);
 let getExn: (t('a), int) => 'a;
-let getUnsafe: (t('a), int) => 'a;
 
-// let set: (t('a), int, 'a) => bool;
+let set: (t('a), int, 'a) => option(t('a));
 
-// let setExn: (t('a), int, 'a) => unit
+let setExn: (t('a), int, 'a) => t('a);
 
-let setUnsafe: (t('a), int, 'a) => t('a);
-
-// let shuffle: t('a) => t('a)
-
-// let drop: (t('a), int) => option(t('a))
-
-// let take: (t('a), int) => option(t('a))
-
-// let splitAt
-// let concat
-
-// let flatten
-
-// let map
-// let mapU
-
-// let mapWithIndex
-// let mapWithIndexU
-
-// let zip
-// let zipBy
+// not optimized: convert to/from array internally
+let map: (t('a), 'a => 'b) => t('b);
+let keep: (t('a), 'a => bool) => t('a);
+let reduce: (t('a), 'b, ('b, 'a) => 'b) => 'b;
 
 let fromArray: array('a) => t('a);
 let toArray: t('a) => array('a);

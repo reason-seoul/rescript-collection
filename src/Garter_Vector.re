@@ -8,11 +8,6 @@ type tree('a) =
   | Leaf(array('a));
 
 module Tree = {
-  let isNode =
-    fun
-    | Node(_) => true
-    | Leaf(_) => false;
-
   let hasRoom = node => {
     switch (node) {
     | Node(ar) => ar->A.length < numBranches
@@ -56,20 +51,18 @@ module Tree = {
     | Leaf(_) => assert(false)
     };
   };
-
-  let setLeaf = (node, idx, v) => {
-    switch (node) {
-    | Leaf(ar) => ar->A.setUnsafe(idx, v)
-    | Node(_) => assert(false)
-    };
-  };
-
-  let getNode = (node, idx) => {
-    switch (node) {
-    | Node(ar) => ar->A.getUnsafe(idx)
-    | Leaf(_) => assert(false)
-    };
-  };
+  // let setLeaf = (node, idx, v) => {
+  //   switch (node) {
+  //   | Leaf(ar) => ar->A.setUnsafe(idx, v)
+  //   | Node(_) => assert(false)
+  //   };
+  // };
+  // let getNode = (node, idx) => {
+  //   switch (node) {
+  //   | Node(ar) => ar[idx]
+  //   | Leaf(_) => assert(false)
+  //   };
+  // };
 };
 
 type t('a) = {
@@ -103,24 +96,13 @@ let getTail = ({size, depth, root}) => {
   let rec traverse = (path, node) => {
     let subIdx = path->Belt.List.headExn;
     switch (node) {
-    | Node(n) => traverse(path->Belt.List.tailExn, n->A.getUnsafe(subIdx))
+    | Node(ar) => traverse(path->Belt.List.tailExn, ar[subIdx])
     | Leaf(_) => node
     };
   };
   let path = getPathIdx(size - 1, ~depth);
   traverse(path, root);
 };
-
-let logging = ref(false);
-let log = x =>
-  if (logging^) {
-    Js.Console.info(x);
-  };
-
-let log2 = (x, y) =>
-  if (logging^) {
-    Js.Console.info2(x, y);
-  };
 
 let push: (t('a), 'a) => t('a) =
   ({size, depth, root} as vec, x) =>
@@ -173,7 +155,7 @@ let push: (t('a), 'a) => t('a) =
             | Node(ar) =>
               let newChild =
                 if (subIdx < ar->A.length) {
-                  let child = ar->A.getUnsafe(subIdx);
+                  let child = ar[subIdx];
                   pushTail(depth - 1, child, Belt.List.tailExn(path));
                 } else {
                   newPath(depth - 2, Tree.makeLeaf(x));
@@ -203,7 +185,7 @@ let pop: t('a) => t('a) =
   ({size, depth, root} as vec) =>
     if (getTail(vec)->Tree.hasSiblings) {
       // case 1: tail leaf has more than 1 nodes
-      log2("[pop case1]", peek(vec));
+      // log2("[pop case1]", peek(vec));
       let rec traverse = parent => {
         switch (parent) {
         | Node(ar) =>
@@ -223,12 +205,12 @@ let pop: t('a) => t('a) =
       {...vec, size: size - 1, root: newRoot};
     } else {
       // case 2 & 3: tail leaf has an only child
-      log2("[pop case2&3]", peek(vec));
+      // log2("[pop case2&3]", peek(vec));
       let rec popTail = (parent, path) => {
         let subIdx = path->Belt.List.headExn;
         switch (parent) {
         | Node(ar) =>
-          switch (popTail(ar->A.getUnsafe(subIdx), path->Belt.List.tailExn)) {
+          switch (popTail(ar[subIdx], path->Belt.List.tailExn)) {
           | Some(child) =>
             // copy and replace
             let newAr = ar->A.copy;
@@ -255,7 +237,7 @@ let pop: t('a) => t('a) =
         switch (newRoot) {
         | Node(ar) when !newRoot->Tree.hasSiblings =>
           // case 3: root has only 1 inner node
-          let firstChild = ar->A.getUnsafe(0);
+          let firstChild = ar[0];
           // kill root
           {depth: depth - 1, size: size - 1, root: firstChild};
         | _ => {...vec, size: size - 1, root: newRoot}
@@ -269,7 +251,7 @@ let pop: t('a) => t('a) =
 
 // accessors
 
-let getUnsafe = ({depth, root}, i) => {
+let getExn = ({depth, root}, i) => {
   let path = getPathIdx(i, ~depth);
   let rec traverse = (path, node) => {
     let index = path->Belt.List.headExn;
@@ -282,35 +264,30 @@ let getUnsafe = ({depth, root}, i) => {
 };
 
 let get = ({size} as v, i) =>
-  i < 0 || i >= size ? None : Some(getUnsafe(v, i));
+  i < 0 || i >= size ? None : Some(getExn(v, i));
 
-let getExn = ({size} as v, i) =>
-  i < 0 || i >= size ? raise(Not_found) : getUnsafe(v, i);
+let setExn = ({depth, root} as vec, i, x) => {
+  let rec traverse = (path, node) => {
+    let index = path->Belt.List.headExn;
+    switch (node) {
+    | Node(ar) =>
+      let m = A.copy(ar);
+      m->A.setUnsafe(index, traverse(path->Belt.List.tailExn, ar[index]));
+      Node(m);
 
-let setUnsafe: (t('a), int, 'a) => t('a) =
-  ({depth, root} as vec, i, x) => {
-    let path = getPathIdx(i, ~depth);
-
-    let rec traverse = (path, node) => {
-      let index = path->Belt.List.headExn;
-      switch (node) {
-      | Node(n) =>
-        let m = A.copy(n);
-        m->A.setUnsafe(
-          index,
-          traverse(path->Belt.List.tailExn, n->A.getUnsafe(index)),
-        );
-        Node(m);
-
-      | Leaf(n) =>
-        let m = A.copy(n);
-        m->A.setUnsafe(index, x);
-        Leaf(m);
-      };
+    | Leaf(ar) =>
+      let m = A.copy(ar);
+      m->A.setUnsafe(index, x);
+      Leaf(m);
     };
-
-    {...vec, root: traverse(path, root)};
   };
+
+  let path = getPathIdx(i, ~depth);
+  {...vec, root: traverse(path, root)};
+};
+
+let set = ({size} as vec, i, x) =>
+  i < 0 || i >= size ? None : Some(setExn(vec, i, x));
 
 let fromArray = ar => {
   A.reduce(ar, make(), (v, i) => push(v, i));
@@ -328,7 +305,13 @@ let toArray = ({root}) => {
   data;
 };
 
-let toString = toArray;
+let doWithArray = (vec, f) => vec->toArray->f->fromArray;
+
+let map = (vec, f) => vec->doWithArray(A.map(_, f));
+
+let keep = (vec, f) => vec->doWithArray(A.keep(_, f));
+
+let reduce = (vec, init, f) => vec->toArray->A.reduce(init, f);
 
 let debug = ({root}) => {
   let rec traverse = (node, depth) => {

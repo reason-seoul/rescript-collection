@@ -3,36 +3,84 @@
 
 var Jest = require("@glennsl/bs-jest/src/jest.bs.js");
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
+var Js_vector = require("bs-platform/lib/js/js_vector.js");
 var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
-var Garter_List = require("../src/Garter_List.bs.js");
 var Garter_Vector = require("../src/Garter_Vector.bs.js");
 
-Jest.describe("Vector", (function (param) {
-        Jest.test("empty", (function (param) {
-                return Jest.Expect.toBe(0, Jest.Expect.expect(Garter_Vector.length(Garter_Vector.make(undefined))));
-              }));
-        Jest.testAll("fromArray", Belt_List.fromArray(Belt_Array.range(1, 32)), (function (n) {
-                var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
-                return Jest.Expect.toBe(n, Jest.Expect.expect(Garter_Vector.length(v)));
-              }));
-        return Jest.testAll("fromArray (large)", Belt_List.fromArray(Belt_Array.rangeBy(100, 10000, 100)), (function (n) {
-                      var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
-                      return Jest.Expect.toBe(n, Jest.Expect.expect(Garter_Vector.length(v)));
+Jest.describe("Vector.init", (function (param) {
+        return Jest.test("empty", (function (param) {
+                      return Jest.Expect.toBe(0, Jest.Expect.expect(Garter_Vector.length(Garter_Vector.make(undefined))));
                     }));
       }));
 
-Jest.describe("Vector.pop", (function (param) {
-        var pushpop = function (n, m) {
-          var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
-          return Belt_Array.reduce(Belt_Array.range(1, m), v, (function (v, param) {
-                        return Garter_Vector.pop(v);
+Jest.describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", (function (param) {
+        var smallSet = Belt_List.fromArray(Belt_Array.rangeBy(1000, 5000, 1000));
+        var targets_0 = [
+          "Belt.Array.concat",
+          (function (n) {
+              var ar = Belt_Array.reduce(Belt_Array.range(1, n), Belt_Array.make(0, 0), (function (ar, v) {
+                      return Belt_Array.concat(ar, [v]);
+                    }));
+              return Jest.Expect.toBe(n, Jest.Expect.expect(ar.length));
+            })
+        ];
+        var targets_1 = {
+          hd: [
+            "Js.Array2.concat",
+            (function (n) {
+                var ar = Belt_Array.reduce(Belt_Array.range(1, n), Belt_Array.make(0, 0), (function (ar, v) {
+                        return ar.concat([v]);
                       }));
+                return Jest.Expect.toBe(n, Jest.Expect.expect(ar.length));
+              })
+          ],
+          tl: {
+            hd: [
+              "Js.Vector.append",
+              (function (n) {
+                  var ar = Belt_Array.reduce(Belt_Array.range(1, n), Belt_Array.make(0, 0), (function (ar, v) {
+                          return Js_vector.append(v, ar);
+                        }));
+                  return Jest.Expect.toBe(n, Jest.Expect.expect(ar.length));
+                })
+            ],
+            tl: {
+              hd: [
+                "Vector.push",
+                (function (n) {
+                    var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
+                    return Jest.Expect.toBe(n, Jest.Expect.expect(Garter_Vector.length(v)));
+                  })
+              ],
+              tl: /* [] */0
+            }
+          }
         };
-        return Jest.testAll("pushpop (push > pop)", Garter_List.orderedPairs(Belt_List.fromArray(Belt_Array.range(1, 50))), (function (param) {
-                      var n = param[1];
-                      var m = param[0];
-                      return Jest.Expect.toBe(n - m | 0, Jest.Expect.expect(Garter_Vector.length(pushpop(n, m))));
+        var targets = {
+          hd: targets_0,
+          tl: targets_1
+        };
+        return Belt_List.forEach(targets, (function (param) {
+                      var f = param[1];
+                      var name = param[0];
+                      Jest.testAll(name + " (small)", smallSet, f);
+                      return Jest.testAll(name + " (large)", {
+                                  hd: 10000,
+                                  tl: {
+                                    hd: 20000,
+                                    tl: {
+                                      hd: 30000,
+                                      tl: /* [] */0
+                                    }
+                                  }
+                                }, f);
                     }));
       }));
 
+var A;
+
+var V;
+
+exports.A = A;
+exports.V = V;
 /*  Not a pure module */

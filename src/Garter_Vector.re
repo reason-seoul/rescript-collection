@@ -1,68 +1,72 @@
-open Belt;
+module A = Belt.Array;
 
 let numBranches = 32;
 
 // optimize away inner/leaf distinction
-type node('a) =
-  | Inner(array(node('a)))
+type tree('a) =
+  | Node(array(tree('a)))
   | Leaf(array('a));
 
-module Node = {
-  let isInner =
+module Tree = {
+  let isNode =
     fun
-    | Inner(_) => true
+    | Node(_) => true
     | Leaf(_) => false;
 
   let hasRoom = node => {
     switch (node) {
-    | Inner(ar) => ar->Array.length < numBranches
-    | Leaf(ar) => ar->Array.length < numBranches
+    | Node(ar) => ar->A.length < numBranches
+    | Leaf(ar) => ar->A.length < numBranches
     };
   };
 
   let hasSiblings = node => {
     switch (node) {
-    | Inner(ar) => ar->Array.length > 1
-    | Leaf(ar) => ar->Array.length > 1
+    | Node(ar) => ar->A.length > 1
+    | Leaf(ar) => ar->A.length > 1
     };
   };
 
   // let lastChild = node => {
   //   switch (node) {
-  //   | Inner(n) => n->Garter_Array.lastUnsafe
+  //   | Node(n) => n->A.lastUnsafe
   //   | Leaf(_) => assert(false)
   //   };
   // };
 
-  let makeEmptyLeaf = () => {
-    Leaf([||]);
+  let makeNode = x => Node(A.make(1, x));
+  let makeNode2 = (x, y) => {
+    let ar = A.makeUninitializedUnsafe(2);
+    ar->A.setUnsafe(0, x);
+    ar->A.setUnsafe(1, y);
+    Node(ar);
   };
 
-  let makeInner = x => Inner(Array.make(1, x));
-  let makeInner2 = (x, y) => {
-    let ar = Array.makeUninitializedUnsafe(2);
-    ar->Array.setUnsafe(0, x);
-    ar->Array.setUnsafe(1, y);
-    Inner(ar);
-  };
-
-  let makeLeaf = x => Leaf(Array.make(1, x));
+  let makeEmptyLeaf = () => Leaf([||]);
+  let makeLeaf = x => Leaf(A.make(1, x));
 
   let clone =
     fun
-    | Inner(ar) => Inner(ar->Array.copy)
-    | Leaf(ar) => Leaf(ar->Array.copy);
+    | Node(ar) => Node(ar->A.copy)
+    | Leaf(ar) => Leaf(ar->A.copy);
 
-  let setInner = (node, idx, v) => {
+  let setNode = (node, idx, v) => {
     switch (node) {
-    | Inner(ar) => ar->Array.setUnsafe(idx, v)
+    | Node(ar) => ar->A.setUnsafe(idx, v)
     | Leaf(_) => assert(false)
     };
   };
 
-  let getInner = (node, idx) => {
+  let setLeaf = (node, idx, v) => {
     switch (node) {
-    | Inner(ar) => ar->Array.getUnsafe(idx)
+    | Leaf(ar) => ar->A.setUnsafe(idx, v)
+    | Node(_) => assert(false)
+    };
+  };
+
+  let getNode = (node, idx) => {
+    switch (node) {
+    | Node(ar) => ar->A.getUnsafe(idx)
     | Leaf(_) => assert(false)
     };
   };
@@ -71,10 +75,10 @@ module Node = {
 type t('a) = {
   size: int,
   depth: int,
-  root: node('a),
+  root: tree('a),
 };
 
-let make = () => {size: 0, depth: 1, root: Node.makeEmptyLeaf()};
+let make = () => {size: 0, depth: 1, root: Tree.makeEmptyLeaf()};
 
 let length = v => v.size;
 
@@ -100,8 +104,8 @@ let getUnsafe = ({depth, root}, i) => {
   let rec traverse = (path, node) => {
     let index = path->Belt.List.headExn;
     switch (node) {
-    | Inner(n) => traverse(path->List.tailExn, n->Array.getUnsafe(index))
-    | Leaf(n) => n->Array.getUnsafe(index)
+    | Node(n) => traverse(path->Belt.List.tailExn, n->A.getUnsafe(index))
+    | Leaf(n) => n->A.getUnsafe(index)
     };
   };
   traverse(path, root);
@@ -121,17 +125,17 @@ let setUnsafe: (t('a), int, 'a) => t('a) =
     let rec traverse = (path, node) => {
       let index = path->Belt.List.headExn;
       switch (node) {
-      | Inner(n) =>
-        let m = Array.copy(n);
-        m->Array.setUnsafe(
+      | Node(n) =>
+        let m = A.copy(n);
+        m->A.setUnsafe(
           index,
-          traverse(path->List.tailExn, n->Array.getUnsafe(index)),
+          traverse(path->Belt.List.tailExn, n->A.getUnsafe(index)),
         );
-        Inner(m);
+        Node(m);
 
       | Leaf(n) =>
-        let m = Array.copy(n);
-        m->Array.setUnsafe(index, x);
+        let m = A.copy(n);
+        m->A.setUnsafe(index, x);
         Leaf(m);
       };
     };
@@ -141,9 +145,9 @@ let setUnsafe: (t('a), int, 'a) => t('a) =
 
 let getTail = ({size, depth, root}) => {
   let rec traverse = (path, node) => {
-    let subIdx = path->List.headExn;
+    let subIdx = path->Belt.List.headExn;
     switch (node) {
-    | Inner(n) => traverse(path->List.tailExn, n->Array.getUnsafe(subIdx))
+    | Node(n) => traverse(path->Belt.List.tailExn, n->A.getUnsafe(subIdx))
     | Leaf(_) => node
     };
   };
@@ -172,60 +176,61 @@ let log2 = (x, y) =>
 let push: (t('a), 'a) => t('a) =
   ({size, depth, root} as vec, x) =>
     // case 1
-    if (getTail(vec)->Node.hasRoom) {
+    if (getTail(vec)->Tree.hasRoom) {
       // log2("[push: case1]", x);
-      let rec traverse = node => {
+      let rec traverse = node =>
         switch (node) {
-        | Inner(ar) =>
-          let newAr = ar->Array.copy;
-          newAr->Array.setUnsafe(
-            ar->Array.length - 1,
+        | Node(ar) =>
+          // copy and replace last child
+          let newAr = ar->A.copy;
+          newAr->A.setUnsafe(
+            ar->A.length - 1,
             traverse(ar->Garter_Array.lastUnsafe),
           );
-          Inner(newAr);
-
+          Node(newAr);
         | Leaf(ar) =>
-          let newAr = ar->Array.copy;
-          newAr->Array.setUnsafe(ar->Array.length, x);
+          // copy and append
+          let newAr = ar->A.copy;
+          newAr->A.setUnsafe(ar->A.length, x);
           Leaf(newAr);
         };
-      };
+
       let newRoot = traverse(root);
       {...vec, size: size + 1, root: newRoot};
     } else {
       // case 2 & 3
       let isRootOverflow = size == pow(~base=numBranches, ~exp=depth);
       let rec newPath = (depth, node) =>
-        depth == 0 ? node : newPath(depth - 1, Node.makeInner(node));
+        depth == 0 ? node : newPath(depth - 1, Tree.makeNode(node));
 
       if (isRootOverflow) {
         // case 3: when there's no room to append
         // log2("[push: case3]", x);
         let newRoot =
-          Node.makeInner2(root, newPath(depth - 1, Node.makeLeaf(x)));
+          Tree.makeNode2(root, newPath(depth - 1, Tree.makeLeaf(x)));
 
         {size: size + 1, depth: depth + 1, root: newRoot};
       } else {
         // case 2: all leaf nodes are full but we have room for a new inner node.
         // log2("[push: case2]", x);
         let rec pushTail = (depth, parent, path) => {
-          let ret = Node.clone(parent);
-          let subIdx = List.headExn(path);
+          let ret = Tree.clone(parent);
+          let subIdx = Belt.List.headExn(path);
           if (depth == 2) {
-            Node.setInner(ret, subIdx, Node.makeLeaf(x));
+            Tree.setNode(ret, subIdx, Tree.makeLeaf(x));
             ret;
           } else {
             switch (parent) {
-            | Inner(ar) =>
+            | Node(ar) =>
               let newChild =
-                if (subIdx < ar->Array.length) {
-                  let child = ar->Array.getUnsafe(subIdx);
-                  pushTail(depth - 1, child, List.tailExn(path));
+                if (subIdx < ar->A.length) {
+                  let child = ar->A.getUnsafe(subIdx);
+                  pushTail(depth - 1, child, Belt.List.tailExn(path));
                 } else {
-                  newPath(depth - 2, Node.makeLeaf(x));
+                  newPath(depth - 2, Tree.makeLeaf(x));
                 };
 
-              Node.setInner(ret, subIdx, newChild);
+              Tree.setNode(ret, subIdx, newChild);
               ret;
             | Leaf(_) => assert(false)
             };
@@ -240,28 +245,28 @@ let push: (t('a), 'a) => t('a) =
 
 let peek = v => {
   switch (getTail(v)) {
-  | Leaf(ar) => ar[Array.length(ar) - 1]
-  | Inner(_) => assert(false)
+  | Leaf(ar) => ar->A.get(A.length(ar) - 1)
+  | Node(_) => assert(false)
   };
 };
 
 let pop: t('a) => t('a) =
   ({size, depth, root} as vec) =>
-    if (getTail(vec)->Node.hasSiblings) {
+    if (getTail(vec)->Tree.hasSiblings) {
       // case 1: tail leaf has more than 1 nodes
       log2("[pop case1]", peek(vec));
-      let rec traverse = node => {
-        switch (node) {
-        | Inner(ar) =>
-          let newAr = ar->Array.copy;
-          newAr->Array.setUnsafe(
-            ar->Array.length - 1,
+      let rec traverse = parent => {
+        switch (parent) {
+        | Node(ar) =>
+          let newAr = ar->A.copy;
+          newAr->A.setUnsafe(
+            ar->A.length - 1,
             traverse(ar->Garter_Array.lastUnsafe),
           );
-          Inner(newAr);
+          Node(newAr);
 
         | Leaf(ar) =>
-          let newAr = ar->Array.slice(~offset=0, ~len=Array.length(ar) - 1);
+          let newAr = ar->A.slice(~offset=0, ~len=A.length(ar) - 1);
           Leaf(newAr);
         };
       };
@@ -271,23 +276,22 @@ let pop: t('a) => t('a) =
       // case 2 & 3: tail leaf has an only child
       log2("[pop case2&3]", peek(vec));
       let rec popTail = (parent, path) => {
-        let subIdx = path->List.headExn;
+        let subIdx = path->Belt.List.headExn;
         switch (parent) {
-        | Inner(ar) =>
-          switch (popTail(ar->Array.getUnsafe(subIdx), path->List.tailExn)) {
+        | Node(ar) =>
+          switch (popTail(ar->A.getUnsafe(subIdx), path->Belt.List.tailExn)) {
           | Some(child) =>
             // copy and replace
-            let ret = Node.clone(parent);
-            ret->Node.setInner(subIdx, child);
-            Some(ret);
+            let newAr = ar->A.copy;
+            newAr->A.setUnsafe(subIdx, child);
+            Some(Node(newAr));
           | None when subIdx == 0 =>
             // remove
             None
           | _ =>
             // copy and remove
-            let newAr =
-              ar->Array.slice(~offset=0, ~len=Array.length(ar) - 1);
-            Some(Inner(newAr));
+            let newAr = ar->A.slice(~offset=0, ~len=A.length(ar) - 1);
+            Some(Node(newAr));
           }
         | Leaf(_) =>
           // can be merged with case 1)
@@ -300,9 +304,9 @@ let pop: t('a) => t('a) =
       switch (popTail(root, path)) {
       | Some(newRoot) =>
         switch (newRoot) {
-        | Inner(ar) when !newRoot->Node.hasSiblings =>
+        | Node(ar) when !newRoot->Tree.hasSiblings =>
           // case 3: root has only 1 inner node
-          let firstChild = ar->Array.getUnsafe(0);
+          let firstChild = ar->A.getUnsafe(0);
           // kill root
           {depth: depth - 1, size: size - 1, root: firstChild};
         | _ => {...vec, size: size - 1, root: newRoot}
@@ -315,14 +319,14 @@ let pop: t('a) => t('a) =
     };
 
 let fromArray = ar => {
-  Belt.Array.reduce(ar, make(), (v, i) => push(v, i));
+  A.reduce(ar, make(), (v, i) => push(v, i));
 };
 
 let toArray = ({root}) => {
   let data = [||];
   let rec traverse = node => {
     switch (node) {
-    | Inner(ar) => ar->Array.forEach(traverse)
+    | Node(ar) => ar->A.forEach(traverse)
     | Leaf(ar) => data->Js.Array2.pushMany(ar)->ignore
     };
   };
@@ -335,12 +339,12 @@ let toString = toArray;
 let debug = ({root}) => {
   let rec traverse = (node, depth) => {
     switch (node) {
-    | Inner(ar) =>
+    | Node(ar) =>
       Js.log("I " ++ depth->string_of_int);
-      Belt.Array.forEach(ar, n => traverse(n, depth + 1));
+      A.forEach(ar, n => traverse(n, depth + 1));
     | Leaf(ar) =>
       Js.log("L " ++ depth->string_of_int);
-      Belt.Array.forEach(ar, n => Js.log(n));
+      A.forEach(ar, n => Js.log(n));
     };
   };
   traverse(root, 1);

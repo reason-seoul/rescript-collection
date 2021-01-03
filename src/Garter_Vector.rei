@@ -5,10 +5,7 @@ let length: t('a) => int;
 
 let push: (t('a), 'a) => t('a);
 let pop: t('a) => t('a);
-let peek: t('a) => 'a;
-
-// let last: (t('a)) => option('a)
-// let lastExn: (t('a)) => 'a
+let peek: t('a) => option('a);
 
 let get: (t('a), int) => option('a);
 
@@ -43,6 +40,8 @@ let setUnsafe: (t('a), int, 'a) => t('a);
 // let zipBy
 
 let fromArray: array('a) => t('a);
-let toArray: t('a) => array('a)
+let toArray: t('a) => array('a);
 
 // let reverse: t('a) => t('a)
+
+let debug: t('a) => unit;

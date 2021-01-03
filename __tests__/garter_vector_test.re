@@ -1,64 +1,93 @@
-open Garter.Vector;
-open Belt;
 open Jest;
 open Expect;
 
+module A = Belt.Array;
+module V = Garter.Vector;
+
 // 초기화 테스트
-describe("Vector", () => {
+describe("Vector.init", () => {
   test("empty", () =>
-    expect(make()->length) |> toBe(0)
-  );
-
-  testAll(
-    "fromArray",
-    Array.range(1, 32)->List.fromArray,
-    n => {
-      let v = fromArray(Array.range(1, n));
-      expect(v->length) |> toBe(n);
-    },
-  );
-
-  testAll(
-    "fromArray (large)",
-    Array.rangeBy(100, 10000, ~step=100)->List.fromArray,
-    n => {
-      let v = fromArray(Array.range(1, n));
-      expect(v->length) |> toBe(n);
-    },
-  );
+    expect(V.make()->V.length) |> toBe(0)
+  )
 });
 
-describe("Vector.pop", () => {
-  let pushpop = (n, m) => {
-    let v = fromArray(Array.range(1, n));
-    Array.range(1, m)->Array.reduce(v, (v, _) => v->pop);
-  };
+describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Vector", () => {
+  let smallSet = A.rangeBy(1000, 5000, ~step=1000)->Belt.List.fromArray;
+  let largeSet = [10000, 20000, 30000];
 
-  testAll(
-    "pushpop (push > pop)",
-    Garter.List.orderedPairs(Array.range(1, 50)->List.fromArray),
-    ((m, n)) =>
-    expect(pushpop(n, m)->length) |> toBe(n - m)
-  );
+  let targets = [
+    (
+      "Belt.Array.concat",
+      n => {
+        let ar =
+          A.range(1, n)
+          ->A.reduce(A.make(0, 0), (ar, v) => ar->A.concat([|v|]));
+        expect(ar->A.length) |> toBe(n);
+      },
+    ),
+    (
+      "Js.Array2.concat",
+      n => {
+        let ar =
+          A.range(1, n)
+          ->A.reduce(A.make(0, 0), (ar, v) => ar->Js.Array2.concat([|v|]));
+        expect(ar->A.length) |> toBe(n);
+      },
+    ),
+    (
+      "Js.Vector.append",
+      n => {
+        let ar =
+          A.range(1, n)
+          ->A.reduce(A.make(0, 0), (ar, v) => {ar |> Js.Vector.append(v)});
+        expect(ar->A.length) |> toBe(n);
+      },
+    ),
+    (
+      "Vector.push",
+      n => {
+        let v = V.fromArray(A.range(1, n));
+        expect(v->V.length) |> toBe(n);
+      },
+    ),
+  ];
+
+  targets->Belt.List.forEach(((name, f)) => {
+    testAll(name ++ " (small)", smallSet, f);
+    testAll(name ++ " (large)", largeSet, f);
+  });
 });
 
-// make()->debug;
-// make()->push(1)->debug;
-// make()->push(1)->push(2)->debug;
-// make()->push(1)->push(2)->push(3)->debug;
-// make()->push(1)->push(2)->push(3)->push(4)->debug;
-// make()->push(1)->push(2)->push(3)->push(4)->push(5)->debug;
-// make()->push(1)->push(2)->push(3)->push(4)->push(5)->push(6)->debug;
+// describe("Vector.push", () => {
+//   testAll(
+//     "fromArray",
+//     Array.range(1, 32)->List.fromArray,
+//     n => {
+//       let v = fromArray(Array.range(1, n));
+//       expect(v->length) |> toBe(n);
+//     },
+//   );
 
-// case 2)
-// make()->push(1)->push(2)->push(3)->push(4)->push(5)->push(6)->push(7)->debug;
-// let n = 14;
-// assert(fromArray(Belt.Array.range(1,n))->length == n);
+//   testAll(
+//     "fromArray (large)",
+//     Array.rangeBy(100, 10000, ~step=100)->List.fromArray,
+//     n => {
+//       let v = fromArray(Array.range(1, n));
+//       expect(v->length) |> toBe(n);
+//     },
+//   );
+// });
 
-//v->push(15);
-// ->Js.log
+// describe("Vector.pop", () => {
+//   let pushpop = (n, m) => {
+//     let v = fromArray(Array.range(1, n));
+//     Array.range(1, m)->Array.reduce(v, (v, _) => v->pop);
+//   };
 
-// n개 추가 - m개 제거
-// N > M
-// => size
-// list에 한거랑
+//   testAll(
+//     "pushpop (push > pop)",
+//     Garter.List.orderedPairs(Array.range(1, 100)->List.fromArray),
+//     ((m, n)) =>
+//     expect(pushpop(n, m)->length) |> toBe(n - m)
+//   );
+// });

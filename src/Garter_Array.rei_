@@ -1,9 +1,0 @@
-let isEmpty: array('a) => bool;
-
-let last: array('a) => option('a);
-
-let lastUnsafe: array('a) => 'a;
-
-let groupBy:
-  (array('a), ~keyFn: 'a => 'b, ~id: Belt.Map.id('b, 'c)) =>
-  Belt.Map.t('b, array('a), 'c);

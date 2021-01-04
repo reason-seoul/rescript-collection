@@ -114,9 +114,10 @@ let push: (t('a), 'a) => t('a) =
         | Node(ar) =>
           // copy and replace last child
           let newAr = ar->A.copy;
+          let subIdx = ar->A.length - 1;
           newAr->A.setUnsafe(
-            ar->A.length - 1,
-            traverse(ar->Garter_Array.lastUnsafe),
+            subIdx,
+            traverse(ar->A.getUnsafe(subIdx))
           );
           Node(newAr);
         | Leaf(ar) =>
@@ -190,9 +191,10 @@ let pop: t('a) => t('a) =
         switch (parent) {
         | Node(ar) =>
           let newAr = ar->A.copy;
+          let subIdx = ar->A.length - 1;
           newAr->A.setUnsafe(
-            ar->A.length - 1,
-            traverse(ar->Garter_Array.lastUnsafe),
+            subIdx,
+            traverse(ar->A.getUnsafe(subIdx))
           );
           Node(newAr);
 

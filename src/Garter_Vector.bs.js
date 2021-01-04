@@ -26,16 +26,16 @@ function makeNode2(x, y) {
         };
 }
 
-function clone(ar) {
-  if (ar.TAG === /* Node */0) {
+function clone(x) {
+  if (x.TAG === /* Node */0) {
     return {
             TAG: /* Node */0,
-            _0: ar._0.slice(0)
+            _0: x._0.slice(0)
           };
   } else {
     return {
             TAG: /* Leaf */1,
-            _0: ar._0.slice(0)
+            _0: x._0.slice(0)
           };
   }
 }
@@ -48,8 +48,8 @@ function setNode(node, idx, v) {
   throw {
         RE_EXN_ID: "Assert_failure",
         _1: [
-          "Garter_Vector.re",
-          51,
+          "Garter_Vector.res",
+          43,
           17
         ],
         Error: new Error()
@@ -189,9 +189,9 @@ function push(vec, x) {
     throw {
           RE_EXN_ID: "Assert_failure",
           _1: [
-            "Garter_Vector.re",
-            167,
-            25
+            "Garter_Vector.res",
+            137,
+            23
           ],
           Error: new Error()
         };
@@ -211,8 +211,8 @@ function peek(v) {
     throw {
           RE_EXN_ID: "Assert_failure",
           _1: [
-            "Garter_Vector.re",
-            181,
+            "Garter_Vector.res",
+            151,
             15
           ],
           Error: new Error()
@@ -278,9 +278,9 @@ function pop(vec) {
       throw {
             RE_EXN_ID: "Assert_failure",
             _1: [
-              "Garter_Vector.re",
-              231,
-              10
+              "Garter_Vector.res",
+              195,
+              8
             ],
             Error: new Error()
           };
@@ -308,9 +308,9 @@ function pop(vec) {
     throw {
           RE_EXN_ID: "Assert_failure",
           _1: [
-            "Garter_Vector.re",
-            249,
-            8
+            "Garter_Vector.res",
+            213,
+            6
           ],
           Error: new Error()
         };

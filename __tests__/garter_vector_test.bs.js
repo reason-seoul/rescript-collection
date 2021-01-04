@@ -4,7 +4,6 @@
 var Jest = require("@glennsl/bs-jest/src/jest.bs.js");
 var Js_math = require("bs-platform/lib/js/js_math.js");
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
-var Js_vector = require("bs-platform/lib/js/js_vector.js");
 var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
 var Garter_Vector = require("../src/Garter_Vector.bs.js");
 
@@ -14,19 +13,19 @@ Jest.describe("Vector.init", (function (param) {
                     }));
       }));
 
-Jest.describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Garter.Vector", (function (param) {
+Jest.describe("Belt.Array vs. Js.Array vs. Js.Array (mutable) vs. Garter.Vector", (function (param) {
         var smallSet = Belt_List.fromArray(Belt_Array.rangeBy(1000, 5000, 1000));
-        var targets_0 = [
-          "Belt.Array.concat",
-          (function (n) {
-              var ar = Belt_Array.reduce(Belt_Array.range(1, n), Belt_Array.make(0, 0), (function (ar, v) {
-                      return Belt_Array.concat(ar, [v]);
-                    }));
-              return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(ar.length));
-            })
-        ];
-        var targets_1 = {
-          hd: [
+        var targets = [
+          [
+            "Belt.Array.concat",
+            (function (n) {
+                var ar = Belt_Array.reduce(Belt_Array.range(1, n), Belt_Array.make(0, 0), (function (ar, v) {
+                        return Belt_Array.concat(ar, [v]);
+                      }));
+                return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(ar.length));
+              })
+          ],
+          [
             "Js.Array2.concat",
             (function (n) {
                 var ar = Belt_Array.reduce(Belt_Array.range(1, n), Belt_Array.make(0, 0), (function (ar, v) {
@@ -35,33 +34,26 @@ Jest.describe("Belt.Array vs. Js.Array2 vs. Js.Vector vs. Garter.Vector", (funct
                 return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(ar.length));
               })
           ],
-          tl: {
-            hd: [
-              "Js.Vector.append",
-              (function (n) {
-                  var ar = Belt_Array.reduce(Belt_Array.range(1, n), Belt_Array.make(0, 0), (function (ar, v) {
-                          return Js_vector.append(v, ar);
-                        }));
-                  return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(ar.length));
-                })
-            ],
-            tl: {
-              hd: [
-                "Garter.Vector.push",
-                (function (n) {
-                    var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
-                    return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(Garter_Vector.length(v)));
-                  })
-              ],
-              tl: /* [] */0
-            }
-          }
-        };
-        var targets = {
-          hd: targets_0,
-          tl: targets_1
-        };
-        return Belt_List.forEach(targets, (function (param) {
+          [
+            "Js.Array2.push (mutable)",
+            (function (n) {
+                var ar = [];
+                Belt_Array.forEach(Belt_Array.range(1, n), (function (v) {
+                        ar.push(v);
+                        
+                      }));
+                return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(ar.length));
+              })
+          ],
+          [
+            "Garter.Vector.push",
+            (function (n) {
+                var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
+                return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(Garter_Vector.length(v)));
+              })
+          ]
+        ];
+        return Belt_Array.forEach(targets, (function (param) {
                       var f = param[1];
                       var name = param[0];
                       Jest.testAll(name + " (small)", smallSet, f);

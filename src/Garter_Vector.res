@@ -8,12 +8,6 @@ type rec tree<'a> =
   | Leaf(array<'a>)
 
 module Tree = {
-  let hasRoom = node =>
-    switch node {
-    | Node(ar) => ar->A.length < numBranches
-    | Leaf(ar) => ar->A.length < numBranches
-    }
-
   let hasSiblings = node =>
     switch node {
     | Node(ar) => ar->A.length > 1
@@ -28,7 +22,6 @@ module Tree = {
     Node(ar)
   }
 
-  let makeEmptyLeaf = () => Leaf([])
   let makeLeaf = x => Leaf(A.make(1, x))
 
   let clone = x =>
@@ -48,9 +41,10 @@ type t<'a> = {
   size: int,
   depth: int,
   root: tree<'a>,
+  tail: array<'a>,
 }
 
-let make = () => {size: 0, depth: 1, root: Tree.makeEmptyLeaf()}
+let make = () => {size: 0, depth: 1, root: Node([]), tail: []}
 
 let length = v => v.size
 
@@ -69,21 +63,9 @@ let rec getPathIdx = (i, ~depth) =>
     getPathIdx(mod(i, denom), ~depth=depth - 1)->Belt.List.add(i / denom)
   }
 
-let getTail = ({size, depth, root}) => {
-  let rec traverse = (path, node) => {
-    let subIdx = path->Belt.List.headExn
-    switch node {
-    | Node(ar) => traverse(path->Belt.List.tailExn, ar[subIdx])
-    | Leaf(_) => node
-    }
-  }
-  let path = getPathIdx(size - 1, ~depth)
-  traverse(path, root)
-}
-
-let push: (t<'a>, 'a) => t<'a> = ({size, depth, root} as vec, x) =>
+let push = ({size, depth, root, tail} as vec, x) =>
   // case 1: when tail has room to append
-  if getTail(vec)->Tree.hasRoom {
+  if tail->A.length < numBranches {
     // log2("[push: case1]", x);
     let rec traverse = node =>
       switch node {
@@ -112,7 +94,7 @@ let push: (t<'a>, 'a) => t<'a> = ({size, depth, root} as vec, x) =>
       // log2("[push: case3]", x);
       let newRoot = Tree.makeNode2(root, newPath(depth - 1, Tree.makeLeaf(x)))
 
-      {size: size + 1, depth: depth + 1, root: newRoot}
+      {...vec, size: size + 1, depth: depth + 1, root: newRoot}
     } else {
       // case 2: all leaf nodes are full but we have room for a new inner node.
       // log2("[push: case2]", x);
@@ -145,14 +127,10 @@ let push: (t<'a>, 'a) => t<'a> = ({size, depth, root} as vec, x) =>
     }
   }
 
-let peek = v =>
-  switch getTail(v) {
-  | Leaf(ar) => ar->A.get(A.length(ar) - 1)
-  | Node(_) => assert false
-  }
+let peek = ({tail}) => tail->A.get(A.length(tail) - 1)
 
-let pop: t<'a> => t<'a> = ({size, depth, root} as vec) =>
-  if getTail(vec)->Tree.hasSiblings {
+let pop = ({size, depth, root, tail} as vec) =>
+  if Leaf(tail)->Tree.hasSiblings {
     // case 1: tail leaf has more than 1 nodes
     // log2("[pop case1]", peek(vec));
     let rec traverse = parent =>
@@ -205,7 +183,7 @@ let pop: t<'a> => t<'a> = ({size, depth, root} as vec) =>
         // case 3: root has only 1 inner node
         let firstChild = ar[0]
         // kill root
-        {depth: depth - 1, size: size - 1, root: firstChild}
+        {...vec, depth: depth - 1, size: size - 1, root: firstChild}
       | _ => {...vec, size: size - 1, root: newRoot}
       }
     | None =>

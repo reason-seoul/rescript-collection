@@ -1,6 +1,8 @@
+// implementation of a persistent bit-partitioned vector trie.
+
 module A = Belt.Array
 
-let numBranches = 2
+let numBranches = 32
 
 // optimize away inner/leaf distinction
 type rec tree<'a> =
@@ -40,7 +42,7 @@ let make = () => {size: 0, depth: 1, root: Node([]), tail: []}
 
 let length = v => v.size
 
-// TODO: optimize with LUT
+// TODO: optimize with bit-partitioning
 let pow = (~base, ~exp) =>
   Js.Math.pow_float(~base=base->float_of_int, ~exp=exp->float_of_int)->int_of_float
 
@@ -54,6 +56,8 @@ let rec getPathIdx = (i, ~depth) =>
     let denom = pow(~base=numBranches, ~exp=depth)
     getPathIdx(mod(i, denom), ~depth=depth - 1)->Belt.List.add(i / denom)
   }
+
+let tailOffset = ({size, tail}) => size - tail->A.length
 
 let push = ({size, depth, root, tail} as vec, x) =>
   // case 1: when tail has room to append
@@ -100,8 +104,7 @@ let push = ({size, depth, root, tail} as vec, x) =>
         }
       }
 
-      let tailOffset = size - tail->A.length
-      let path = getPathIdx(tailOffset, ~depth)
+      let path = getPathIdx(tailOffset(vec), ~depth)
       // Js.log4("push tail", tail, "new tail", [x])
       // Js.log2("path", path->Belt.List.toArray)
       let newRoot = pushTail(depth, root, path)
@@ -111,9 +114,8 @@ let push = ({size, depth, root, tail} as vec, x) =>
 
 let peek = ({tail}) => tail->A.get(A.length(tail) - 1)
 
-let getArrayUnsafe = ({size, depth, root, tail}, idx) => {
-  let tailOffset = size - tail->A.length
-  if idx >= tailOffset {
+let getArrayUnsafe = ({depth, root, tail} as vec, idx) => {
+  if idx >= tailOffset(vec) {
     tail
   } else {
     let rec traverse = (parent, path) =>
@@ -191,40 +193,49 @@ let pop = ({size, depth, root, tail} as vec) =>
     }
   }
 
-// accessors
-
-let getExn = ({depth, root}, i) => {
-  let path = getPathIdx(i, ~depth)
-  let rec traverse = (path, node) => {
-    let index = path->Belt.List.headExn
-    switch node {
-    | Node(n) => traverse(path->Belt.List.tailExn, n[index])
-    | Leaf(n) => n[index]
+let getExn = ({depth, root, tail} as vec, i) => {
+  let offset = tailOffset(vec)
+  if i >= offset {
+    tail[i - offset]
+  } else {
+    let rec traverse = (node, path) => {
+      switch node {
+      | Node(n) => traverse(n[path->Belt.List.headExn], path->Belt.List.tailExn)
+      | Leaf(n) => n[mod(i, numBranches)]
+      }
     }
+    let path = getPathIdx(i, ~depth)
+    traverse(root, path)
   }
-  traverse(path, root)
 }
 
 let get = ({size} as v, i) => i < 0 || i >= size ? None : Some(getExn(v, i))
 
-let setExn = ({depth, root} as vec, i, x) => {
-  let rec traverse = (path, node) => {
-    let index = path->Belt.List.headExn
-    switch node {
-    | Node(ar) =>
-      let m = A.copy(ar)
-      m->A.setUnsafe(index, traverse(path->Belt.List.tailExn, ar[index]))
-      Node(m)
+let setExn = ({depth, root, tail} as vec, i, x) => {
+  let offset = tailOffset(vec)
+  if i >= offset {
+    let newTail = tail->A.copy
+    newTail->A.setUnsafe(i - offset, x)
+    {...vec, tail: newTail}
+  } else {
+    let rec traverse = (node, path) => {
+      switch node {
+      | Node(ar) =>
+        let index = path->Belt.List.headExn
+        let m = A.copy(ar)
+        m->A.setUnsafe(index, traverse(ar[index], path->Belt.List.tailExn))
+        Node(m)
 
-    | Leaf(ar) =>
-      let m = A.copy(ar)
-      m->A.setUnsafe(index, x)
-      Leaf(m)
+      | Leaf(ar) =>
+        let m = A.copy(ar)
+        m->A.setUnsafe(mod(i, numBranches), x)
+        Leaf(m)
+      }
     }
-  }
 
-  let path = getPathIdx(i, ~depth)
-  {...vec, root: traverse(path, root)}
+    let path = getPathIdx(i, ~depth)
+    {...vec, root: traverse(root, path)}
+  }
 }
 
 let set = ({size} as vec, i, x) => i < 0 || i >= size ? None : Some(setExn(vec, i, x))

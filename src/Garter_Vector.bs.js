@@ -40,7 +40,7 @@ function setNode(node, idx, v) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "Garter_Vector.res",
-          28,
+          30,
           17
         ],
         Error: new Error()
@@ -71,8 +71,12 @@ function getPathIdx(i, depth) {
   if (depth === 0) {
     return /* [] */0;
   }
-  var denom = pow(2, depth);
+  var denom = pow(32, depth);
   return Belt_List.add(getPathIdx(Caml_int32.mod_(i, denom), depth - 1 | 0), Caml_int32.div(i, denom));
+}
+
+function tailOffset(param) {
+  return param.size - param.tail.length | 0;
 }
 
 function push(vec, x) {
@@ -80,7 +84,7 @@ function push(vec, x) {
   var root = vec.root;
   var depth = vec.depth;
   var size = vec.size;
-  if (tail.length < 2) {
+  if (tail.length < 32) {
     var newTail = tail.slice(0);
     newTail[tail.length] = x;
     return {
@@ -90,7 +94,7 @@ function push(vec, x) {
             tail: newTail
           };
   }
-  var isRootOverflow = size === (pow(2, depth + 1 | 0) + 2 | 0);
+  var isRootOverflow = size === (pow(32, depth + 1 | 0) + 32 | 0);
   var newPath = function (_depth, _node) {
     while(true) {
       var node = _node;
@@ -141,14 +145,13 @@ function push(vec, x) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Garter_Vector.res",
-            98,
+            102,
             23
           ],
           Error: new Error()
         };
   };
-  var tailOffset = size - tail.length | 0;
-  var path = getPathIdx(tailOffset, depth);
+  var path = getPathIdx(tailOffset(vec), depth);
   var newRoot$1 = pushTail(depth, root, path);
   return {
           size: size + 1 | 0,
@@ -163,11 +166,9 @@ function peek(param) {
   return Belt_Array.get(tail, tail.length - 1 | 0);
 }
 
-function getArrayUnsafe(param, idx) {
-  var tail = param.tail;
-  var tailOffset = param.size - tail.length | 0;
-  if (idx >= tailOffset) {
-    return tail;
+function getArrayUnsafe(vec, idx) {
+  if (idx >= tailOffset(vec)) {
+    return vec.tail;
   }
   var traverse = function (_parent, _path) {
     while(true) {
@@ -185,15 +186,15 @@ function getArrayUnsafe(param, idx) {
             RE_EXN_ID: "Assert_failure",
             _1: [
               "Garter_Vector.res",
-              125,
+              127,
               21
             ],
             Error: new Error()
           };
     };
   };
-  var path = getPathIdx(idx, param.depth);
-  var ar = traverse(param.root, path);
+  var path = getPathIdx(idx, vec.depth);
+  var ar = traverse(vec.root, path);
   if (ar.TAG !== /* Node */0) {
     return ar._0;
   }
@@ -201,7 +202,7 @@ function getArrayUnsafe(param, idx) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "Garter_Vector.res",
-          130,
+          132,
           17
         ],
         Error: new Error()
@@ -253,7 +254,7 @@ function pop(vec) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Garter_Vector.res",
-            171,
+            173,
             21
           ],
           Error: new Error()
@@ -289,26 +290,29 @@ function pop(vec) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "Garter_Vector.res",
-          190,
+          192,
           17
         ],
         Error: new Error()
       };
 }
 
-function getExn(param, i) {
-  var path = getPathIdx(i, param.depth);
+function getExn(vec, i) {
+  var offset = tailOffset(vec);
+  if (i >= offset) {
+    return Caml_array.get(vec.tail, i - offset | 0);
+  }
+  var path = getPathIdx(i, vec.depth);
+  var _node = vec.root;
   var _path = path;
-  var _node = param.root;
   while(true) {
-    var node = _node;
     var path$1 = _path;
-    var index = Belt_List.headExn(path$1);
+    var node = _node;
     if (node.TAG !== /* Node */0) {
-      return Caml_array.get(node._0, index);
+      return Caml_array.get(node._0, i % 32);
     }
-    _node = Caml_array.get(node._0, index);
     _path = Belt_List.tailExn(path$1);
+    _node = Caml_array.get(node._0, Belt_List.headExn(path$1));
     continue ;
   };
 }
@@ -322,19 +326,30 @@ function get(v, i) {
 }
 
 function setExn(vec, i, x) {
-  var traverse = function (path, node) {
-    var index = Belt_List.headExn(path);
+  var offset = tailOffset(vec);
+  if (i >= offset) {
+    var newTail = vec.tail.slice(0);
+    newTail[i - offset | 0] = x;
+    return {
+            size: vec.size,
+            depth: vec.depth,
+            root: vec.root,
+            tail: newTail
+          };
+  }
+  var traverse = function (node, path) {
     if (node.TAG === /* Node */0) {
       var ar = node._0;
+      var index = Belt_List.headExn(path);
       var m = ar.slice(0);
-      m[index] = traverse(Belt_List.tailExn(path), Caml_array.get(ar, index));
+      m[index] = traverse(Caml_array.get(ar, index), Belt_List.tailExn(path));
       return {
               TAG: /* Node */0,
               _0: m
             };
     }
     var m$1 = node._0.slice(0);
-    m$1[index] = x;
+    m$1[i % 32] = x;
     return {
             TAG: /* Leaf */1,
             _0: m$1
@@ -344,7 +359,7 @@ function setExn(vec, i, x) {
   return {
           size: vec.size,
           depth: vec.depth,
-          root: traverse(path, vec.root),
+          root: traverse(vec.root, path),
           tail: vec.tail
         };
 }

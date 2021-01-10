@@ -8,23 +8,9 @@ describe("Vector.init", () => test("empty", () => expect(V.make()->V.length) |> 
 
 describe("Belt.Array vs. Js.Array vs. Js.Array (mutable) vs. Garter.Vector", () => {
   let smallSet = A.rangeBy(1000, 5000, ~step=1000)->Belt.List.fromArray
-  let largeSet = list{10000, 30000, 50000}
+  // let largeSet = list{10000, 30000, 50000, 100000, 1000000}
 
   let targets = [
-    (
-      "Belt.Array.concat",
-      n => {
-        let ar = A.range(1, n)->A.reduce(A.make(0, 0), (ar, v) => ar->A.concat([v]))
-        expect(ar->A.length) |> toBe(n)
-      },
-    ),
-    (
-      "Js.Array2.concat",
-      n => {
-        let ar = A.range(1, n)->A.reduce(A.make(0, 0), (ar, v) => ar->Js.Array2.concat([v]))
-        expect(ar->A.length) |> toBe(n)
-      },
-    ),
     (
       "Js.Array2.push (mutable)",
       n => {
@@ -44,19 +30,19 @@ describe("Belt.Array vs. Js.Array vs. Js.Array (mutable) vs. Garter.Vector", () 
 
   targets->A.forEach(((name, f)) => {
     testAll(name ++ " (small)", smallSet, f)
-    testAll(name ++ " (large)", largeSet, f)
+    // testAll(name ++ " (large)", largeSet, f)
   })
 })
 
 describe("Vector.push", () => {
+  let isomorphic = ar => ar->V.fromArray->V.toArray == ar
+
   testAll("fromArray", A.range(1, 32)->Belt.List.fromArray, n => {
-    let v = V.fromArray(A.range(1, n))
-    expect(v->V.length) |> toBe(n)
+    expect(isomorphic(A.range(1, n))) |> toBeTruthy
   })
 
-  testAll("fromArray (large)", A.rangeBy(100, 10000, ~step=100)->Belt.List.fromArray, n => {
-    let v = V.fromArray(A.range(1, n))
-    expect(v->V.length) |> toBe(n)
+  testAll("fromArray (large)", A.rangeBy(1000, 10000, ~step=1000)->Belt.List.fromArray, n => {
+    expect(isomorphic(A.range(1, n))) |> toBeTruthy
   })
 })
 
@@ -67,7 +53,7 @@ let pushpop = (n, m) => {
 
 describe("Vector.pop", () =>
   testAll("pushpop (push > pop)", list{(100, 50), (100, 100), (10000, 5000)}, ((n, m)) =>
-    expect(pushpop(n, m)->V.length) |> toBe(n - m)
+    expect(pushpop(n, m)->V.toArray == A.range(1, n - m)) |> toBeTruthy
   )
 )
 

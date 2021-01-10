@@ -3,6 +3,7 @@
 
 var Jest = require("@glennsl/bs-jest/src/jest.bs.js");
 var Js_math = require("bs-platform/lib/js/js_math.js");
+var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
 var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
 var Garter_Vector = require("../src/Garter_Vector.bs.js");
@@ -16,24 +17,6 @@ Jest.describe("Vector.init", (function (param) {
 Jest.describe("Belt.Array vs. Js.Array vs. Js.Array (mutable) vs. Garter.Vector", (function (param) {
         var smallSet = Belt_List.fromArray(Belt_Array.rangeBy(1000, 5000, 1000));
         var targets = [
-          [
-            "Belt.Array.concat",
-            (function (n) {
-                var ar = Belt_Array.reduce(Belt_Array.range(1, n), Belt_Array.make(0, 0), (function (ar, v) {
-                        return Belt_Array.concat(ar, [v]);
-                      }));
-                return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(ar.length));
-              })
-          ],
-          [
-            "Js.Array2.concat",
-            (function (n) {
-                var ar = Belt_Array.reduce(Belt_Array.range(1, n), Belt_Array.make(0, 0), (function (ar, v) {
-                        return ar.concat([v]);
-                      }));
-                return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(ar.length));
-              })
-          ],
           [
             "Js.Array2.push (mutable)",
             (function (n) {
@@ -54,30 +37,19 @@ Jest.describe("Belt.Array vs. Js.Array vs. Js.Array (mutable) vs. Garter.Vector"
           ]
         ];
         return Belt_Array.forEach(targets, (function (param) {
-                      var f = param[1];
-                      var name = param[0];
-                      Jest.testAll(name + " (small)", smallSet, f);
-                      return Jest.testAll(name + " (large)", {
-                                  hd: 10000,
-                                  tl: {
-                                    hd: 30000,
-                                    tl: {
-                                      hd: 50000,
-                                      tl: /* [] */0
-                                    }
-                                  }
-                                }, f);
+                      return Jest.testAll(param[0] + " (small)", smallSet, param[1]);
                     }));
       }));
 
 Jest.describe("Vector.push", (function (param) {
+        var isomorphic = function (ar) {
+          return Caml_obj.caml_equal(Garter_Vector.toArray(Garter_Vector.fromArray(ar)), ar);
+        };
         Jest.testAll("fromArray", Belt_List.fromArray(Belt_Array.range(1, 32)), (function (n) {
-                var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
-                return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(Garter_Vector.length(v)));
+                return Jest.ExpectJs.toBeTruthy(Jest.ExpectJs.expect(isomorphic(Belt_Array.range(1, n))));
               }));
-        return Jest.testAll("fromArray (large)", Belt_List.fromArray(Belt_Array.rangeBy(100, 10000, 100)), (function (n) {
-                      var v = Garter_Vector.fromArray(Belt_Array.range(1, n));
-                      return Jest.ExpectJs.toBe(n, Jest.ExpectJs.expect(Garter_Vector.length(v)));
+        return Jest.testAll("fromArray (large)", Belt_List.fromArray(Belt_Array.rangeBy(1000, 10000, 1000)), (function (n) {
+                      return Jest.ExpectJs.toBeTruthy(Jest.ExpectJs.expect(isomorphic(Belt_Array.range(1, n))));
                     }));
       }));
 
@@ -110,7 +82,7 @@ Jest.describe("Vector.pop", (function (param) {
                   }, (function (param) {
                       var m = param[1];
                       var n = param[0];
-                      return Jest.ExpectJs.toBe(n - m | 0, Jest.ExpectJs.expect(Garter_Vector.length(pushpop(n, m))));
+                      return Jest.ExpectJs.toBeTruthy(Jest.ExpectJs.expect(Caml_obj.caml_equal(Garter_Vector.toArray(pushpop(n, m)), Belt_Array.range(1, n - m | 0))));
                     }));
       }));
 

@@ -22,6 +22,4 @@ let reduce: (t<'a>, 'b, ('b, 'a) => 'b) => 'b
 let fromArray: array<'a> => t<'a>
 let toArray: t<'a> => array<'a>
 
-// let reverse: t('a) => t('a)
-
 let debug: t<'a> => unit

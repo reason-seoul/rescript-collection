@@ -9,7 +9,7 @@
   "keywords": [
     "BuckleScript"
   ],
-  "author": "",
+  "author": "Hyunwoo Nam",
   "license": "MIT",
   "devDependencies": {
     "@glennsl/bs-jest": "^0.6.0",

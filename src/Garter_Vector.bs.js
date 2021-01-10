@@ -6,11 +6,6 @@ var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
 var Caml_array = require("bs-platform/lib/js/caml_array.js");
 var Caml_int32 = require("bs-platform/lib/js/caml_int32.js");
 var Caml_option = require("bs-platform/lib/js/caml_option.js");
-var Caml_splice_call = require("bs-platform/lib/js/caml_splice_call.js");
-
-function hasSiblings(node) {
-  return node._0.length > 1;
-}
 
 function makeNode2(x, y) {
   var ar = new Array(2);
@@ -45,7 +40,7 @@ function setNode(node, idx, v) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "Garter_Vector.res",
-          34,
+          28,
           17
         ],
         Error: new Error()
@@ -76,7 +71,7 @@ function getPathIdx(i, depth) {
   if (depth === 0) {
     return /* [] */0;
   }
-  var denom = pow(32, depth);
+  var denom = pow(2, depth);
   return Belt_List.add(getPathIdx(Caml_int32.mod_(i, denom), depth - 1 | 0), Caml_int32.div(i, denom));
 }
 
@@ -85,7 +80,7 @@ function push(vec, x) {
   var root = vec.root;
   var depth = vec.depth;
   var size = vec.size;
-  if (tail.length < 32) {
+  if (tail.length < 2) {
     var newTail = tail.slice(0);
     newTail[tail.length] = x;
     return {
@@ -95,7 +90,7 @@ function push(vec, x) {
             tail: newTail
           };
   }
-  var isRootOverflow = size === (pow(32, depth + 1 | 0) + 32 | 0);
+  var isRootOverflow = size === (pow(2, depth + 1 | 0) + 2 | 0);
   var newPath = function (_depth, _node) {
     while(true) {
       var node = _node;
@@ -146,7 +141,7 @@ function push(vec, x) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Garter_Vector.res",
-            103,
+            98,
             23
           ],
           Error: new Error()
@@ -168,45 +163,75 @@ function peek(param) {
   return Belt_Array.get(tail, tail.length - 1 | 0);
 }
 
+function getArrayUnsafe(param, idx) {
+  var tail = param.tail;
+  var tailOffset = param.size - tail.length | 0;
+  if (idx >= tailOffset) {
+    return tail;
+  }
+  var traverse = function (_parent, _path) {
+    while(true) {
+      var path = _path;
+      var parent = _parent;
+      if (!path) {
+        return parent;
+      }
+      if (parent.TAG === /* Node */0) {
+        _path = path.tl;
+        _parent = Caml_array.get(parent._0, path.hd);
+        continue ;
+      }
+      throw {
+            RE_EXN_ID: "Assert_failure",
+            _1: [
+              "Garter_Vector.res",
+              125,
+              21
+            ],
+            Error: new Error()
+          };
+    };
+  };
+  var path = getPathIdx(idx, param.depth);
+  var ar = traverse(param.root, path);
+  if (ar.TAG !== /* Node */0) {
+    return ar._0;
+  }
+  throw {
+        RE_EXN_ID: "Assert_failure",
+        _1: [
+          "Garter_Vector.res",
+          130,
+          17
+        ],
+        Error: new Error()
+      };
+}
+
 function pop(vec) {
-  var root = vec.root;
+  var tail = vec.tail;
   var depth = vec.depth;
   var size = vec.size;
-  if (hasSiblings({
-          TAG: /* Leaf */1,
-          _0: vec.tail
-        })) {
-    var traverse = function (parent) {
-      if (parent.TAG === /* Node */0) {
-        var ar = parent._0;
-        var newAr = ar.slice(0);
-        var subIdx = ar.length - 1 | 0;
-        newAr[subIdx] = traverse(ar[subIdx]);
-        return {
-                TAG: /* Node */0,
-                _0: newAr
-              };
-      }
-      var ar$1 = parent._0;
-      var newAr$1 = Belt_Array.slice(ar$1, 0, ar$1.length - 1 | 0);
-      return {
-              TAG: /* Leaf */1,
-              _0: newAr$1
-            };
-    };
-    var newRoot = traverse(root);
+  if (size === 1) {
+    return make(undefined);
+  }
+  if (tail.length > 1) {
+    var newTail = Belt_Array.slice(tail, 0, tail.length - 1 | 0);
     return {
             size: size - 1 | 0,
             depth: vec.depth,
-            root: newRoot,
-            tail: vec.tail
+            root: vec.root,
+            tail: newTail
           };
   }
-  var popTail = function (parent, path) {
-    var subIdx = Belt_List.headExn(path);
+  var popTail = function (depth, parent, path) {
+    if (!path) {
+      return ;
+    }
+    var subIdx = path.hd;
     if (parent.TAG === /* Node */0) {
       var ar = parent._0;
-      var child = popTail(Caml_array.get(ar, subIdx), Belt_List.tailExn(path));
+      var child = popTail(depth - 1 | 0, Caml_array.get(ar, subIdx), path.tl);
       if (child !== undefined) {
         var newAr = ar.slice(0);
         newAr[subIdx] = child;
@@ -224,50 +249,51 @@ function pop(vec) {
               _0: newAr$1
             };
     }
-    if (subIdx !== 0) {
-      throw {
-            RE_EXN_ID: "Assert_failure",
-            _1: [
-              "Garter_Vector.res",
-              160,
-              8
-            ],
-            Error: new Error()
-          };
-    }
-    
-  };
-  var path = getPathIdx(size - 1 | 0, depth);
-  var newRoot$1 = popTail(root, path);
-  if (newRoot$1 !== undefined) {
-    if (newRoot$1.TAG === /* Node */0 && !hasSiblings(newRoot$1)) {
-      var firstChild = Caml_array.get(newRoot$1._0, 0);
-      return {
-              size: size - 1 | 0,
-              depth: depth - 1 | 0,
-              root: firstChild,
-              tail: vec.tail
-            };
-    }
-    return {
-            size: size - 1 | 0,
-            depth: vec.depth,
-            root: newRoot$1,
-            tail: vec.tail
-          };
-  }
-  if (size !== 1) {
     throw {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Garter_Vector.res",
-            178,
-            6
+            171,
+            21
           ],
           Error: new Error()
         };
+  };
+  var path = getPathIdx(size - 2 | 0, depth);
+  var newTail$1 = getArrayUnsafe(vec, size - 2 | 0);
+  var nr = popTail(depth, vec.root, path);
+  var newRoot = nr !== undefined ? nr : ({
+        TAG: /* Node */0,
+        _0: []
+      });
+  if (newRoot.TAG === /* Node */0) {
+    var ar = newRoot._0;
+    var isRootUnderflow = depth > 1 && ar.length === 1;
+    if (isRootUnderflow) {
+      return {
+              size: size - 1 | 0,
+              depth: depth - 1 | 0,
+              root: Caml_array.get(ar, 0),
+              tail: newTail$1
+            };
+    } else {
+      return {
+              size: size - 1 | 0,
+              depth: vec.depth,
+              root: newRoot,
+              tail: newTail$1
+            };
+    }
   }
-  return make(undefined);
+  throw {
+        RE_EXN_ID: "Assert_failure",
+        _1: [
+          "Garter_Vector.res",
+          190,
+          17
+        ],
+        Error: new Error()
+      };
 }
 
 function getExn(param, i) {
@@ -336,15 +362,23 @@ function fromArray(ar) {
 }
 
 function toArray(param) {
-  var data = [];
-  var traverse = function (node) {
+  var tail = param.tail;
+  var data = new Array(param.size);
+  var idx = {
+    contents: 0
+  };
+  var fromTree = function (node) {
     if (node.TAG === /* Node */0) {
-      return Belt_Array.forEach(node._0, traverse);
+      return Belt_Array.forEach(node._0, fromTree);
     }
-    Caml_splice_call.spliceObjApply(data, "push", [node._0]);
+    var ar = node._0;
+    var len = ar.length;
+    Belt_Array.blitUnsafe(ar, 0, data, idx.contents, len);
+    idx.contents = idx.contents + len | 0;
     
   };
-  traverse(param.root);
+  fromTree(param.root);
+  Belt_Array.blitUnsafe(tail, 0, data, idx.contents, tail.length);
   return data;
 }
 

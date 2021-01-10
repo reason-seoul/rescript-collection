@@ -1,6 +1,6 @@
 module A = Belt.Array
 
-let numBranches = 32
+let numBranches = 2
 
 // optimize away inner/leaf distinction
 type rec tree<'a> =
@@ -8,12 +8,6 @@ type rec tree<'a> =
   | Leaf(array<'a>)
 
 module Tree = {
-  let hasSiblings = node =>
-    switch node {
-    | Node(ar) => ar->A.length > 1
-    | Leaf(ar) => ar->A.length > 1
-    }
-
   let makeNode = x => Node(A.make(1, x))
   let makeNode2 = (x, y) => {
     let ar = A.makeUninitializedUnsafe(2)
@@ -95,9 +89,10 @@ let push = ({size, depth, root, tail} as vec, x) =>
         } else {
           switch parent {
           | Node(ar) =>
-            let newChild = subIdx < ar->A.length ? 
-              pushTail(depth - 1, ar[subIdx], Belt.List.tailExn(path))
-              : newPath(depth - 1, Leaf(tail))
+            let newChild =
+              subIdx < ar->A.length
+                ? pushTail(depth - 1, ar[subIdx], Belt.List.tailExn(path))
+                : newPath(depth - 1, Leaf(tail))
             Tree.setNode(ret, subIdx, newChild)
             ret
           | Leaf(_) => assert false
@@ -116,67 +111,83 @@ let push = ({size, depth, root, tail} as vec, x) =>
 
 let peek = ({tail}) => tail->A.get(A.length(tail) - 1)
 
-let pop = ({size, depth, root, tail} as vec) =>
-  if Leaf(tail)->Tree.hasSiblings {
-    // case 1: tail leaf has more than 1 nodes
-    // log2("[pop case1]", peek(vec));
-    let rec traverse = parent =>
-      switch parent {
-      | Node(ar) =>
-        let newAr = ar->A.copy
-        let subIdx = ar->A.length - 1
-        newAr->A.setUnsafe(subIdx, traverse(ar->A.getUnsafe(subIdx)))
-        Node(newAr)
-
-      | Leaf(ar) =>
-        let newAr = ar->A.slice(~offset=0, ~len=A.length(ar) - 1)
-        Leaf(newAr)
+let getArrayUnsafe = ({size, depth, root, tail}, idx) => {
+  let tailOffset = size - tail->A.length
+  if idx >= tailOffset {
+    tail
+  } else {
+    let rec traverse = (parent, path) =>
+      switch path {
+      | list{} => parent
+      | list{subIdx, ...path} =>
+        switch parent {
+        | Node(ar) => traverse(ar[subIdx], path)
+        | Leaf(_) => assert false
+        }
       }
-    let newRoot = traverse(root)
-    {...vec, size: size - 1, root: newRoot}
+    let path = getPathIdx(idx, ~depth)
+    switch traverse(root, path) {
+    | Node(_) => assert false
+    | Leaf(ar) => ar
+    }
+  }
+}
+
+/**
+ * pop will keep tail non-empty to make array access faster
+ */
+let pop = ({size, depth, root, tail} as vec) =>
+  if size == 1 {
+    make()
+  } else if tail->A.length > 1 {
+    // case 1: tail has more than 1 elements
+    // Js.log2("[pop case1]", peek(vec))
+    let newTail = tail->A.slice(~offset=0, ~len=A.length(tail) - 1)
+    {...vec, size: size - 1, tail: newTail}
   } else {
     // case 2 & 3: tail leaf has an only child
-    // log2("[pop case2&3]", peek(vec));
-    let rec popTail = (parent, path) => {
-      let subIdx = path->Belt.List.headExn
-      switch parent {
-      | Node(ar) =>
-        switch popTail(ar[subIdx], path->Belt.List.tailExn) {
-        | Some(child) =>
-          // copy and replace
-          let newAr = ar->A.copy
-          newAr->A.setUnsafe(subIdx, child)
-          Some(Node(newAr))
-        | None when subIdx == 0 =>
-          // remove
-          None
-        | _ =>
-          // copy and remove
-          let newAr = ar->A.slice(~offset=0, ~len=A.length(ar) - 1)
-          Some(Node(newAr))
+    // Js.log2("[pop case2&3]", peek(vec))
+    let rec popTail = (depth, parent, path) => {
+      switch path {
+      | list{} => None
+      | list{subIdx, ...path} =>
+        switch parent {
+        | Node(ar) =>
+          switch popTail(depth - 1, ar[subIdx], path) {
+          | Some(child) =>
+            // copy and replace
+            let newAr = ar->A.copy
+            newAr->A.setUnsafe(subIdx, child)
+            Some(Node(newAr))
+          | None =>
+            if subIdx == 0 {
+              None
+            } else {
+              // copy and remove
+              let newAr = ar->A.slice(~offset=0, ~len=A.length(ar) - 1)
+              Some(Node(newAr))
+            }
+          }
+        | Leaf(_) => assert false
         }
-      | Leaf(_) =>
-        // can be merged with case 1)
-        assert (subIdx == 0)
-        None
       }
     }
 
-    let path = getPathIdx(size - 1, ~depth)
-    switch popTail(root, path) {
-    | Some(newRoot) =>
-      switch newRoot {
-      | Node(ar) when !(newRoot->Tree.hasSiblings) =>
-        // case 3: root has only 1 inner node
-        let firstChild = ar[0]
-        // kill root
-        {...vec, depth: depth - 1, size: size - 1, root: firstChild}
-      | _ => {...vec, size: size - 1, root: newRoot}
-      }
-    | None =>
-      // back to initial state
-      assert (size == 1)
-      make()
+    let path = getPathIdx(size - 2, ~depth)
+    let newTail = getArrayUnsafe(vec, size - 2)
+    // Js.log2("new tail", newTail)
+    let newRoot = switch popTail(depth, root, path) {
+    | Some(nr) => nr
+    | None => Node([]) // root must be consist of at least 1 Node
+    }
+
+    switch newRoot {
+    | Node(ar) =>
+      let isRootUnderflow = depth > 1 && ar->A.length == 1
+      isRootUnderflow
+        ? {depth: depth - 1, size: size - 1, root: ar[0], tail: newTail}
+        : {...vec, size: size - 1, root: newRoot, tail: newTail}
+    | Leaf(_) => assert false
     }
   }
 
@@ -220,14 +231,20 @@ let set = ({size} as vec, i, x) => i < 0 || i >= size ? None : Some(setExn(vec, 
 
 let fromArray = ar => A.reduce(ar, make(), (v, i) => push(v, i))
 
-let toArray = ({root}) => {
-  let data = []
-  let rec traverse = node =>
+let toArray = ({size, root, tail}) => {
+  let data = Belt.Array.makeUninitializedUnsafe(size)
+  let idx = ref(0)
+  let rec fromTree = node =>
     switch node {
-    | Node(ar) => ar->A.forEach(traverse)
-    | Leaf(ar) => data->Js.Array2.pushMany(ar)->ignore
+    | Node(ar) => ar->A.forEach(fromTree)
+    | Leaf(ar) =>
+      let len = ar->A.length
+      A.blitUnsafe(~src=ar, ~srcOffset=0, ~dst=data, ~dstOffset=idx.contents, ~len)
+      idx := idx.contents + len
     }
-  traverse(root)
+  fromTree(root)
+  // from Tail
+  A.blitUnsafe(~src=tail, ~srcOffset=0, ~dst=data, ~dstOffset=idx.contents, ~len=tail->A.length)
   data
 }
 

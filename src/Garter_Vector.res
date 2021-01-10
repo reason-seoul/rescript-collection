@@ -22,8 +22,6 @@ module Tree = {
     Node(ar)
   }
 
-  let makeLeaf = x => Leaf(A.make(1, x))
-
   let clone = x =>
     switch x {
     | Node(ar) => Node(ar->A.copy)
@@ -56,64 +54,50 @@ let pow = (~base, ~exp) =>
  Path from root to i'th leaf
  */
 let rec getPathIdx = (i, ~depth) =>
-  if depth == 1 {
-    list{i}
+  if depth == 0 {
+    list{}
   } else {
-    let denom = pow(~base=numBranches, ~exp=depth - 1)
+    let denom = pow(~base=numBranches, ~exp=depth)
     getPathIdx(mod(i, denom), ~depth=depth - 1)->Belt.List.add(i / denom)
   }
 
 let push = ({size, depth, root, tail} as vec, x) =>
   // case 1: when tail has room to append
   if tail->A.length < numBranches {
-    // log2("[push: case1]", x);
-    let rec traverse = node =>
-      switch node {
-      | Node(ar) =>
-        // copy and replace last child
-        let newAr = ar->A.copy
-        let subIdx = ar->A.length - 1
-        newAr->A.setUnsafe(subIdx, traverse(ar->A.getUnsafe(subIdx)))
-        Node(newAr)
-      | Leaf(ar) =>
-        // copy and append
-        let newAr = ar->A.copy
-        newAr->A.setUnsafe(ar->A.length, x)
-        Leaf(newAr)
-      }
+    // Js.log2("[push: case1]", x)
 
-    let newRoot = traverse(root)
-    {...vec, size: size + 1, root: newRoot}
+    // copy and append
+    let newTail = tail->A.copy
+    newTail->A.setUnsafe(tail->A.length, x)
+
+    {...vec, size: size + 1, tail: newTail}
   } else {
     // case 2 & 3
-    let isRootOverflow = size == pow(~base=numBranches, ~exp=depth)
+    // b^(depth+1) + b
+    let isRootOverflow = size == pow(~base=numBranches, ~exp=depth + 1) + numBranches
     let rec newPath = (depth, node) => depth == 0 ? node : newPath(depth - 1, Tree.makeNode(node))
 
     if isRootOverflow {
       // case 3: when there's no room to append
-      // log2("[push: case3]", x);
-      let newRoot = Tree.makeNode2(root, newPath(depth - 1, Tree.makeLeaf(x)))
-
-      {...vec, size: size + 1, depth: depth + 1, root: newRoot}
+      // Js.log2("[push: case3]", x)
+      let newRoot = Tree.makeNode2(root, newPath(depth, Leaf(tail)))
+      {size: size + 1, depth: depth + 1, root: newRoot, tail: [x]}
     } else {
       // case 2: all leaf nodes are full but we have room for a new inner node.
-      // log2("[push: case2]", x);
+      // Js.log2("[push: case2]", x)
       let rec pushTail = (depth, parent, path) => {
         let ret = Tree.clone(parent)
         let subIdx = Belt.List.headExn(path)
-        if depth == 2 {
-          Tree.setNode(ret, subIdx, Tree.makeLeaf(x))
+        if depth == 1 {
+          // array will be grown by out of index access. optimize?
+          Tree.setNode(ret, subIdx, Leaf(tail))
           ret
         } else {
           switch parent {
           | Node(ar) =>
-            let newChild = if subIdx < ar->A.length {
-              let child = ar[subIdx]
-              pushTail(depth - 1, child, Belt.List.tailExn(path))
-            } else {
-              newPath(depth - 2, Tree.makeLeaf(x))
-            }
-
+            let newChild = subIdx < ar->A.length ? 
+              pushTail(depth - 1, ar[subIdx], Belt.List.tailExn(path))
+              : newPath(depth - 1, Leaf(tail))
             Tree.setNode(ret, subIdx, newChild)
             ret
           | Leaf(_) => assert false
@@ -121,9 +105,12 @@ let push = ({size, depth, root, tail} as vec, x) =>
         }
       }
 
-      let path = getPathIdx(size, ~depth)
+      let tailOffset = size - tail->A.length
+      let path = getPathIdx(tailOffset, ~depth)
+      // Js.log4("push tail", tail, "new tail", [x])
+      // Js.log2("path", path->Belt.List.toArray)
       let newRoot = pushTail(depth, root, path)
-      {...vec, size: size + 1, root: newRoot}
+      {...vec, size: size + 1, root: newRoot, tail: [x]}
     }
   }
 

@@ -25,4 +25,5 @@ Tested on 3.1 GHz 6-Core Intel Core i5.
 
 ### References
 
-- [ClojureScript PersistentVector](https://github.com/clojure/clojurescript/blob/r1.10.773-2-g946348da/src/main/cljs/cljs/core.cljs#L5498-L5693)
+- [Extreme Cleverness: Functional Data Structures in Scala](https://www.infoq.com/presentations/Functional-Data-Structures-in-Scala/)
+- [Understanding Clojure's Persistent Vectors](https://hypirion.com/musings/understanding-persistent-vector-pt-1)

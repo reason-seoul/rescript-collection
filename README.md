@@ -1,4 +1,4 @@
-# garter-vector
+# re-vector
 
 > Belt's missing piece, Persistent Vector for ReScript.
 
@@ -13,7 +13,7 @@ Tested on 3.1 GHz 6-Core Intel Core i5.
 | ------------------------- | -----: | -----: | ------: | ------: | ------: | --------: |
 | Belt.Array.concat         |    6ms |   89ms |  2071ms |  6657ms |         |       N/A |
 | Js.Array2.concat          |    3ms |   42ms |  1670ms |  5392ms |         |       N/A |
-| **Garter.Vector.push**    |  < 1ms |    2ms |     4ms |     7ms |    13ms |     112ms |
+| **Re_Vector.push**        |  < 1ms |    2ms |     4ms |     7ms |    13ms |     112ms |
 | Js.Array2.push (mutable)  |  < 1ms |    1ms |     2ms |     2ms |     3ms |      30ms |
 
 

@@ -2,11 +2,11 @@ open Jest
 open ExpectJs
 
 module A = Belt.Array
-module V = Garter.Vector
+module V = Re_Vector
 
 describe("Vector.init", () => test("empty", () => expect(V.make()->V.length) |> toBe(0)))
 
-describe("Belt.Array vs. Js.Array vs. Js.Array (mutable) vs. Garter.Vector", () => {
+describe("Belt.Array vs. Js.Array vs. Js.Array (mutable) vs. Re_Vector", () => {
   let smallSet = A.rangeBy(1000, 5000, ~step=1000)->Belt.List.fromArray
   // let largeSet = list{10000, 30000, 50000, 100000, 1000000}
 
@@ -20,7 +20,7 @@ describe("Belt.Array vs. Js.Array vs. Js.Array (mutable) vs. Garter.Vector", () 
       },
     ),
     (
-      "Garter.Vector.push",
+      "Re_Vector.push",
       n => {
         let v = V.fromArray(A.range(1, n))
         expect(v->V.length) |> toBe(n)

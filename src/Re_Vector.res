@@ -59,6 +59,33 @@ let rec getPathIdx = (i, ~depth) =>
 
 let tailOffset = ({size, tail}) => size - tail->A.length
 
+/**
+ * makes a lineage to `node` from new root
+ */
+let rec newPath = (depth, node: tree<'a>): tree<'a> =>
+  depth == 0 ? node : newPath(depth - 1, Tree.makeNode(node))
+
+let rec pushTail = (depth, parent, path, tail) => {
+  let ret = Tree.clone(parent)
+  let subIdx = Belt.List.headExn(path)
+  if depth == 1 {
+    // array will be grown by out of index access. optimize?
+    Tree.setNode(ret, subIdx, tail)
+    ret
+  } else {
+    switch parent {
+    | Node(ar) =>
+      let newChild =
+        subIdx < ar->A.length
+          ? pushTail(depth - 1, ar[subIdx], Belt.List.tailExn(path), tail)
+          : newPath(depth - 1, tail)
+      Tree.setNode(ret, subIdx, newChild)
+      ret
+    | Leaf(_) => assert false
+    }
+  }
+}
+
 let push = ({size, depth, root, tail} as vec, x) =>
   // case 1: when tail has room to append
   if tail->A.length < numBranches {
@@ -73,7 +100,6 @@ let push = ({size, depth, root, tail} as vec, x) =>
     // case 2 & 3
     // b^(depth+1) + b
     let isRootOverflow = size == pow(~base=numBranches, ~exp=depth + 1) + numBranches
-    let rec newPath = (depth, node) => depth == 0 ? node : newPath(depth - 1, Tree.makeNode(node))
 
     if isRootOverflow {
       // case 3: when there's no room to append
@@ -83,31 +109,11 @@ let push = ({size, depth, root, tail} as vec, x) =>
     } else {
       // case 2: all leaf nodes are full but we have room for a new inner node.
       // Js.log2("[push: case2]", x)
-      let rec pushTail = (depth, parent, path) => {
-        let ret = Tree.clone(parent)
-        let subIdx = Belt.List.headExn(path)
-        if depth == 1 {
-          // array will be grown by out of index access. optimize?
-          Tree.setNode(ret, subIdx, Leaf(tail))
-          ret
-        } else {
-          switch parent {
-          | Node(ar) =>
-            let newChild =
-              subIdx < ar->A.length
-                ? pushTail(depth - 1, ar[subIdx], Belt.List.tailExn(path))
-                : newPath(depth - 1, Leaf(tail))
-            Tree.setNode(ret, subIdx, newChild)
-            ret
-          | Leaf(_) => assert false
-          }
-        }
-      }
 
       let path = getPathIdx(tailOffset(vec), ~depth)
       // Js.log4("push tail", tail, "new tail", [x])
       // Js.log2("path", path->Belt.List.toArray)
-      let newRoot = pushTail(depth, root, path)
+      let newRoot = pushTail(depth, root, path, Leaf(tail))
       {...vec, size: size + 1, root: newRoot, tail: [x]}
     }
   }
@@ -144,6 +150,7 @@ let pop = ({size, depth, root, tail} as vec) =>
   } else if tail->A.length > 1 {
     // case 1: tail has more than 1 elements
     // Js.log2("[pop case1]", peek(vec))
+    // TODO: replicae A.slice with Js.Array.slice
     let newTail = tail->A.slice(~offset=0, ~len=A.length(tail) - 1)
     {...vec, size: size - 1, tail: newTail}
   } else {
@@ -240,7 +247,36 @@ let setExn = ({depth, root, tail} as vec, i, x) => {
 
 let set = ({size} as vec, i, x) => i < 0 || i >= size ? None : Some(setExn(vec, i, x))
 
-let fromArray = ar => A.reduce(ar, make(), (v, i) => push(v, i))
+/**
+ * split input array into chunks (of 32) then push into vector as leaves
+ */
+let fromArray = ar => {
+  let len = A.length(ar)
+  if len == 0 {
+    make()
+  } else {
+    let tailSize = mod(len, numBranches) == 0 ? numBranches : mod(len, numBranches)
+    let tailOffset = len - tailSize
+    let tail = Js.Array2.slice(ar, ~start=tailOffset, ~end_=len)
+
+    A.rangeBy(0, tailOffset - 1, ~step=numBranches)->A.reduce(
+      {...make(), size: tailSize, tail: tail},
+      ({depth, size, root} as vec, offset) => {
+        let leaf = Leaf(Js.Array2.slice(ar, ~start=offset, ~end_=offset + numBranches))
+
+        let isRootOverflow = offset == pow(~base=numBranches, ~exp=depth + 1)
+        if isRootOverflow {
+          let newRoot = Tree.makeNode2(root, newPath(depth, leaf))
+          {...vec, size: size + numBranches, depth: depth + 1, root: newRoot}
+        } else {
+          let path = getPathIdx(offset, ~depth)
+          let newRoot = pushTail(depth, root, path, leaf)
+          {...vec, size: size + numBranches, root: newRoot}
+        }
+      },
+    )
+  }
+}
 
 let toArray = ({size, root, tail}) => {
   let data = Belt.Array.makeUninitializedUnsafe(size)

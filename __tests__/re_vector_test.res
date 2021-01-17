@@ -4,37 +4,10 @@ open ExpectJs
 module A = Belt.Array
 module V = Re_Vector
 
-describe("Vector.init", () => test("empty", () => expect(V.make()->V.length) |> toBe(0)))
+describe("Vector initialize", () => {
+  test("empty", () => expect(V.make()->V.length) |> toBe(0))
+  test("empty fromArray", () => expect(V.fromArray([]) == V.make()) |> toBeTruthy)
 
-describe("Belt.Array vs. Js.Array vs. Js.Array (mutable) vs. Re_Vector", () => {
-  let smallSet = A.rangeBy(1000, 5000, ~step=1000)->Belt.List.fromArray
-  // let largeSet = list{10000, 30000, 50000, 100000, 1000000}
-
-  let targets = [
-    (
-      "Js.Array2.push (mutable)",
-      n => {
-        let ar = []
-        A.range(1, n)->A.forEach(v => ar->Js.Array2.push(v)->ignore)
-        expect(ar->A.length) |> toBe(n)
-      },
-    ),
-    (
-      "Re_Vector.push",
-      n => {
-        let v = V.fromArray(A.range(1, n))
-        expect(v->V.length) |> toBe(n)
-      },
-    ),
-  ]
-
-  targets->A.forEach(((name, f)) => {
-    testAll(name ++ " (small)", smallSet, f)
-    // testAll(name ++ " (large)", largeSet, f)
-  })
-})
-
-describe("Vector.push", () => {
   let isomorphic = ar => ar->V.fromArray->V.toArray == ar
 
   testAll("fromArray", A.range(1, 32)->Belt.List.fromArray, n => {
@@ -43,6 +16,15 @@ describe("Vector.push", () => {
 
   testAll("fromArray (large)", A.rangeBy(1000, 10000, ~step=1000)->Belt.List.fromArray, n => {
     expect(isomorphic(A.range(1, n))) |> toBeTruthy
+  })
+})
+
+describe("Vector.push", () => {
+  testAll("push", A.range(1, 32)->Belt.List.fromArray, n => {
+    let v1 = A.range(1, n)->A.reduce(V.make(), (v, i) => V.push(v, i))
+    let v2 = A.range(1, n)->V.fromArray
+
+    expect(v1 == v2) |> toBeTruthy
   })
 })
 

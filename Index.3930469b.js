@@ -29869,22 +29869,20 @@ function renderToElementWithClassName(reactElement, className) {
   var elements = document.getElementsByClassName(className);
   if (elements.length !== 0) {
     ReactDom.render(reactElement, elements[0]);
-    return ;
   } else {
     console.error("ReactDOMRe.renderToElementWithClassName: no element of class " + (className + " found in the HTML."));
-    return ;
   }
+  
 }
 
 function renderToElementWithId(reactElement, id) {
   var element = document.getElementById(id);
   if (element == null) {
     console.error("ReactDOMRe.renderToElementWithId : no element of id " + (id + " found in the HTML."));
-    return ;
   } else {
     ReactDom.render(reactElement, element);
-    return ;
   }
+  
 }
 
 function createRootWithClassName(className) {
@@ -29912,25 +29910,23 @@ function hydrateToElementWithClassName(reactElement, className) {
   var elements = document.getElementsByClassName(className);
   if (elements.length !== 0) {
     ReactDom.hydrate(reactElement, elements[0]);
-    return ;
   } else {
     console.error("ReactDOMRe.hydrateToElementWithClassName: no element of class " + (className + " found in the HTML."));
-    return ;
   }
+  
 }
 
 function hydrateToElementWithId(reactElement, id) {
   var element = document.getElementById(id);
   if (element == null) {
     console.error("ReactDOMRe.hydrateToElementWithId : no element of id " + (id + " found in the HTML."));
-    return ;
   } else {
     ReactDom.hydrate(reactElement, element);
-    return ;
   }
+  
 }
 
-var Ref = { };
+var Ref = {};
 
 function createElementVariadic(domClassName, props, children) {
   var variadicArguments = [
@@ -37022,10 +37018,10 @@ function path(param) {
         if (i < 0) {
           return res;
         }
-        _res = /* :: */[
-          a[i],
-          res
-        ];
+        _res = {
+          hd: a[i],
+          tl: res
+        };
         _i = i - 1 | 0;
         continue ;
       };
@@ -37103,11 +37099,11 @@ function urlNotEqual(a, b) {
       if (!bList) {
         return true;
       }
-      if (aList[0] !== bList[0]) {
+      if (aList.hd !== bList.hd) {
         return true;
       }
-      _bList = bList[1];
-      _aList = aList[1];
+      _bList = bList.tl;
+      _aList = aList.tl;
       continue ;
     };
   }
@@ -37124,9 +37120,9 @@ function url(param) {
 function watchUrl(callback) {
   var $$window = typeof window === "undefined" ? undefined : window;
   if ($$window === undefined) {
-    return (function (param) {
-        
-      });
+    return function (param) {
+      
+    };
   }
   var watcherID = function (param) {
     return Curry._1(callback, url(undefined));
@@ -37145,21 +37141,21 @@ function unwatchUrl(watcherID) {
 }
 
 function useUrl(serverUrl, param) {
-  var match = React.useState((function () {
-          if (serverUrl !== undefined) {
-            return serverUrl;
-          } else {
-            return url(undefined);
-          }
-        }));
+  var match = React.useState(function () {
+        if (serverUrl !== undefined) {
+          return serverUrl;
+        } else {
+          return url(undefined);
+        }
+      });
   var setUrl = match[1];
   var url$1 = match[0];
   React.useEffect((function () {
-          var watcherId = watchUrl((function (url) {
-                  return Curry._1(setUrl, (function (param) {
-                                return url;
-                              }));
-                }));
+          var watcherId = watchUrl(function (url) {
+                return Curry._1(setUrl, (function (param) {
+                              return url;
+                            }));
+              });
           var newUrl = url(undefined);
           if (urlNotEqual(newUrl, url$1)) {
             Curry._1(setUrl, (function (param) {
@@ -37169,7 +37165,7 @@ function useUrl(serverUrl, param) {
           return (function (param) {
                     return unwatchUrl(watcherId);
                   });
-        }), ([]));
+        }), []);
   return url$1;
 }
 
@@ -60626,7 +60622,7 @@ var suite = {
 function vectorCase(n) {
   return {
     name: "Re_Vector.push",
-    code: "A.range(1, " + n + ")\n->A.reduce(Re_Vector.make(), (v, i) => Re_Vector.push(v, i))",
+    code: "A.range(1, n)\n->A.reduce(Re_Vector.make(), (v, i) => Re_Vector.push(v, i))",
     f: function f() {
       return Belt_Array.reduce(Belt_Array.range(1, n), Re_Vector.make(undefined), Re_Vector.push);
     }
@@ -60658,10 +60654,10 @@ function moriCase(n) {
 }
 
 var smallSuite_name = "Append last (n=" + 1000 + ")";
-var smallSuite_setup = "let smallN=" + 1000 + ";";
+var smallSuite_setup = "let n = " + 1000 + ";";
 var smallSuite_benchmarks = [vectorCase(1000), immutableJsCase(1000), moriCase(1000), {
   name: "Belt.Array.concat",
-  code: "A.range(1, " + 1000 + ")->A.reduce(A.make(0, 0), (ar, v) => ar->A.concat([|v|]))",
+  code: "A.range(1, n)\n->A.reduce(A.make(0, 0), (ar, v) => ar->A.concat([|v|]))",
   f: function f() {
     return Belt_Array.reduce(Belt_Array.range(1, 1000), Belt_Array.make(0, 0), function (ar, v) {
       return Belt_Array.concat(ar, [v]);
@@ -60669,7 +60665,7 @@ var smallSuite_benchmarks = [vectorCase(1000), immutableJsCase(1000), moriCase(1
   }
 }, {
   name: "Js.Array2.concat",
-  code: "A.range(1, " + 1000 + ")\n->A.reduce(A.make(0, 0), (ar, v) => ar->Js.Array2.concat([|v|]))",
+  code: "A.range(1, n)\n->A.reduce(A.make(0, 0), (ar, v) => ar->Js.Array2.concat([|v|]))",
   f: function f() {
     return Belt_Array.reduce(Belt_Array.range(1, 1000), Belt_Array.make(0, 0), function (ar, v) {
       return ar.concat([v]);
@@ -60682,7 +60678,7 @@ var smallSuite = {
   benchmarks: smallSuite_benchmarks
 };
 var largeSuite_name = "Append last (n=" + 100000 + ")";
-var largeSuite_setup = "let largeN=" + 100000 + ";";
+var largeSuite_setup = "let n = " + 100000 + ";";
 var largeSuite_benchmarks = [vectorCase(100000), immutableJsCase(100000), moriCase(100000)];
 var largeSuite = {
   name: largeSuite_name,
@@ -61293,7 +61289,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60050" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60691" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

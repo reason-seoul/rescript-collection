@@ -59,7 +59,7 @@ module Push = {
       (.) => {
         A.range(1, n)->A.reduce(V.make(), (v, i) => V.push(v, i))->Any;
       },
-    code: {j|A.range(1, $n)\n->A.reduce(Re_Vector.make(), (v, i) => Re_Vector.push(v, i))|j},
+    code: {j|A.range(1, n)\n->A.reduce(Re_Vector.make(), (v, i) => Re_Vector.push(v, i))|j},
   };
 
   let immutableJsCase = n => {
@@ -101,7 +101,7 @@ module Push = {
 
   let smallSuite = {
     name: {j|Append last (n=$smallN)|j},
-    setup: {j|let smallN=$smallN;|j},
+    setup: {j|let n = $smallN;|j},
     benchmarks: [|
       vectorCase(smallN),
       immutableJsCase(smallN),
@@ -114,7 +114,7 @@ module Push = {
             ->A.reduce(A.make(0, 0), (ar, v) => ar->A.concat([|v|]))
             ->Any;
           },
-        code: {j|A.range(1, $smallN)->A.reduce(A.make(0, 0), (ar, v) => ar->A.concat([|v|]))|j},
+        code: {j|A.range(1, n)\n->A.reduce(A.make(0, 0), (ar, v) => ar->A.concat([|v|]))|j},
       },
       {
         name: "Js.Array2.concat",
@@ -124,14 +124,14 @@ module Push = {
             ->A.reduce(A.make(0, 0), (ar, v) => ar->Js.Array2.concat([|v|]))
             ->Any;
           },
-        code: {j|A.range(1, $smallN)\n->A.reduce(A.make(0, 0), (ar, v) => ar->Js.Array2.concat([|v|]))|j},
+        code: {j|A.range(1, n)\n->A.reduce(A.make(0, 0), (ar, v) => ar->Js.Array2.concat([|v|]))|j},
       },
     |],
   };
 
   let largeSuite = {
     name: {j|Append last (n=$largeN)|j},
-    setup: {j|let largeN=$largeN;|j},
+    setup: {j|let n = $largeN;|j},
     benchmarks: [|vectorCase(largeN), immutableJsCase(largeN), moriCase(largeN)|],
   };
 };

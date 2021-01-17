@@ -17,6 +17,38 @@ type t = {
 module A = Belt.Array;
 module V = Re_Vector;
 
+module Create = {
+  let n = 1000;
+  let benchmarks = [|
+    {
+      name: {j|Re_Vector.fromArray|j},
+      f:
+        (.) => {
+          A.range(1, n)->Re_Vector.fromArray->Any;
+        },
+      code: {j|A.range(1, n)->Re_Vector.fromArray|j},
+    },
+    {
+      name: {j|ImmutableJs.List.fromArray|j},
+      f:
+        (.) => {
+          A.range(1, n)->ImmutableJs.List.fromArray->Any;
+        },
+      code: {j|A.range(1, n)->ImmutableJs.List.fromArray|j},
+    },
+    {
+      name: {j|Mori.into|j},
+      f:
+        (.) => {
+          Any(A.range(1, n) |> Mori.into(Mori.vector()));
+        },
+      code: {j|A.range(1, n)->ImmutableJs.List.fromArray|j},
+    },
+  |];
+
+  let suite = {name: {j|Creation|j}, setup: "", benchmarks};
+};
+
 module Push = {
   let smallN = 1000;
   let largeN = 100000;
@@ -27,7 +59,7 @@ module Push = {
       (.) => {
         A.range(1, n)->A.reduce(V.make(), (v, i) => V.push(v, i))->Any;
       },
-    code: {j|A.range(1, $n)->A.reduce(V.make(), (v, i) => V.push(v, i))|j},
+    code: {j|A.range(1, $n)\n->A.reduce(Re_Vector.make(), (v, i) => Re_Vector.push(v, i))|j},
   };
 
   let immutableJsCase = n => {
@@ -39,7 +71,18 @@ module Push = {
         ->A.reduce(L.fromArray([||]), (l, i) => L.push(l, i))
         ->Any;
       },
-    code: {j|A.range(1, $n)\n->A.reduce(ImmutableJs.List.fromArray([||]), (l, i) => ImmutableJs.List.push(l, i))|j},
+    code: {j|A.range(1, n)\n->A.reduce(ImmutableJs.List.fromArray([||]), (l, i) => ImmutableJs.List.push(l, i))|j},
+  };
+
+  let moriCase = n => {
+    name: "mori.conj",
+    f:
+      (.) => {
+        A.range(1, n)
+        ->A.reduce(Mori.vector(), (v, i) => Mori.conj(v, i))
+        ->Any;
+      },
+    code: {j|A.range(1, n)\n->A.reduce(Mori.vector(), (v, i) => Mori.conj(v, i))|j},
   };
 
   // let benchmarks = [|
@@ -62,6 +105,7 @@ module Push = {
     benchmarks: [|
       vectorCase(smallN),
       immutableJsCase(smallN),
+      moriCase(smallN),
       {
         name: "Belt.Array.concat",
         f:
@@ -88,7 +132,7 @@ module Push = {
   let largeSuite = {
     name: {j|Append last (n=$largeN)|j},
     setup: {j|let largeN=$largeN;|j},
-    benchmarks: [|vectorCase(largeN), immutableJsCase(largeN)|],
+    benchmarks: [|vectorCase(largeN), immutableJsCase(largeN), moriCase(largeN)|],
   };
 };
 
@@ -100,6 +144,7 @@ module Routes = {
 
   /* Register the route to your benchmark by giving it a variant here. */
   type key =
+    | Create
     | PushSmall
     | PushLarge;
 
@@ -107,15 +152,17 @@ module Routes = {
 
   let map =
     fun
+    | Create => {suite: Create.suite, url: "create"}
     | PushSmall => {suite: Push.smallSuite, url: "append-last-small"}
     | PushLarge => {suite: Push.largeSuite, url: "append-last-large"};
 
   let fromUrl =
     fun
+    | "create" => Some(Create)
     | "append-last-small" => Some(PushSmall)
     | "append-last-large" => Some(PushLarge)
     | _ => None;
 
   /* The main menu uses this array to list pages. */
-  let routes = [|PushSmall, PushLarge|];
+  let routes = [|Create, PushSmall, PushLarge|];
 };

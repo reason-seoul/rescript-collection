@@ -27,6 +27,7 @@
   "dependencies": {
     "bs-webapi": "^0.19.1",
     "immutable": "^4.0.0-rc.12",
+    "mori": "^0.3.2",
     "normalize.css": "^8.0.1",
     "re-vector": "file:..",
     "react": "^17.0.1",

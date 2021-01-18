@@ -42,7 +42,7 @@ module Create = {
         (.) => {
           Any(A.range(1, n) |> Mori.into(Mori.vector()));
         },
-      code: {j|A.range(1, n)->ImmutableJs.List.fromArray|j},
+      code: {j|A.range(1, n) |> Mori.into(Mori.vector())|j},
     },
   |];
 

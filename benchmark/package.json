@@ -16,6 +16,8 @@
   "author": "John",
   "license": "MIT",
   "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
     "benchmark": "^2.1.4",
     "bs-platform": "8.4.2",
     "bsb-js": "^1.1.7",

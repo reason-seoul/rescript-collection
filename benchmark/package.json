@@ -6,11 +6,12 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:re": "bsb -make-world",
-    "clean:re": "bsb -clean-world",
+    "re:build": "bsb -make-world",
+    "re:watch": "bsb -make-world -w",
+    "re:clean": "bsb -clean-world",
     "dev": "parcel src/index.html",
-    "build": "npm run build:re && parcel build src/index.html --public-url ./",
-    "deploy": "npm run build && gh-pages -d dist"
+    "build": "yarn re:build && parcel build src/index.html --public-url ./",
+    "deploy": "yarn build && gh-pages -d dist"
   },
   "author": "John",
   "license": "MIT",

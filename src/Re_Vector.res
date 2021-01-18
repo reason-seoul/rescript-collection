@@ -2,12 +2,16 @@
 
 module A = Belt.Array
 
-// Belt.Array.copy does eliment-wise operation with no reason
+// Belt.Array.slice does element-wise operation for no reason.
+// It's only better than Js.Array2.slice in its argument design.
+let aslice = (ar, ~offset, ~len) => Js.Array2.slice(ar, ~start=offset, ~end_=offset + len)
+
+// Belt.Array.copy uses Belt.Array.slice internally.
+// The fastest way to copy one array to another is using Js.Array2.copy
 let acopy = Js.Array2.copy
 
 let numBranches = 32
 
-// optimize away inner/leaf distinction
 type rec tree<'a> =
   | Node(array<tree<'a>>)
   | Leaf(array<'a>)
@@ -140,8 +144,7 @@ let pop = ({size, depth, root, tail} as vec) =>
     make()
   } else if tail->A.length > 1 {
     // case 1: tail has more than 1 elements
-    // TODO: replicae A.slice with Js.Array.slice
-    let newTail = tail->A.slice(~offset=0, ~len=A.length(tail) - 1)
+    let newTail = tail->aslice(~offset=0, ~len=A.length(tail) - 1)
     {...vec, size: size - 1, tail: newTail}
   } else {
     // case 2 & 3: tail leaf has an only child
@@ -162,7 +165,7 @@ let pop = ({size, depth, root, tail} as vec) =>
               None
             } else {
               // copy and remove
-              let newAr = ar->A.slice(~offset=0, ~len=A.length(ar) - 1)
+              let newAr = ar->aslice(~offset=0, ~len=A.length(ar) - 1)
               Some(Node(newAr))
             }
           }
@@ -245,12 +248,12 @@ let fromArray = ar => {
   } else {
     let tailSize = mod(len, numBranches) == 0 ? numBranches : mod(len, numBranches)
     let tailOffset = len - tailSize
-    let tail = Js.Array2.slice(ar, ~start=tailOffset, ~end_=len)
+    let tail = aslice(ar, ~offset=tailOffset, ~len=tailSize)
 
     A.rangeBy(0, tailOffset - 1, ~step=numBranches)->A.reduce(
       {...make(), size: tailSize, tail: tail},
       ({depth, size, root} as vec, offset) => {
-        let leaf = Leaf(Js.Array2.slice(ar, ~start=offset, ~end_=offset + numBranches))
+        let leaf = Leaf(aslice(ar, ~offset, ~len=numBranches))
 
         let isRootOverflow = offset == pow(~base=numBranches, ~exp=depth + 1)
         if isRootOverflow {

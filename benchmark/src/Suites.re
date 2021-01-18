@@ -85,9 +85,7 @@ module Push = {
     code: {j|A.range(1, n)\n->A.reduce(Mori.vector(), (v, i) => Mori.conj(v, i))|j},
   };
 
-  // let benchmarks = [|
-  //   {
-
+  // let mutableCase = n => 
   //   {
   //     name: "Js.Array2.push (mutable)",
   //     f:
@@ -96,8 +94,7 @@ module Push = {
   //         A.range(1, n)->A.forEach(v => ar->Js.Array2.push(v)->ignore)->Any;
   //       },
   //     code: "let ar = [||];\nA.range(1, n)->A.forEach(v => ar->Js.Array2.push(v)->ignore)",
-  //   },
-  // |];
+  //   };
 
   let smallSuite = {
     name: {j|Append last (n=$smallN)|j},

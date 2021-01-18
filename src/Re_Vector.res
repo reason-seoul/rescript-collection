@@ -2,6 +2,9 @@
 
 module A = Belt.Array
 
+// Belt.Array.copy does eliment-wise operation with no reason
+let acopy = Js.Array2.copy
+
 let numBranches = 32
 
 // optimize away inner/leaf distinction
@@ -10,18 +13,13 @@ type rec tree<'a> =
   | Leaf(array<'a>)
 
 module Tree = {
-  let makeNode = x => Node(A.make(1, x))
-  let makeNode2 = (x, y) => {
-    let ar = A.makeUninitializedUnsafe(2)
-    ar->A.setUnsafe(0, x)
-    ar->A.setUnsafe(1, y)
-    Node(ar)
-  }
+  let makeNode = x => Node([x])
+  let makeNode2 = (x, y) => Node([x, y])
 
   let clone = x =>
     switch x {
-    | Node(ar) => Node(ar->A.copy)
-    | Leaf(ar) => Leaf(ar->A.copy)
+    | Node(ar) => Node(ar->acopy)
+    | Leaf(ar) => Leaf(ar->acopy)
     }
 
   let setNode = (node, idx, v) =>
@@ -89,10 +87,8 @@ let rec pushTail = (depth, parent, path, tail) => {
 let push = ({size, depth, root, tail} as vec, x) =>
   // case 1: when tail has room to append
   if tail->A.length < numBranches {
-    // Js.log2("[push: case1]", x)
-
     // copy and append
-    let newTail = tail->A.copy
+    let newTail = tail->acopy
     newTail->A.setUnsafe(tail->A.length, x)
 
     {...vec, size: size + 1, tail: newTail}
@@ -103,16 +99,11 @@ let push = ({size, depth, root, tail} as vec, x) =>
 
     if isRootOverflow {
       // case 3: when there's no room to append
-      // Js.log2("[push: case3]", x)
       let newRoot = Tree.makeNode2(root, newPath(depth, Leaf(tail)))
       {size: size + 1, depth: depth + 1, root: newRoot, tail: [x]}
     } else {
       // case 2: all leaf nodes are full but we have room for a new inner node.
-      // Js.log2("[push: case2]", x)
-
       let path = getPathIdx(tailOffset(vec), ~depth)
-      // Js.log4("push tail", tail, "new tail", [x])
-      // Js.log2("path", path->Belt.List.toArray)
       let newRoot = pushTail(depth, root, path, Leaf(tail))
       {...vec, size: size + 1, root: newRoot, tail: [x]}
     }
@@ -149,13 +140,11 @@ let pop = ({size, depth, root, tail} as vec) =>
     make()
   } else if tail->A.length > 1 {
     // case 1: tail has more than 1 elements
-    // Js.log2("[pop case1]", peek(vec))
     // TODO: replicae A.slice with Js.Array.slice
     let newTail = tail->A.slice(~offset=0, ~len=A.length(tail) - 1)
     {...vec, size: size - 1, tail: newTail}
   } else {
     // case 2 & 3: tail leaf has an only child
-    // Js.log2("[pop case2&3]", peek(vec))
     let rec popTail = (depth, parent, path) => {
       switch path {
       | list{} => None
@@ -165,7 +154,7 @@ let pop = ({size, depth, root, tail} as vec) =>
           switch popTail(depth - 1, ar[subIdx], path) {
           | Some(child) =>
             // copy and replace
-            let newAr = ar->A.copy
+            let newAr = ar->acopy
             newAr->A.setUnsafe(subIdx, child)
             Some(Node(newAr))
           | None =>
@@ -184,7 +173,6 @@ let pop = ({size, depth, root, tail} as vec) =>
 
     let path = getPathIdx(size - 2, ~depth)
     let newTail = getArrayUnsafe(vec, size - 2)
-    // Js.log2("new tail", newTail)
     let newRoot = switch popTail(depth, root, path) {
     | Some(nr) => nr
     | None => Node([]) // root must be consist of at least 1 Node
@@ -221,7 +209,7 @@ let get = ({size} as v, i) => i < 0 || i >= size ? None : Some(getExn(v, i))
 let setExn = ({depth, root, tail} as vec, i, x) => {
   let offset = tailOffset(vec)
   if i >= offset {
-    let newTail = tail->A.copy
+    let newTail = tail->acopy
     newTail->A.setUnsafe(i - offset, x)
     {...vec, tail: newTail}
   } else {
@@ -229,12 +217,12 @@ let setExn = ({depth, root, tail} as vec, i, x) => {
       switch node {
       | Node(ar) =>
         let index = path->Belt.List.headExn
-        let m = A.copy(ar)
+        let m = acopy(ar)
         m->A.setUnsafe(index, traverse(ar[index], path->Belt.List.tailExn))
         Node(m)
 
       | Leaf(ar) =>
-        let m = A.copy(ar)
+        let m = acopy(ar)
         m->A.setUnsafe(mod(i, numBranches), x)
         Leaf(m)
       }

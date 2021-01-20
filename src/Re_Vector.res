@@ -17,9 +17,6 @@ type rec tree<'a> =
   | Leaf(array<'a>)
 
 module Tree = {
-  let makeNode = x => Node([x])
-  let makeNode2 = (x, y) => Node([x, y])
-
   let clone = x =>
     switch x {
     | Node(ar) => Node(ar->acopy)
@@ -65,7 +62,7 @@ let tailOffset = ({size, tail}) => size - tail->A.length
  * makes a lineage to `node` from new root
  */
 let rec newPath = (depth, node: tree<'a>): tree<'a> =>
-  depth == 0 ? node : newPath(depth - 1, Tree.makeNode(node))
+  depth == 0 ? node : newPath(depth - 1, Node([node]))
 
 let rec pushTail = (depth, parent, path, tail) => {
   let ret = Tree.clone(parent)
@@ -103,7 +100,7 @@ let push = ({size, depth, root, tail} as vec, x) =>
 
     if isRootOverflow {
       // case 3: when there's no room to append
-      let newRoot = Tree.makeNode2(root, newPath(depth, Leaf(tail)))
+      let newRoot = Node([root, newPath(depth, Leaf(tail))])
       {size: size + 1, depth: depth + 1, root: newRoot, tail: [x]}
     } else {
       // case 2: all leaf nodes are full but we have room for a new inner node.
@@ -257,7 +254,7 @@ let fromArray = ar => {
 
         let isRootOverflow = offset == pow(~base=numBranches, ~exp=depth + 1)
         if isRootOverflow {
-          let newRoot = Tree.makeNode2(root, newPath(depth, leaf))
+          let newRoot = Node([root, newPath(depth, leaf)])
           {...vec, size: size + numBranches, depth: depth + 1, root: newRoot}
         } else {
           let path = getPathIdx(offset, ~depth)

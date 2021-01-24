@@ -10,8 +10,9 @@ let aslice = (ar, ~offset, ~len) => Js.Array2.slice(ar, ~start=offset, ~end_=off
 // The fastest way to copy one array to another is using Js.Array2.copy
 let acopy = Js.Array2.copy
 
-// Test various branching factors useing this formula
-//  numBits = n
+// Test various branching factors using this formula.
+// @bs.inline doesn't work for this kind of assignment.
+//  numBits := n
 //  numBranches := lsl(1, numBits)
 //  bitMask := numBranches - 1
 let numBits = 5
@@ -35,12 +36,11 @@ module Tree = {
     | Leaf(_) => assert false
     }
 
-  let getNode = (node, idx) => {
+  let getNode = (node, idx) =>
     switch node {
     | Node(ar) => ar->A.getUnsafe(idx)
     | Leaf(_) => assert false
     }
-  }
 }
 
 type t<'a> = {
@@ -69,7 +69,7 @@ let tailOffset = ({size}) =>
 /**
  * makes a lineage to `node` from new root
  */
-let rec newPath = (~level, node: tree<'a>): tree<'a> =>
+let rec newPath = (~level, node) =>
   if level == 0 {
     node
   } else {
@@ -88,7 +88,7 @@ let rec pushTail = (~size, ~level, parent, tail) => {
     | Node(ar) =>
       let newChild =
         subIdx < ar->A.length
-          ? pushTail(~size, ~level=level - numBits, ar[subIdx], tail)
+          ? pushTail(~size, ~level=level - numBits, ar->A.getUnsafe(subIdx), tail)
           : newPath(~level=level - numBits, tail)
       Tree.setNode(ret, subIdx, newChild)
       ret
@@ -150,7 +150,7 @@ let rec popTail = (~size, ~level, parent) =>
     let subIdx = (size - 2)->lsr(level)->land(bitMask)
     switch parent {
     | Node(ar) =>
-      switch popTail(~size, ~level=level - numBits, ar[subIdx]) {
+      switch popTail(~size, ~level=level - numBits, ar->A.getUnsafe(subIdx)) {
       | Some(child) =>
         // copy and replace
         let newAr = ar->acopy
@@ -194,13 +194,13 @@ let pop = ({size, shift, root, tail} as vec) =>
     | Node(ar) =>
       let isRootUnderflow = shift > numBits && ar->A.length == 1
       isRootUnderflow
-        ? {shift: shift - numBits, size: size - 1, root: ar[0], tail: newTail}
+        ? {shift: shift - numBits, size: size - 1, root: ar->A.getUnsafe(0), tail: newTail}
         : {...vec, size: size - 1, root: newRoot, tail: newTail}
     | Leaf(_) => assert false
     }
   }
 
-let getUnsafe = (vec, i) => getArrayUnsafe(vec, i)[i->land(bitMask)]
+let getUnsafe = (vec, i) => getArrayUnsafe(vec, i)->A.getUnsafe(i->land(bitMask))
 
 let get = ({size} as v, i) => i < 0 || i >= size ? None : Some(getUnsafe(v, i))
 
@@ -218,7 +218,7 @@ let rec updatedPath = (node, ~level, i, x) =>
   | Node(ar) =>
     let subIdx = i->lsr(level)->land(bitMask)
     let m = acopy(ar)
-    m->A.setUnsafe(subIdx, updatedPath(ar[subIdx], ~level=level - numBits, i, x))
+    m->A.setUnsafe(subIdx, updatedPath(ar->A.getUnsafe(subIdx), ~level=level - numBits, i, x))
     Node(m)
   | Leaf(ar) =>
     let m = acopy(ar)

@@ -10,7 +10,9 @@ let aslice = (ar, ~offset, ~len) => Js.Array2.slice(ar, ~start=offset, ~end_=off
 // The fastest way to copy one array to another is using Js.Array2.copy
 let acopy = Js.Array2.copy
 
-let numBranches = 32
+let numBits = 5
+let numBranches = lsl(1, numBits)
+let bitMask = numBranches - 1
 
 type rec tree<'a> =
   | Node(array<tree<'a>>)
@@ -32,18 +34,88 @@ module Tree = {
 
 type t<'a> = {
   size: int,
-  depth: int,
+  shift: int,
   root: tree<'a>,
   tail: array<'a>,
 }
 
-let make = () => {size: 0, depth: 1, root: Node([]), tail: []}
+let make = () => {
+  size: 0,
+  shift: numBits,
+  root: Node([]),
+  tail: [],
+}
 
 let length = v => v.size
 
-// TODO: optimize with bit-partitioning
-let pow = (~base, ~exp) =>
-  Js.Math.pow_float(~base=base->float_of_int, ~exp=exp->float_of_int)->int_of_float
+let tailOffset = ({size, tail}) =>
+  if size < numBranches {
+    0
+  } else {
+    (size - 1)->lsr(numBits)->lsl(numBits)
+  }
+
+/**
+ * makes a lineage to `node` from new root
+ */
+let rec newPath = (~level, node: tree<'a>): tree<'a> =>
+  if level == 0 {
+    node
+  } else {
+    newPath(~level=level - numBits, Node([node]))
+  }
+
+let rec pushTail = (~size, ~level, parent, tail) => {
+  let ret = Tree.clone(parent)
+  let subIdx = (size - 1)->lsr(level)->land(bitMask)
+  if level == numBits {
+    // array will be grown by out of index access. optimize?
+    Tree.setNode(ret, subIdx, tail)
+    ret
+  } else {
+    switch parent {
+    | Node(ar) =>
+      let newChild =
+        subIdx < ar->A.length
+          ? pushTail(~size, ~level=level - numBits, ar[subIdx], tail)
+          : newPath(~level=level - numBits, tail)
+      Tree.setNode(ret, subIdx, newChild)
+      ret
+    | Leaf(_) => assert false
+    }
+  }
+}
+
+let push = ({size, shift, root, tail} as vec, x) =>
+  // case 1: when tail has room to append
+  if tail->A.length < numBranches {
+    // copy and append
+    let newTail = tail->acopy
+    newTail->A.setUnsafe(tail->A.length, x)
+
+    {...vec, size: size + 1, tail: newTail}
+  } else {
+    // case 2 & 3
+    // sz >= b^(depth+1) + b
+    let isRootOverflow = lsr(size, numBits) > lsl(1, shift)
+
+    if isRootOverflow {
+      // case 3: when there's no room to append
+      let newRoot = Node([root, newPath(~level=shift, Leaf(tail))])
+      {
+        size: size + 1,
+        shift: vec.shift + 5,
+        root: newRoot,
+        tail: [x],
+      }
+    } else {
+      // case 2: all leaf nodes are full but we have room for a new inner node.
+      let newRoot = pushTail(~size, ~level=shift, root, Leaf(tail))
+      {...vec, size: size + 1, root: newRoot, tail: [x]}
+    }
+  }
+
+let peek = ({tail}) => tail->A.get(A.length(tail) - 1)
 
 /**
  Path from root to i'th leaf
@@ -56,63 +128,7 @@ let rec getPathIdx = (i, ~depth) =>
     getPathIdx(mod(i, denom), ~depth=depth - 1)->Belt.List.add(i / denom)
   }
 
-let tailOffset = ({size, tail}) => size - tail->A.length
-
-/**
- * makes a lineage to `node` from new root
- */
-let rec newPath = (depth, node: tree<'a>): tree<'a> =>
-  depth == 0 ? node : newPath(depth - 1, Node([node]))
-
-let rec pushTail = (depth, parent, path, tail) => {
-  let ret = Tree.clone(parent)
-  let subIdx = Belt.List.headExn(path)
-  if depth == 1 {
-    // array will be grown by out of index access. optimize?
-    Tree.setNode(ret, subIdx, tail)
-    ret
-  } else {
-    switch parent {
-    | Node(ar) =>
-      let newChild =
-        subIdx < ar->A.length
-          ? pushTail(depth - 1, ar[subIdx], Belt.List.tailExn(path), tail)
-          : newPath(depth - 1, tail)
-      Tree.setNode(ret, subIdx, newChild)
-      ret
-    | Leaf(_) => assert false
-    }
-  }
-}
-
-let push = ({size, depth, root, tail} as vec, x) =>
-  // case 1: when tail has room to append
-  if tail->A.length < numBranches {
-    // copy and append
-    let newTail = tail->acopy
-    newTail->A.setUnsafe(tail->A.length, x)
-
-    {...vec, size: size + 1, tail: newTail}
-  } else {
-    // case 2 & 3
-    // b^(depth+1) + b
-    let isRootOverflow = size == pow(~base=numBranches, ~exp=depth + 1) + numBranches
-
-    if isRootOverflow {
-      // case 3: when there's no room to append
-      let newRoot = Node([root, newPath(depth, Leaf(tail))])
-      {size: size + 1, depth: depth + 1, root: newRoot, tail: [x]}
-    } else {
-      // case 2: all leaf nodes are full but we have room for a new inner node.
-      let path = getPathIdx(tailOffset(vec), ~depth)
-      let newRoot = pushTail(depth, root, path, Leaf(tail))
-      {...vec, size: size + 1, root: newRoot, tail: [x]}
-    }
-  }
-
-let peek = ({tail}) => tail->A.get(A.length(tail) - 1)
-
-let getArrayUnsafe = ({depth, root, tail} as vec, idx) => {
+let getArrayUnsafe = ({root, tail} as vec, idx) => {
   if idx >= tailOffset(vec) {
     tail
   } else {

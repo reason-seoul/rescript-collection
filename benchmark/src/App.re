@@ -7,7 +7,7 @@ module Prism = {
 };
 
 module DocTitle = {
-  let prefix = "Benchmark.bs.js";
+  let prefix = "re-vector";
 
   let set = title =>
     Webapi.Dom.(
@@ -319,14 +319,14 @@ let make = () => {
       <header>
         <p className="site-title">
           <Router.HashLink to_=Router.Index className="site-title__link">
-            "Benchmark.bs.js"->React.string
+            "re-vector"->React.string
           </Router.HashLink>
         </p>
       </header>
       {switch (url) {
        | Router.Index =>
          <>
-           <Pages.About />
+           //  <Pages.About />
            <h2 className="index-header"> "The benchmarks"->React.string </h2>
            <ul className="menu">
              {Router.menu

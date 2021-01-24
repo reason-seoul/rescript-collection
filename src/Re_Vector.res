@@ -142,7 +142,7 @@ let getArrayUnsafe = ({root, shift, tail} as vec, idx) => {
 }
 
 let rec popTail = (~size, ~level, parent) =>
-  if level > numBits {
+  if level > 0 {
     let subIdx = (size - 2)->lsr(level)->land(bitMask)
     switch parent {
     | Node(ar) =>
@@ -196,11 +196,16 @@ let pop = ({size, shift, root, tail} as vec) =>
     }
   }
 
-let getExn = (vec, i) => getArrayUnsafe(vec, i)[i->land(bitMask)]
+let getUnsafe = (vec, i) => getArrayUnsafe(vec, i)[i->land(bitMask)]
 
-let get = ({size} as v, i) => i < 0 || i >= size ? None : Some(getExn(v, i))
+let get = ({size} as v, i) => i < 0 || i >= size ? None : Some(getUnsafe(v, i))
 
-let setExn = ({shift, root, tail} as vec, i, x) => {
+let getExn = ({size} as v, i) => {
+  assert (i >= 0 && i < size)
+  getUnsafe(v, i)
+}
+
+let setUnsafe = ({shift, root, tail} as vec, i, x) => {
   let offset = tailOffset(vec)
   if i >= offset {
     let newTail = tail->acopy
@@ -226,7 +231,12 @@ let setExn = ({shift, root, tail} as vec, i, x) => {
   }
 }
 
-let set = ({size} as vec, i, x) => i < 0 || i >= size ? None : Some(setExn(vec, i, x))
+let set = ({size} as vec, i, x) => i < 0 || i >= size ? None : Some(setUnsafe(vec, i, x))
+
+let setExn = ({size} as vec, i, x) => {
+  assert (i >= 0 && i < size)
+  setUnsafe(vec, i, x)
+}
 
 /**
  * split input array into chunks (of numBranches) then push into vector as leaves

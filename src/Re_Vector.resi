@@ -8,10 +8,11 @@ let pop: t<'a> => t<'a>
 
 let get: (t<'a>, int) => option<'a>
 let getExn: (t<'a>, int) => 'a
+let getUnsafe: (t<'a>, int) => 'a
 
 let set: (t<'a>, int, 'a) => option<t<'a>>
-
 let setExn: (t<'a>, int, 'a) => t<'a>
+let setUnsafe: (t<'a>, int, 'a) => t<'a>
 
 // not optimized: convert to/from array internally
 let map: (t<'a>, 'a => 'b) => t<'b>

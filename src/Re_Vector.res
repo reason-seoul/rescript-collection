@@ -30,6 +30,13 @@ module Tree = {
     | Node(ar) => ar->A.setUnsafe(idx, v)
     | Leaf(_) => assert false
     }
+
+  let getNode = (node, idx) => {
+    switch node {
+    | Node(ar) => ar->A.getUnsafe(idx)
+    | Leaf(_) => assert false
+    }
+  }
 }
 
 type t<'a> = {
@@ -104,7 +111,7 @@ let push = ({size, shift, root, tail} as vec, x) =>
       let newRoot = Node([root, newPath(~level=shift, Leaf(tail))])
       {
         size: size + 1,
-        shift: vec.shift + 5,
+        shift: vec.shift + numBits,
         root: newRoot,
         tail: [x],
       }
@@ -115,45 +122,57 @@ let push = ({size, shift, root, tail} as vec, x) =>
     }
   }
 
-let peek = ({tail}) => tail->A.get(A.length(tail) - 1)
-
-/**
- Path from root to i'th leaf
- */
-let rec getPathIdx = (i, ~depth) =>
-  if depth == 0 {
-    list{}
-  } else {
-    let denom = pow(~base=numBranches, ~exp=depth)
-    getPathIdx(mod(i, denom), ~depth=depth - 1)->Belt.List.add(i / denom)
-  }
-
-let getArrayUnsafe = ({root, tail} as vec, idx) => {
+let getArrayUnsafe = ({root, shift, tail} as vec, idx) => {
   if idx >= tailOffset(vec) {
     tail
   } else {
-    let rec traverse = (parent, path) =>
-      switch path {
-      | list{} => parent
-      | list{subIdx, ...path} =>
-        switch parent {
-        | Node(ar) => traverse(ar[subIdx], path)
-        | Leaf(_) => assert false
-        }
+    let rec traverse = (parent, ~level) =>
+      if level == 0 {
+        parent
+      } else {
+        let subIdx = lsr(idx, level)->land(bitMask)
+        traverse(Tree.getNode(parent, subIdx), ~level=level - numBits)
       }
-    let path = getPathIdx(idx, ~depth)
-    switch traverse(root, path) {
+
+    switch traverse(root, ~level=shift) {
     | Node(_) => assert false
     | Leaf(ar) => ar
     }
   }
 }
 
+let rec popTail = (~size, ~level, parent) =>
+  if level > numBits {
+    let subIdx = (size - 2)->lsr(level)->land(bitMask)
+    switch parent {
+    | Node(ar) =>
+      switch popTail(~size, ~level=level - numBits, ar[subIdx]) {
+      | Some(child) =>
+        // copy and replace
+        let newAr = ar->acopy
+        newAr->A.setUnsafe(subIdx, child)
+        Some(Node(newAr))
+      | None =>
+        if subIdx == 0 {
+          None
+        } else {
+          // copy and remove
+          let newAr = ar->aslice(~offset=0, ~len=A.length(ar) - 1)
+          Some(Node(newAr))
+        }
+      }
+    | Leaf(_) => assert false
+    }
+  } else {
+    None
+  }
+
 /**
  * pop will keep tail non-empty to make array access faster
+ * return empty if vector is empty
  */
-let pop = ({size, depth, root, tail} as vec) =>
-  if size == 1 {
+let pop = ({size, shift, root, tail} as vec) =>
+  if size <= 1 {
     make()
   } else if tail->A.length > 1 {
     // case 1: tail has more than 1 elements
@@ -161,44 +180,17 @@ let pop = ({size, depth, root, tail} as vec) =>
     {...vec, size: size - 1, tail: newTail}
   } else {
     // case 2 & 3: tail leaf has an only child
-    let rec popTail = (depth, parent, path) => {
-      switch path {
-      | list{} => None
-      | list{subIdx, ...path} =>
-        switch parent {
-        | Node(ar) =>
-          switch popTail(depth - 1, ar[subIdx], path) {
-          | Some(child) =>
-            // copy and replace
-            let newAr = ar->acopy
-            newAr->A.setUnsafe(subIdx, child)
-            Some(Node(newAr))
-          | None =>
-            if subIdx == 0 {
-              None
-            } else {
-              // copy and remove
-              let newAr = ar->aslice(~offset=0, ~len=A.length(ar) - 1)
-              Some(Node(newAr))
-            }
-          }
-        | Leaf(_) => assert false
-        }
-      }
-    }
-
-    let path = getPathIdx(size - 2, ~depth)
     let newTail = getArrayUnsafe(vec, size - 2)
-    let newRoot = switch popTail(depth, root, path) {
+    let newRoot = switch popTail(~size, ~level=shift, root) {
     | Some(nr) => nr
     | None => Node([]) // root must be consist of at least 1 Node
     }
 
     switch newRoot {
     | Node(ar) =>
-      let isRootUnderflow = depth > 1 && ar->A.length == 1
+      let isRootUnderflow = shift > numBits && ar->A.length == 1
       isRootUnderflow
-        ? {depth: depth - 1, size: size - 1, root: ar[0], tail: newTail}
+        ? {shift: shift - numBits, size: size - 1, root: ar[0], tail: newTail}
         : {...vec, size: size - 1, root: newRoot, tail: newTail}
     | Leaf(_) => assert false
     }

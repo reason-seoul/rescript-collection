@@ -5,7 +5,6 @@ let length: t<'a> => int
 
 let push: (t<'a>, 'a) => t<'a>
 let pop: t<'a> => t<'a>
-let peek: t<'a> => option<'a>
 
 let get: (t<'a>, int) => option<'a>
 let getExn: (t<'a>, int) => 'a

@@ -154,12 +154,12 @@ let indices = A.range(0, n - 1)->A.shuffle;|j};
     setup,
     benchmarks: [|
       {
-        name: {j|Re_Vector.get|j},
+        name: {j|Re_Vector.getExn|j},
         f:
           (.) => {
-            indices->A.forEach(i => V.get(v1, i)->ignore)->Any;
+            indices->A.forEach(i => Re_Vector.getExn(v1, i)->ignore)->Any;
           },
-        code: {j|indices->A.forEach(i => V.get(v1, i)->ignore)|j},
+        code: {j|indices->A.forEach(i => Re_Vector.get(v1, i)->ignore)|j},
       },
       {
         name: {j|ImmutableJs.List.get|j},

@@ -10,9 +10,13 @@ let aslice = (ar, ~offset, ~len) => Js.Array2.slice(ar, ~start=offset, ~end_=off
 // The fastest way to copy one array to another is using Js.Array2.copy
 let acopy = Js.Array2.copy
 
+// Test various branching factors useing this formula
+//  numBits = n
+//  numBranches := lsl(1, numBits)
+//  bitMask := numBranches - 1
 let numBits = 5
-let numBranches = lsl(1, numBits)
-let bitMask = numBranches - 1
+let numBranches = 32
+let bitMask = 0x1f
 
 type rec tree<'a> =
   | Node(array<tree<'a>>)
@@ -126,15 +130,15 @@ let getArrayUnsafe = ({root, shift, tail} as vec, idx) => {
   if idx >= tailOffset(vec) {
     tail
   } else {
-    let rec traverse = (node, ~level) =>
-      if level == 0 {
-        node
-      } else {
-        let subIdx = idx->lsr(level)->land(bitMask)
-        traverse(Tree.getNode(node, subIdx), ~level=level - numBits)
-      }
+    let node = ref(root)
+    let level = ref(shift)
+    while level.contents > 0 {
+      let subIdx = idx->lsr(level.contents)->land(bitMask)
+      node := Tree.getNode(node.contents, subIdx)
+      level := level.contents - numBits
+    }
 
-    switch traverse(root, ~level=shift) {
+    switch node.contents {
     | Node(_) => assert false
     | Leaf(ar) => ar
     }
@@ -205,6 +209,23 @@ let getExn = ({size} as v, i) => {
   getUnsafe(v, i)
 }
 
+/**
+ * Replace i'th index with x and copy the path down to x.
+ * Made tp non-closure function for performance reason. (see #5)
+ */
+let rec updatedPath = (node, ~level, i, x) =>
+  switch node {
+  | Node(ar) =>
+    let subIdx = i->lsr(level)->land(bitMask)
+    let m = acopy(ar)
+    m->A.setUnsafe(subIdx, updatedPath(ar[subIdx], ~level=level - numBits, i, x))
+    Node(m)
+  | Leaf(ar) =>
+    let m = acopy(ar)
+    m->A.setUnsafe(mod(i, numBranches), x)
+    Leaf(m)
+  }
+
 let setUnsafe = ({shift, root, tail} as vec, i, x) => {
   let offset = tailOffset(vec)
   if i >= offset {
@@ -212,22 +233,7 @@ let setUnsafe = ({shift, root, tail} as vec, i, x) => {
     newTail->A.setUnsafe(i->land(bitMask), x)
     {...vec, tail: newTail}
   } else {
-    let rec traverse = (node, ~level) => {
-      switch node {
-      | Node(ar) =>
-        let subIdx = i->lsr(level)->land(bitMask)
-        let m = acopy(ar)
-        m->A.setUnsafe(subIdx, traverse(ar[subIdx], ~level=level - numBits))
-        Node(m)
-
-      | Leaf(ar) =>
-        let m = acopy(ar)
-        m->A.setUnsafe(mod(i, numBranches), x)
-        Leaf(m)
-      }
-    }
-
-    {...vec, root: traverse(root, ~level=shift)}
+    {...vec, root: updatedPath(root, ~level=shift, i, x)}
   }
 }
 

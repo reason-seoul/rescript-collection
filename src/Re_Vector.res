@@ -55,7 +55,7 @@ let make = () => {
 
 let length = v => v.size
 
-let tailOffset = ({size, tail}) =>
+let tailOffset = ({size}) =>
   if size < numBranches {
     0
   } else {
@@ -126,12 +126,12 @@ let getArrayUnsafe = ({root, shift, tail} as vec, idx) => {
   if idx >= tailOffset(vec) {
     tail
   } else {
-    let rec traverse = (parent, ~level) =>
+    let rec traverse = (node, ~level) =>
       if level == 0 {
-        parent
+        node
       } else {
-        let subIdx = lsr(idx, level)->land(bitMask)
-        traverse(Tree.getNode(parent, subIdx), ~level=level - numBits)
+        let subIdx = idx->lsr(level)->land(bitMask)
+        traverse(Tree.getNode(node, subIdx), ~level=level - numBits)
       }
 
     switch traverse(root, ~level=shift) {
@@ -196,37 +196,23 @@ let pop = ({size, shift, root, tail} as vec) =>
     }
   }
 
-let getExn = ({depth, root, tail} as vec, i) => {
-  let offset = tailOffset(vec)
-  if i >= offset {
-    tail[i - offset]
-  } else {
-    let rec traverse = (node, path) => {
-      switch node {
-      | Node(n) => traverse(n[path->Belt.List.headExn], path->Belt.List.tailExn)
-      | Leaf(n) => n[mod(i, numBranches)]
-      }
-    }
-    let path = getPathIdx(i, ~depth)
-    traverse(root, path)
-  }
-}
+let getExn = (vec, i) => getArrayUnsafe(vec, i)[i->land(bitMask)]
 
 let get = ({size} as v, i) => i < 0 || i >= size ? None : Some(getExn(v, i))
 
-let setExn = ({depth, root, tail} as vec, i, x) => {
+let setExn = ({shift, root, tail} as vec, i, x) => {
   let offset = tailOffset(vec)
   if i >= offset {
     let newTail = tail->acopy
-    newTail->A.setUnsafe(i - offset, x)
+    newTail->A.setUnsafe(i->land(bitMask), x)
     {...vec, tail: newTail}
   } else {
-    let rec traverse = (node, path) => {
+    let rec traverse = (node, ~level) => {
       switch node {
       | Node(ar) =>
-        let index = path->Belt.List.headExn
+        let subIdx = i->lsr(level)->land(bitMask)
         let m = acopy(ar)
-        m->A.setUnsafe(index, traverse(ar[index], path->Belt.List.tailExn))
+        m->A.setUnsafe(subIdx, traverse(ar[subIdx], ~level=level - numBits))
         Node(m)
 
       | Leaf(ar) =>
@@ -236,37 +222,35 @@ let setExn = ({depth, root, tail} as vec, i, x) => {
       }
     }
 
-    let path = getPathIdx(i, ~depth)
-    {...vec, root: traverse(root, path)}
+    {...vec, root: traverse(root, ~level=shift)}
   }
 }
 
 let set = ({size} as vec, i, x) => i < 0 || i >= size ? None : Some(setExn(vec, i, x))
 
 /**
- * split input array into chunks (of 32) then push into vector as leaves
+ * split input array into chunks (of numBranches) then push into vector as leaves
  */
 let fromArray = ar => {
   let len = A.length(ar)
   if len == 0 {
     make()
   } else {
-    let tailSize = mod(len, numBranches) == 0 ? numBranches : mod(len, numBranches)
+    let tailSize = len->land(bitMask) == 0 ? numBranches : len->land(bitMask)
     let tailOffset = len - tailSize
     let tail = aslice(ar, ~offset=tailOffset, ~len=tailSize)
 
     A.rangeBy(0, tailOffset - 1, ~step=numBranches)->A.reduce(
       {...make(), size: tailSize, tail: tail},
-      ({depth, size, root} as vec, offset) => {
+      ({shift, size, root} as vec, offset) => {
         let leaf = Leaf(aslice(ar, ~offset, ~len=numBranches))
-
-        let isRootOverflow = offset == pow(~base=numBranches, ~exp=depth + 1)
+        let isRootOverflow = offset == lsl(1, shift + numBits)
         if isRootOverflow {
-          let newRoot = Node([root, newPath(depth, leaf)])
-          {...vec, size: size + numBranches, depth: depth + 1, root: newRoot}
+          let newRoot = Node([root, newPath(~level=shift, leaf)])
+          {...vec, size: size + numBranches, shift: shift + numBits, root: newRoot}
         } else {
-          let path = getPathIdx(offset, ~depth)
-          let newRoot = pushTail(depth, root, path, leaf)
+          // size must be greater than 0
+          let newRoot = pushTail(~size=offset + 1, ~level=shift, root, leaf)
           {...vec, size: size + numBranches, root: newRoot}
         }
       },

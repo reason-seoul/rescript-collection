@@ -10,6 +10,9 @@ let aslice = (ar, ~offset, ~len) => Js.Array2.slice(ar, ~start=offset, ~end_=off
 // The fastest way to copy one array to another is using Js.Array2.copy
 let acopy = Js.Array2.copy
 
+// to handle the impossible case without throwing an exception
+let absurd = Obj.magic()
+
 // Test various branching factors using this formula.
 // @bs.inline doesn't work for this kind of assignment.
 //  numBits := n
@@ -33,13 +36,13 @@ module Tree = {
   let setNode = (node, idx, v) =>
     switch node {
     | Node(ar) => ar->A.setUnsafe(idx, v)
-    | Leaf(_) => assert false
+    | Leaf(_) => absurd
     }
 
   let getNode = (node, idx) =>
     switch node {
     | Node(ar) => ar->A.getUnsafe(idx)
-    | Leaf(_) => assert false
+    | Leaf(_) => absurd
     }
 }
 
@@ -92,7 +95,7 @@ let rec pushTail = (~size, ~level, parent, tail) => {
           : newPath(~level=level - numBits, tail)
       Tree.setNode(ret, subIdx, newChild)
       ret
-    | Leaf(_) => assert false
+    | Leaf(_) => absurd
     }
   }
 }
@@ -139,7 +142,7 @@ let getArrayUnsafe = ({root, shift, tail} as vec, idx) => {
     }
 
     switch node.contents {
-    | Node(_) => assert false
+    | Node(_) => absurd
     | Leaf(ar) => ar
     }
   }
@@ -165,7 +168,7 @@ let rec popTail = (~size, ~level, parent) =>
           Some(Node(newAr))
         }
       }
-    | Leaf(_) => assert false
+    | Leaf(_) => absurd
     }
   } else {
     None
@@ -196,7 +199,7 @@ let pop = ({size, shift, root, tail} as vec) =>
       isRootUnderflow
         ? {shift: shift - numBits, size: size - 1, root: ar->A.getUnsafe(0), tail: newTail}
         : {...vec, size: size - 1, root: newRoot, tail: newTail}
-    | Leaf(_) => assert false
+    | Leaf(_) => absurd
     }
   }
 

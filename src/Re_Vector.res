@@ -1,14 +1,18 @@
 // implementation of a persistent bit-partitioned vector trie.
 
-module A = Belt.Array
+module A = {
+  // Belt.Array.slice does element-wise operation for no reason.
+  // It's only better than Js.Array2.slice in its argument design.
+  let slice = (ar, ~offset, ~len) => Js.Array2.slice(ar, ~start=offset, ~end_=offset + len)
 
-// Belt.Array.slice does element-wise operation for no reason.
-// It's only better than Js.Array2.slice in its argument design.
-let aslice = (ar, ~offset, ~len) => Js.Array2.slice(ar, ~start=offset, ~end_=offset + len)
+  // Belt.Array.copy uses Belt.Array.slice internally.
+  // The fastest way to copy one array to another is using Js.Array2.copy
+  let copy = Js.Array2.copy
 
-// Belt.Array.copy uses Belt.Array.slice internally.
-// The fastest way to copy one array to another is using Js.Array2.copy
-let acopy = Js.Array2.copy
+  let get = Js.Array2.unsafe_get
+  let set = Js.Array2.unsafe_set
+  let length = Js.Array2.length
+}
 
 // to handle the impossible case without throwing an exception
 let absurd = Obj.magic()
@@ -29,19 +33,19 @@ type rec tree<'a> =
 module Tree = {
   let clone = x =>
     switch x {
-    | Node(ar) => Node(ar->acopy)
-    | Leaf(ar) => Leaf(ar->acopy)
+    | Node(ar) => Node(ar->A.copy)
+    | Leaf(ar) => Leaf(ar->A.copy)
     }
 
   let setNode = (node, idx, v) =>
     switch node {
-    | Node(ar) => ar->A.setUnsafe(idx, v)
+    | Node(ar) => ar->A.set(idx, v)
     | Leaf(_) => absurd
     }
 
   let getNode = (node, idx) =>
     switch node {
-    | Node(ar) => ar->A.getUnsafe(idx)
+    | Node(ar) => ar->A.get(idx)
     | Leaf(_) => absurd
     }
 }
@@ -91,7 +95,7 @@ let rec pushTail = (~size, ~level, parent, tail) => {
     | Node(ar) =>
       let newChild =
         subIdx < ar->A.length
-          ? pushTail(~size, ~level=level - numBits, ar->A.getUnsafe(subIdx), tail)
+          ? pushTail(~size, ~level=level - numBits, ar->A.get(subIdx), tail)
           : newPath(~level=level - numBits, tail)
       Tree.setNode(ret, subIdx, newChild)
       ret
@@ -104,8 +108,8 @@ let push = ({size, shift, root, tail} as vec, x) =>
   // case 1: when tail has room to append
   if tail->A.length < numBranches {
     // copy and append
-    let newTail = tail->acopy
-    newTail->A.setUnsafe(tail->A.length, x)
+    let newTail = tail->A.copy
+    newTail->A.set(tail->A.length, x)
 
     {...vec, size: size + 1, tail: newTail}
   } else {
@@ -153,18 +157,18 @@ let rec popTail = (~size, ~level, parent) =>
     let subIdx = (size - 2)->lsr(level)->land(bitMask)
     switch parent {
     | Node(ar) =>
-      switch popTail(~size, ~level=level - numBits, ar->A.getUnsafe(subIdx)) {
+      switch popTail(~size, ~level=level - numBits, ar->A.get(subIdx)) {
       | Some(child) =>
         // copy and replace
-        let newAr = ar->acopy
-        newAr->A.setUnsafe(subIdx, child)
+        let newAr = ar->A.copy
+        newAr->A.set(subIdx, child)
         Some(Node(newAr))
       | None =>
         if subIdx == 0 {
           None
         } else {
           // copy and remove
-          let newAr = ar->aslice(~offset=0, ~len=A.length(ar) - 1)
+          let newAr = ar->A.slice(~offset=0, ~len=A.length(ar) - 1)
           Some(Node(newAr))
         }
       }
@@ -183,7 +187,7 @@ let pop = ({size, shift, root, tail} as vec) =>
     make()
   } else if tail->A.length > 1 {
     // case 1: tail has more than 1 elements
-    let newTail = tail->aslice(~offset=0, ~len=A.length(tail) - 1)
+    let newTail = tail->A.slice(~offset=0, ~len=A.length(tail) - 1)
     {...vec, size: size - 1, tail: newTail}
   } else {
     // case 2 & 3: tail leaf has an only child
@@ -197,13 +201,13 @@ let pop = ({size, shift, root, tail} as vec) =>
     | Node(ar) =>
       let isRootUnderflow = shift > numBits && ar->A.length == 1
       isRootUnderflow
-        ? {shift: shift - numBits, size: size - 1, root: ar->A.getUnsafe(0), tail: newTail}
+        ? {shift: shift - numBits, size: size - 1, root: ar->A.get(0), tail: newTail}
         : {...vec, size: size - 1, root: newRoot, tail: newTail}
     | Leaf(_) => absurd
     }
   }
 
-let getUnsafe = (vec, i) => getArrayUnsafe(vec, i)->A.getUnsafe(i->land(bitMask))
+let getUnsafe = (vec, i) => getArrayUnsafe(vec, i)->A.get(i->land(bitMask))
 
 let get = ({size} as v, i) => i < 0 || i >= size ? None : Some(getUnsafe(v, i))
 
@@ -220,20 +224,20 @@ let rec updatedPath = (node, ~level, i, x) =>
   switch node {
   | Node(ar) =>
     let subIdx = i->lsr(level)->land(bitMask)
-    let m = acopy(ar)
-    m->A.setUnsafe(subIdx, updatedPath(ar->A.getUnsafe(subIdx), ~level=level - numBits, i, x))
+    let m = A.copy(ar)
+    m->A.set(subIdx, updatedPath(ar->A.get(subIdx), ~level=level - numBits, i, x))
     Node(m)
   | Leaf(ar) =>
-    let m = acopy(ar)
-    m->A.setUnsafe(mod(i, numBranches), x)
+    let m = A.copy(ar)
+    m->A.set(mod(i, numBranches), x)
     Leaf(m)
   }
 
 let setUnsafe = ({shift, root, tail} as vec, i, x) => {
   let offset = tailOffset(vec)
   if i >= offset {
-    let newTail = tail->acopy
-    newTail->A.setUnsafe(i->land(bitMask), x)
+    let newTail = tail->A.copy
+    newTail->A.set(i->land(bitMask), x)
     {...vec, tail: newTail}
   } else {
     {...vec, root: updatedPath(root, ~level=shift, i, x)}
@@ -257,12 +261,12 @@ let fromArray = ar => {
   } else {
     let tailSize = len->land(bitMask) == 0 ? numBranches : len->land(bitMask)
     let tailOffset = len - tailSize
-    let tail = aslice(ar, ~offset=tailOffset, ~len=tailSize)
+    let tail = A.slice(ar, ~offset=tailOffset, ~len=tailSize)
 
-    A.rangeBy(0, tailOffset - 1, ~step=numBranches)->A.reduce(
+    Belt.Array.rangeBy(0, tailOffset - 1, ~step=numBranches)->Belt.Array.reduce(
       {...make(), size: tailSize, tail: tail},
       ({shift, size, root} as vec, offset) => {
-        let leaf = Leaf(aslice(ar, ~offset, ~len=numBranches))
+        let leaf = Leaf(A.slice(ar, ~offset, ~len=numBranches))
         let isRootOverflow = offset == lsl(1, shift + numBits)
         if isRootOverflow {
           let newRoot = Node([root, newPath(~level=shift, leaf)])
@@ -282,35 +286,55 @@ let toArray = ({size, root, tail}) => {
   let idx = ref(0)
   let rec fromTree = node =>
     switch node {
-    | Node(ar) => ar->A.forEach(fromTree)
+    | Node(ar) => ar->Belt.Array.forEach(fromTree)
     | Leaf(ar) =>
       let len = ar->A.length
-      A.blitUnsafe(~src=ar, ~srcOffset=0, ~dst=data, ~dstOffset=idx.contents, ~len)
+      Belt.Array.blitUnsafe(~src=ar, ~srcOffset=0, ~dst=data, ~dstOffset=idx.contents, ~len)
       idx := idx.contents + len
     }
   fromTree(root)
   // from Tail
-  A.blitUnsafe(~src=tail, ~srcOffset=0, ~dst=data, ~dstOffset=idx.contents, ~len=tail->A.length)
+  Belt.Array.blitUnsafe(
+    ~src=tail,
+    ~srcOffset=0,
+    ~dst=data,
+    ~dstOffset=idx.contents,
+    ~len=tail->A.length,
+  )
   data
+}
+
+let reduce = (vec, init, f) => {
+  let acc = ref(init)
+  for i in 0 to vec.size - 1 {
+    let arr = getArrayUnsafe(vec, i)
+    for j in 0 to arr->A.length - 1 {
+      acc := f(acc.contents, A.get(arr, j))
+    }
+  }
+  acc.contents
 }
 
 let doWithArray = (vec, f) => vec->toArray->f->fromArray
 
-let map = (vec, f) => vec->doWithArray(A.map(_, f))
+let map = (vec, f) => vec->doWithArray(Belt.Array.map(_, f))
 
-let keep = (vec, f) => vec->doWithArray(A.keep(_, f))
+let reduceU = (vec, init, f) => vec->toArray->Belt.Array.reduceU(init, f)
 
-let reduce = (vec, init, f) => vec->toArray->A.reduce(init, f)
+let keep = (vec, f) => {
+  vec->reduceU(make(), (. res, v) => f(v) ? push(res, v) : res)
+}
+
 
 let debug = ({root}) => {
   let rec traverse = (node, depth) =>
     switch node {
     | Node(ar) =>
       Js.log("I " ++ depth->string_of_int)
-      A.forEach(ar, n => traverse(n, depth + 1))
+      Belt.Array.forEach(ar, n => traverse(n, depth + 1))
     | Leaf(ar) =>
       Js.log("L " ++ depth->string_of_int)
-      A.forEach(ar, n => Js.log(n))
+      Belt.Array.forEach(ar, n => Js.log(n))
     }
   traverse(root, 1)
 }

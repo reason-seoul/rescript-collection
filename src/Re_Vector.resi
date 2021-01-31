@@ -14,10 +14,12 @@ let set: (t<'a>, int, 'a) => option<t<'a>>
 let setExn: (t<'a>, int, 'a) => t<'a>
 let setUnsafe: (t<'a>, int, 'a) => t<'a>
 
+let reduce: (t<'a>, 'b, ('b, 'a) => 'b) => 'b
+let reduceU: (t<'a>, 'b, (. 'b, 'a) => 'b) => 'b
+
 // not optimized: convert to/from array internally
 let map: (t<'a>, 'a => 'b) => t<'b>
 let keep: (t<'a>, 'a => bool) => t<'a>
-let reduce: (t<'a>, 'b, ('b, 'a) => 'b) => 'b
 
 let fromArray: array<'a> => t<'a>
 let toArray: t<'a> => array<'a>

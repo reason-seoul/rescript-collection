@@ -232,50 +232,66 @@ module AccessUpdate = {
 module Reduce = {
   let setup = Fixture.setup;
 
-  let benchmarks = [|
-    {
-      name: {j|Js.Array2.reduce (built-in)|j},
-      f:
-        (.) => {
-          Fixture.v0->Js.Array2.reduce((+), 0)->Any;
-        },
-      code: {j|v0->Js.Array2.reduce((+), 0)|j},
-    },
-    {
-      name: {j|Belt.Array.reduce|j},
-      f:
-        (.) => {
-          Fixture.v0->Belt.Array.reduce(0, (+))->Any;
-        },
-      code: {j|v0->Belt.Array.reduce(0, (+))|j},
-    },
-    {
-      name: {j|Re_Vector.reduce|j},
-      f:
-        (.) => {
-          Fixture.v1->Re_Vector.reduce(0, (+))->Any;
-        },
-      code: {j|v1->Re_Vector.reduce(0, (+))|j},
-    },
-    {
-      name: {j|ImmutableJs.List.reduce|j},
-      f:
-        (.) => {
-          Fixture.v2->ImmutableJs.List.reduce((+), 0)->Any;
-        },
-      code: {j|v2->ImmutableJs.List.reduce((+), 0)|j},
-    },
-    {
-      name: {j|Mori.reduce|j},
-      f:
-        (.) => {
-          Fixture.v3->Mori.reduce((+), 0, _)->Any;
-        },
-      code: {j|v3->Mori.reduce((+), 0, _)|j},
-    },
-  |];
-
-  let suite = {name: {j|Reduce|j}, setup, benchmarks};
+  let suite = {
+    name: {j|Reduce|j},
+    setup,
+    benchmarks: [|
+      {
+        name: {j|Re_Vector.reduce|j},
+        f:
+          (.) => {
+            Fixture.v1->Re_Vector.reduce(0, (+))->Any;
+          },
+        code: {j|v1->Re_Vector.reduce(0, (+))|j},
+      },
+      {
+        name: {j|ImmutableJs.List.reduce|j},
+        f:
+          (.) => {
+            Fixture.v2->ImmutableJs.List.reduce((+), 0)->Any;
+          },
+        code: {j|v2->ImmutableJs.List.reduce((+), 0)|j},
+      },
+      {
+        name: {j|Mori.reduce|j},
+        f:
+          (.) => {
+            Fixture.v3->Mori.reduce((+), 0, _)->Any;
+          },
+        code: {j|v3->Mori.reduce((+), 0, _)|j},
+      },
+    |],
+  };
+  let suite2 = {
+    name: {j|Reduce (vs. mutable)|j},
+    setup,
+    benchmarks: [|
+      {
+        name: {j|Js.Array2.reduce (built-in)|j},
+        f:
+          (.) => {
+            Fixture.v0->Js.Array2.reduce((+), 0)->Any;
+          },
+        code: {j|v0->Js.Array2.reduce((+), 0)|j},
+      },
+      {
+        name: {j|Belt.Array.reduce|j},
+        f:
+          (.) => {
+            Fixture.v0->Belt.Array.reduce(0, (+))->Any;
+          },
+        code: {j|v0->Belt.Array.reduce(0, (+))|j},
+      },
+      {
+        name: {j|Re_Vector.reduce|j},
+        f:
+          (.) => {
+            Fixture.v1->Re_Vector.reduce(0, (+))->Any;
+          },
+        code: {j|v1->Re_Vector.reduce(0, (+))|j},
+      },
+    |],
+  };
 };
 
 module Routes = {
@@ -291,7 +307,8 @@ module Routes = {
     | PushLarge
     | RandomAccess
     | RandomUpdate
-    | Reduce;
+    | Reduce
+    | ReduceMutable;
 
   /* Make sure the URLs are the same in both functions! */
 
@@ -302,7 +319,8 @@ module Routes = {
     | PushLarge => {suite: Push.largeSuite, url: "append-last-large"}
     | RandomAccess => {suite: AccessUpdate.accessSuite, url: "random-access"}
     | RandomUpdate => {suite: AccessUpdate.updateSuite, url: "random-update"}
-    | Reduce => {suite: Reduce.suite, url: "reduce"};
+    | Reduce => {suite: Reduce.suite, url: "reduce"}
+    | ReduceMutable => {suite: Reduce.suite2, url: "reduce-mutable"};
 
   let fromUrl =
     fun
@@ -312,6 +330,7 @@ module Routes = {
     | "random-access" => Some(RandomAccess)
     | "random-update" => Some(RandomUpdate)
     | "reduce" => Some(Reduce)
+    | "reduce-mutable" => Some(ReduceMutable)
     | _ => None;
 
   /* The main menu uses this array to list pages. */
@@ -322,5 +341,6 @@ module Routes = {
     RandomAccess,
     RandomUpdate,
     Reduce,
+    ReduceMutable,
   |];
 };

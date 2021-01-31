@@ -139,6 +139,7 @@ module Push = {
 
 module Fixture = {
   let n = 10000;
+  let v0 = A.range(1, n);
   let v1 = Re_Vector.fromArray(A.range(1, n));
   let v2 = ImmutableJs.List.fromArray(A.range(1, n));
   let v3 = Mori.into(Mori.vector(), A.range(1, n));
@@ -254,6 +255,14 @@ module Reduce = {
           Fixture.v3->Mori.reduce((+), 0, _)->Any;
         },
       code: {j|v3->Mori.reduce((+), 0, _)|j},
+    },
+    {
+      name: {j|Js.Array2.reduce|j},
+      f:
+        (.) => {
+          Fixture.v0->Js.Array2.reduce((+), 0)->Any;
+        },
+      code: {j|v0->Js.Array2.reduce((+), 0)|j},
     },
   |];
 

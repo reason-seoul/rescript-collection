@@ -145,6 +145,7 @@ module Fixture = {
   let v3 = Mori.into(Mori.vector(), A.range(1, n));
 
   let setup = {j|let n = 10000;
+let v0 = A.range(1, n);
 let v1 = Re_Vector.fromArray(A.range(1, n));
 let v2 = ImmutableJs.List.fromArray(A.range(1, n));
 let v3 = Mori.into(Mori.vector(), A.range(1, n));|j};
@@ -233,6 +234,22 @@ module Reduce = {
 
   let benchmarks = [|
     {
+      name: {j|Js.Array2.reduce (built-in)|j},
+      f:
+        (.) => {
+          Fixture.v0->Js.Array2.reduce((+), 0)->Any;
+        },
+      code: {j|v0->Js.Array2.reduce((+), 0)|j},
+    },
+    {
+      name: {j|Belt.Array.reduce|j},
+      f:
+        (.) => {
+          Fixture.v0->Belt.Array.reduce(0, (+))->Any;
+        },
+      code: {j|v0->Belt.Array.reduce(0, (+))|j},
+    },
+    {
       name: {j|Re_Vector.reduce|j},
       f:
         (.) => {
@@ -249,20 +266,12 @@ module Reduce = {
       code: {j|v2->ImmutableJs.List.reduce((+), 0)|j},
     },
     {
-      name: {j|Mori.map|j},
+      name: {j|Mori.reduce|j},
       f:
         (.) => {
           Fixture.v3->Mori.reduce((+), 0, _)->Any;
         },
       code: {j|v3->Mori.reduce((+), 0, _)|j},
-    },
-    {
-      name: {j|Js.Array2.reduce|j},
-      f:
-        (.) => {
-          Fixture.v0->Js.Array2.reduce((+), 0)->Any;
-        },
-      code: {j|v0->Js.Array2.reduce((+), 0)|j},
     },
   |];
 

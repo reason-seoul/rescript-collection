@@ -305,12 +305,15 @@ let toArray = ({size, root, tail}) => {
 }
 
 let reduceU = (vec, init, f) => {
+  let i = ref(0)
   let acc = ref(init)
-  for i in 0 to vec.size - 1 {
-    let ar = getArrayUnsafe(vec, i)
-    for j in 0 to ar->A.length - 1 {
+  while i.contents < vec.size {
+    let ar = getArrayUnsafe(vec, i.contents)
+    let len = ar->A.length
+    for j in 0 to len - 1 {
       acc := f(. acc.contents, ar->A.get(j))
     }
+    i := i.contents + len
   }
   acc.contents
 }

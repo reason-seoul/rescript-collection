@@ -70,3 +70,16 @@ describe("Vector.set", () => {
     expect(every) |> toBeTruthy
   })
 })
+
+describe("Vector.reduce", () => {
+  let size = 100
+  let v = V.fromArray(A.range(1, size))
+  test(j`sum`, () => {
+    let sum = v->V.reduce(0, (acc, i) => acc + i)
+    expect(sum) |> toBe(5050)
+  })
+  test(j`sum (uncurried)`, () => {
+    let sum = v->V.reduceU(0, (. acc, i) => acc + i)
+    expect(sum) |> toBe(5050)
+  })
+})

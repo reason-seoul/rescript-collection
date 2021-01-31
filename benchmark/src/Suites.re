@@ -137,18 +137,23 @@ module Push = {
   };
 };
 
-module AccessUpdate = {
+module Fixture = {
   let n = 10000;
   let v1 = Re_Vector.fromArray(A.range(1, n));
   let v2 = ImmutableJs.List.fromArray(A.range(1, n));
   let v3 = Mori.into(Mori.vector(), A.range(1, n));
-  let indices = A.range(0, n - 1)->A.shuffle;
 
   let setup = {j|let n = 10000;
 let v1 = Re_Vector.fromArray(A.range(1, n));
 let v2 = ImmutableJs.List.fromArray(A.range(1, n));
-let v3 = Mori.into(Mori.vector(), A.range(1, n));
-let indices = A.range(0, n - 1)->A.shuffle;|j};
+let v3 = Mori.into(Mori.vector(), A.range(1, n));|j};
+};
+
+module AccessUpdate = {
+  let indices = A.range(0, Fixture.n - 1)->A.shuffle;
+
+  let setup =
+    Fixture.setup ++ {j|\nlet indices = A.range(0, n - 1)->A.shuffle;|j};
   let accessSuite = {
     name: {j|Random Access|j},
     setup,
@@ -157,7 +162,9 @@ let indices = A.range(0, n - 1)->A.shuffle;|j};
         name: {j|Re_Vector.getExn|j},
         f:
           (.) => {
-            indices->A.forEach(i => Re_Vector.getExn(v1, i)->ignore)->Any;
+            indices
+            ->A.forEach(i => Re_Vector.getExn(Fixture.v1, i)->ignore)
+            ->Any;
           },
         code: {j|indices->A.forEach(i => Re_Vector.get(v1, i)->ignore)|j},
       },
@@ -165,7 +172,9 @@ let indices = A.range(0, n - 1)->A.shuffle;|j};
         name: {j|ImmutableJs.List.get|j},
         f:
           (.) => {
-            indices->A.forEach(i => ImmutableJs.List.get(v2, i)->ignore)->Any;
+            indices
+            ->A.forEach(i => ImmutableJs.List.get(Fixture.v2, i)->ignore)
+            ->Any;
           },
         code: {j|indices->A.forEach(i => ImmutableJs.List.get(v2, i)->ignore)|j},
       },
@@ -173,7 +182,7 @@ let indices = A.range(0, n - 1)->A.shuffle;|j};
         name: {j|Mori.nth|j},
         f:
           (.) => {
-            indices->A.forEach(i => Mori.nth(v3, i)->ignore)->Any;
+            indices->A.forEach(i => Mori.nth(Fixture.v3, i)->ignore)->Any;
           },
         code: {j|indices->A.forEach(i => Mori.nth(v3, i)->ignore)|j},
       },
@@ -188,7 +197,9 @@ let indices = A.range(0, n - 1)->A.shuffle;|j};
         name: {j|Re_Vector.setExn|j},
         f:
           (.) => {
-            indices->A.reduce(v1, (v, i) => Re_Vector.setExn(v, i, -1))->Any;
+            indices
+            ->A.reduce(Fixture.v1, (v, i) => Re_Vector.setExn(v, i, -1))
+            ->Any;
           },
         code: {j|indices->A.reduce(v1, (v, i) => Re_Vector.setExn(v, i, -1))|j},
       },
@@ -197,7 +208,7 @@ let indices = A.range(0, n - 1)->A.shuffle;|j};
         f:
           (.) => {
             indices
-            ->A.reduce(v2, (v, i) => ImmutableJs.List.set(v, i, -1))
+            ->A.reduce(Fixture.v2, (v, i) => ImmutableJs.List.set(v, i, -1))
             ->Any;
           },
         code: {j|indices\n->A.reduce(v2, (v, i) => ImmutableJs.List.set(v, i, -1))|j},
@@ -206,12 +217,47 @@ let indices = A.range(0, n - 1)->A.shuffle;|j};
         name: {j|Mori.assoc|j},
         f:
           (.) => {
-            indices->A.reduce(v3, (v, i) => Mori.assoc(v, i, -1))->Any;
+            indices
+            ->A.reduce(Fixture.v3, (v, i) => Mori.assoc(v, i, -1))
+            ->Any;
           },
         code: {j|indices->A.reduce(v3, (v, i) => Mori.assoc(v, i, -1))|j},
       },
     |],
   };
+};
+
+module Reduce = {
+  let setup = Fixture.setup;
+
+  let benchmarks = [|
+    {
+      name: {j|Re_Vector.reduce|j},
+      f:
+        (.) => {
+          Fixture.v1->Re_Vector.reduce(0, (+))->Any;
+        },
+      code: {j|v1->Re_Vector.reduce(0, (+))|j},
+    },
+    {
+      name: {j|ImmutableJs.List.reduce|j},
+      f:
+        (.) => {
+          Fixture.v2->ImmutableJs.List.reduce((+), 0)->Any;
+        },
+      code: {j|v2->ImmutableJs.List.reduce((+), 0)|j},
+    },
+    {
+      name: {j|Mori.map|j},
+      f:
+        (.) => {
+          Fixture.v3->Mori.reduce((+), 0, _)->Any;
+        },
+      code: {j|v3->Mori.reduce((+), 0, _)|j},
+    },
+  |];
+
+  let suite = {name: {j|Reduce|j}, setup, benchmarks};
 };
 
 module Routes = {
@@ -226,7 +272,8 @@ module Routes = {
     | PushSmall
     | PushLarge
     | RandomAccess
-    | RandomUpdate;
+    | RandomUpdate
+    | Reduce;
 
   /* Make sure the URLs are the same in both functions! */
 
@@ -236,7 +283,8 @@ module Routes = {
     | PushSmall => {suite: Push.smallSuite, url: "append-last-small"}
     | PushLarge => {suite: Push.largeSuite, url: "append-last-large"}
     | RandomAccess => {suite: AccessUpdate.accessSuite, url: "random-access"}
-    | RandomUpdate => {suite: AccessUpdate.updateSuite, url: "random-update"};
+    | RandomUpdate => {suite: AccessUpdate.updateSuite, url: "random-update"}
+    | Reduce => {suite: Reduce.suite, url: "reduce"};
 
   let fromUrl =
     fun
@@ -245,8 +293,16 @@ module Routes = {
     | "append-last-large" => Some(PushLarge)
     | "random-access" => Some(RandomAccess)
     | "random-update" => Some(RandomUpdate)
+    | "reduce" => Some(Reduce)
     | _ => None;
 
   /* The main menu uses this array to list pages. */
-  let routes = [|Create, PushSmall, PushLarge, RandomAccess, RandomUpdate|];
+  let routes = [|
+    Create,
+    PushSmall,
+    PushLarge,
+    RandomAccess,
+    RandomUpdate,
+    Reduce,
+  |];
 };

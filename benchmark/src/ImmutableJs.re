@@ -19,6 +19,9 @@ module List = {
   external map:
     (t('value), ('value, int, t('value)) => 'value2) => t('value2) =
     "map";
+  [@bs.send]
+  external reduce: (t('value), ('acc, 'value) => 'acc, 'acc) => 'acc =
+    "reduce";
 
   [@bs.send] external get: (t('value), int) => 'value = "get";
 

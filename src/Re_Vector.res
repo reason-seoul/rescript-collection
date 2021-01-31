@@ -304,37 +304,33 @@ let toArray = ({size, root, tail}) => {
   data
 }
 
-let reduce = (vec, init, f) => {
+let reduceU = (vec, init, f) => {
   let acc = ref(init)
   for i in 0 to vec.size - 1 {
-    let arr = getArrayUnsafe(vec, i)
-    for j in 0 to arr->A.length - 1 {
-      acc := f(acc.contents, A.get(arr, j))
+    let ar = getArrayUnsafe(vec, i)
+    for j in 0 to ar->A.length - 1 {
+      acc := f(. acc.contents, ar->A.get(j))
     }
   }
   acc.contents
 }
 
-let doWithArray = (vec, f) => vec->toArray->f->fromArray
+let reduce = (vec, init, f) => vec->reduceU(init, (. a, b) => f(a, b))
 
-let map = (vec, f) => vec->doWithArray(Belt.Array.map(_, f))
+let mapU = (vec, f) => vec->reduceU(make(), (. res, v) => push(res, f(. v)))
 
-let reduceU = (vec, init, f) => vec->toArray->Belt.Array.reduceU(init, f)
+let map = (vec, f) => vec->mapU((. v) => f(v))
 
-let keep = (vec, f) => {
-  vec->reduceU(make(), (. res, v) => f(v) ? push(res, v) : res)
-}
+let keepU = (vec, f) => vec->reduceU(make(), (. res, v) => f(. v) ? push(res, v) : res)
 
+let keep = (vec, f) => vec->keepU((. x) => f(x))
 
-let debug = ({root}) => {
-  let rec traverse = (node, depth) =>
-    switch node {
-    | Node(ar) =>
-      Js.log("I " ++ depth->string_of_int)
-      Belt.Array.forEach(ar, n => traverse(n, depth + 1))
-    | Leaf(ar) =>
-      Js.log("L " ++ depth->string_of_int)
-      Belt.Array.forEach(ar, n => Js.log(n))
+let keepMapU = (vec, f) =>
+  vec->reduceU(make(), (. acc, v) => {
+    switch f(. v) {
+    | Some(v) => acc->push(v)
+    | None => acc
     }
-  traverse(root, 1)
-}
+  })
+
+let keepMap = (vec, f) => vec->keepMapU((. v) => f(v))

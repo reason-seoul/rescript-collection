@@ -12,6 +12,17 @@ module A = {
   let get = Js.Array2.unsafe_get
   let set = Js.Array2.unsafe_set
   let length = Js.Array2.length
+
+  @bs.val
+  external make: int => array<'a> = "Array"
+
+  // src and dst must not overlap
+  let blit = (~src, ~srcOffset, ~dst, ~dstOffset, ~len) =>
+    for i in 0 to len - 1 {
+      dst->set(dstOffset + i, src->get(srcOffset + i))
+    }
+
+  let forEach = Js.Array2.forEach
 }
 
 // to handle the impossible case without throwing an exception
@@ -263,12 +274,16 @@ let fromArray = ar => {
     let tailOffset = len - tailSize
     let tail = A.slice(ar, ~offset=tailOffset, ~len=tailSize)
 
-    Belt.Array.rangeBy(0, tailOffset - 1, ~step=numBranches)->Belt.Array.reduce(
-      {...make(), size: tailSize, tail: tail},
-      ({shift, size, root} as vec, offset) => {
-        let leaf = Leaf(A.slice(ar, ~offset, ~len=numBranches))
-        let isRootOverflow = offset == lsl(1, shift + numBits)
-        if isRootOverflow {
+    // unroll reduce
+    let i = ref(0)
+    let state = ref({...make(), size: tailSize, tail: tail})
+    while i.contents < tailOffset {
+      let offset = i.contents
+      let {shift, size, root} as vec = state.contents
+
+      let leaf = Leaf(A.slice(ar, ~offset, ~len=numBranches))
+      let isRootOverflow = offset == lsl(1, shift + numBits)
+      state := if isRootOverflow {
           let newRoot = Node([root, newPath(~level=shift, leaf)])
           {...vec, size: size + numBranches, shift: shift + numBits, root: newRoot}
         } else {
@@ -276,31 +291,27 @@ let fromArray = ar => {
           let newRoot = pushTail(~size=offset + 1, ~level=shift, root, leaf)
           {...vec, size: size + numBranches, root: newRoot}
         }
-      },
-    )
+
+      i := offset + numBranches
+    }
+    state.contents
   }
 }
 
 let toArray = ({size, root, tail}) => {
-  let data = Belt.Array.makeUninitializedUnsafe(size)
+  let data = A.make(size)
   let idx = ref(0)
   let rec fromTree = node =>
     switch node {
-    | Node(ar) => ar->Belt.Array.forEach(fromTree)
+    | Node(ar) => ar->A.forEach(fromTree)
     | Leaf(ar) =>
       let len = ar->A.length
-      Belt.Array.blitUnsafe(~src=ar, ~srcOffset=0, ~dst=data, ~dstOffset=idx.contents, ~len)
+      A.blit(~src=ar, ~srcOffset=0, ~dst=data, ~dstOffset=idx.contents, ~len)
       idx := idx.contents + len
     }
   fromTree(root)
   // from Tail
-  Belt.Array.blitUnsafe(
-    ~src=tail,
-    ~srcOffset=0,
-    ~dst=data,
-    ~dstOffset=idx.contents,
-    ~len=tail->A.length,
-  )
+  A.blit(~src=tail, ~srcOffset=0, ~dst=data, ~dstOffset=idx.contents, ~len=tail->A.length)
   data
 }
 

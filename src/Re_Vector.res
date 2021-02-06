@@ -348,3 +348,41 @@ let keepMapU = (vec, f) =>
   })
 
 let keepMap = (vec, f) => vec->keepMapU((. v) => f(v))
+
+let forEachU = (vec, f) => {
+  let i = ref(0)
+  while i.contents < vec.size {
+    let ar = getArrayUnsafe(vec, i.contents)
+    let len = ar->A.length
+    for j in 0 to len - 1 {
+      f(. ar->A.get(j))
+    }
+    i := i.contents + len
+  }
+}
+
+let forEach = (vec, f) => forEachU(vec, (. x) => f(x))
+
+let rec someAux = (vec, i, f) =>
+  if i == vec->length {
+    false
+  } else if f(. vec->getUnsafe(i)) {
+    true
+  } else {
+    someAux(vec, i + 1, f)
+  }
+
+let someU = (vec, f) => someAux(vec, 0, f)
+let some = (vec, f) => someU(vec, (. x) => f(x))
+
+let rec everyAux = (vec, i, f) =>
+  if i == vec->length {
+    true
+  } else if f(. vec->getUnsafe(i)) {
+    everyAux(vec, i + 1, f)
+  } else {
+    false
+  }
+
+let everyU = (vec, f) => everyAux(vec, 0, f)
+let every = (vec, f) => everyU(vec, (. x) => f(x))

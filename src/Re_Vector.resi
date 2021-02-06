@@ -26,5 +26,14 @@ let keep: (t<'a>, 'a => bool) => t<'a>
 let keepMapU: (t<'a>, (. 'a) => option<'b>) => t<'b>
 let keepMap: (t<'a>, 'a => option<'b>) => t<'b>
 
+let forEachU: (t<'a>, (. 'a) => unit) => unit
+let forEach: (t<'a>, 'a => unit) => unit
+
+let someU: (t<'a>, (. 'a) => bool) => bool
+let some: (t<'a>, 'a => bool) => bool
+
+let everyU: (t<'a>, (. 'a) => bool) => bool
+let every: (t<'a>, 'a => bool) => bool
+
 let fromArray: array<'a> => t<'a>
 let toArray: t<'a> => array<'a>

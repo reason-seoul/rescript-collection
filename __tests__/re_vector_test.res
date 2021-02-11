@@ -20,7 +20,14 @@ describe("Vector initialize", () => {
 })
 
 describe("Vector.push", () => {
-  testAll("push", A.range(1, 128)->Belt.List.fromArray, n => {
+  testAll("push", A.range(1, 64)->Belt.List.fromArray, n => {
+    let v1 = A.reduce(A.range(1, n), V.make(), (v, i) => V.push(v, i))
+    let v2 = A.range(1, n)->V.fromArray
+
+    expect(v1 == v2) |> toBeTruthy
+  })
+  test("root overflow", () => {
+    let n = 32768
     let v1 = A.reduce(A.range(1, n), V.make(), (v, i) => V.push(v, i))
     let v2 = A.range(1, n)->V.fromArray
 
@@ -33,11 +40,19 @@ let pushpop = (n, m) => {
   A.reduce(A.range(1, m), v, (v, _) => v->V.pop)
 }
 
-describe("Vector.pop", () =>
+describe("Vector.pop", () => {
   testAll("pushpop (push > pop)", list{(100, 50), (100, 100), (10000, 5000)}, ((n, m)) =>
     expect(pushpop(n, m)->V.toArray == A.range(1, n - m)) |> toBeTruthy
   )
-)
+
+  test("root underflow", () => {
+    let ar = A.range(1, 32768)
+    let v = V.fromArray(ar)
+    let ev = A.reduce(ar, v, (v, _) => V.pop(v))
+
+    expect(ev->V.length == 0) |> toBeTruthy
+  })
+})
 
 describe("Vector.get", () => {
   let v = pushpop(20000, 10000)
@@ -49,11 +64,18 @@ describe("Vector.get", () => {
     expect(every) |> toBeTruthy
   })
 
+  testAll("optional get", list{-1, 0, 10000}, idx => {
+    switch V.get(v, idx) {
+    | Some(_) => expect(idx >= 0 && idx < V.length(v)) |> toBeTruthy
+    | None => expect(idx >= 0 && idx < V.length(v)) |> toBeFalsy
+    }
+  })
+
   testAll("out of bounds", list{-1, 10000}, idx => expect(() => V.getExn(v, idx)) |> toThrow)
 })
 
 describe("Vector.set", () => {
-  let size = 100000
+  let size = 10000
   let v = V.fromArray(A.range(1, size))
   test(j`random update ($size times)`, () => {
     let ar = A.range(1, size)->A.shuffle
@@ -61,6 +83,13 @@ describe("Vector.set", () => {
     let every = A.every(v'->V.toArray, x => x < 0)
 
     expect(every) |> toBeTruthy
+  })
+
+  testAll("optional set", list{-1, 0, 10000}, idx => {
+    switch V.set(v, idx, 42) {
+    | Some(_) => expect(idx >= 0 && idx < V.length(v)) |> toBeTruthy
+    | None => expect(idx >= 0 && idx < V.length(v)) |> toBeFalsy
+    }
   })
 
   let ar = A.range(1, size)

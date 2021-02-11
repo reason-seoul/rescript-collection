@@ -42,10 +42,10 @@ type rec tree<'a> =
   | Leaf(array<'a>)
 
 module Tree = {
-  let clone = x =>
+  let cloneNode = x =>
     switch x {
     | Node(ar) => Node(ar->A.copy)
-    | Leaf(ar) => Leaf(ar->A.copy)
+    | Leaf(_) => absurd
     }
 
   let setNode = (node, idx, v) =>
@@ -95,7 +95,7 @@ let rec newPath = (~level, node) =>
   }
 
 let rec pushTail = (~size, ~level, parent, tail) => {
-  let ret = Tree.clone(parent)
+  let ret = Tree.cloneNode(parent)
   let subIdx = (size - 1)->lsr(level)->land(bitMask)
   if level == numBits {
     // array will be grown by out of index access. optimize?

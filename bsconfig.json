@@ -16,9 +16,14 @@
     "in-source": true
   },
   "suffix": ".bs.js",
-  "bs-dependencies": [],
+  "bs-dependencies": [
+    "bisect_ppx"
+  ],
   "bs-dev-dependencies": [
     "@glennsl/bs-jest"
+  ],
+  "ppx-flags": [
+    "bisect_ppx/ppx"
   ],
   "warnings": {
     "error": "+101"

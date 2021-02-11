@@ -13,13 +13,13 @@ module A = {
   let set = Js.Array2.unsafe_set
   let length = Js.Array2.length
 
-  @bs.val
+  @val
   external make: int => array<'a> = "Array"
 
   // src and dst must not overlap
   let blit = (~src, ~srcOffset, ~dst, ~dstOffset, ~len) =>
     for i in 0 to len - 1 {
-      dst->set(dstOffset + i, src->get(srcOffset + i))
+      Js.Array2.unsafe_set(dst, dstOffset + i, get(src, srcOffset + i))
     }
 
   let forEach = Js.Array2.forEach
@@ -50,13 +50,13 @@ module Tree = {
 
   let setNode = (node, idx, v) =>
     switch node {
-    | Node(ar) => ar->A.set(idx, v)
+    | Node(ar) => A.set(ar, idx, v)
     | Leaf(_) => absurd
     }
 
   let getNode = (node, idx) =>
     switch node {
-    | Node(ar) => ar->A.get(idx)
+    | Node(ar) => A.get(ar,idx)
     | Leaf(_) => absurd
     }
 }
@@ -106,7 +106,7 @@ let rec pushTail = (~size, ~level, parent, tail) => {
     | Node(ar) =>
       let newChild =
         subIdx < ar->A.length
-          ? pushTail(~size, ~level=level - numBits, ar->A.get(subIdx), tail)
+          ? pushTail(~size, ~level=level - numBits, A.get(ar, subIdx), tail)
           : newPath(~level=level - numBits, tail)
       Tree.setNode(ret, subIdx, newChild)
       ret
@@ -120,7 +120,7 @@ let push = ({size, shift, root, tail} as vec, x) =>
   if tail->A.length < numBranches {
     // copy and append
     let newTail = tail->A.copy
-    newTail->A.set(tail->A.length, x)
+    A.set(newTail, tail->A.length, x)
 
     {...vec, size: size + 1, tail: newTail}
   } else {
@@ -168,11 +168,11 @@ let rec popTail = (~size, ~level, parent) =>
     let subIdx = (size - 2)->lsr(level)->land(bitMask)
     switch parent {
     | Node(ar) =>
-      switch popTail(~size, ~level=level - numBits, ar->A.get(subIdx)) {
+      switch popTail(~size, ~level=level - numBits, A.get(ar, subIdx)) {
       | Some(child) =>
         // copy and replace
         let newAr = ar->A.copy
-        newAr->A.set(subIdx, child)
+        A.set(newAr, subIdx, child)
         Some(Node(newAr))
       | None =>
         if subIdx == 0 {
@@ -212,13 +212,13 @@ let pop = ({size, shift, root, tail} as vec) =>
     | Node(ar) =>
       let isRootUnderflow = shift > numBits && ar->A.length == 1
       isRootUnderflow
-        ? {shift: shift - numBits, size: size - 1, root: ar->A.get(0), tail: newTail}
+        ? {shift: shift - numBits, size: size - 1, root: A.get(ar, 0), tail: newTail}
         : {...vec, size: size - 1, root: newRoot, tail: newTail}
     | Leaf(_) => absurd
     }
   }
 
-let getUnsafe = (vec, i) => getArrayUnsafe(vec, i)->A.get(i->land(bitMask))
+let getUnsafe = (vec, i) => A.get(getArrayUnsafe(vec, i), i->land(bitMask))
 
 let get = ({size} as v, i) => i < 0 || i >= size ? None : Some(getUnsafe(v, i))
 
@@ -236,11 +236,11 @@ let rec updatedPath = (node, ~level, i, x) =>
   | Node(ar) =>
     let subIdx = i->lsr(level)->land(bitMask)
     let m = A.copy(ar)
-    m->A.set(subIdx, updatedPath(ar->A.get(subIdx), ~level=level - numBits, i, x))
+    A.set(m, subIdx, updatedPath(A.get(ar, subIdx), ~level=level - numBits, i, x))
     Node(m)
   | Leaf(ar) =>
     let m = A.copy(ar)
-    m->A.set(mod(i, numBranches), x)
+    A.set(m, mod(i, numBranches), x)
     Leaf(m)
   }
 
@@ -248,7 +248,7 @@ let setUnsafe = ({shift, root, tail} as vec, i, x) => {
   let offset = tailOffset(vec)
   if i >= offset {
     let newTail = tail->A.copy
-    newTail->A.set(i->land(bitMask), x)
+    A.set(newTail, i->land(bitMask), x)
     {...vec, tail: newTail}
   } else {
     {...vec, root: updatedPath(root, ~level=shift, i, x)}
@@ -303,7 +303,7 @@ let toArray = ({size, root, tail}) => {
   let idx = ref(0)
   let rec fromTree = node =>
     switch node {
-    | Node(ar) => ar->A.forEach(fromTree)
+    | Node(ar) => A.forEach(ar, fromTree)
     | Leaf(ar) =>
       let len = ar->A.length
       A.blit(~src=ar, ~srcOffset=0, ~dst=data, ~dstOffset=idx.contents, ~len)
@@ -322,32 +322,32 @@ let reduceU = (vec, init, f) => {
     let ar = getArrayUnsafe(vec, i.contents)
     let len = ar->A.length
     for j in 0 to len - 1 {
-      acc := f(. acc.contents, ar->A.get(j))
+      acc := f(. acc.contents, A.get(ar, j))
     }
     i := i.contents + len
   }
   acc.contents
 }
 
-let reduce = (vec, init, f) => vec->reduceU(init, (. a, b) => f(a, b))
+let reduce = (vec, init, f) => reduceU(vec, init, (. a, b) => f(a, b))
 
-let mapU = (vec, f) => vec->reduceU(make(), (. res, v) => push(res, f(. v)))
+let mapU = (vec, f) => reduceU(vec, make(), (. res, v) => push(res, f(. v)))
 
-let map = (vec, f) => vec->mapU((. v) => f(v))
+let map = (vec, f) => mapU(vec, (. v) => f(v))
 
-let keepU = (vec, f) => vec->reduceU(make(), (. res, v) => f(. v) ? push(res, v) : res)
+let keepU = (vec, f) => reduceU(vec, make(), (. res, v) => f(. v) ? push(res, v) : res)
 
-let keep = (vec, f) => vec->keepU((. x) => f(x))
+let keep = (vec, f) => keepU(vec, (. x) => f(x))
 
 let keepMapU = (vec, f) =>
-  vec->reduceU(make(), (. acc, v) => {
+  reduceU(vec, make(), (. acc, v) => {
     switch f(. v) {
-    | Some(v) => acc->push(v)
+    | Some(v) => push(acc, v)
     | None => acc
     }
   })
 
-let keepMap = (vec, f) => vec->keepMapU((. v) => f(v))
+let keepMap = (vec, f) => keepMapU(vec, (. v) => f(v))
 
 let forEachU = (vec, f) => {
   let i = ref(0)
@@ -355,7 +355,7 @@ let forEachU = (vec, f) => {
     let ar = getArrayUnsafe(vec, i.contents)
     let len = ar->A.length
     for j in 0 to len - 1 {
-      f(. ar->A.get(j))
+      f(. A.get(ar, j))
     }
     i := i.contents + len
   }
@@ -366,7 +366,7 @@ let forEach = (vec, f) => forEachU(vec, (. x) => f(x))
 let rec someAux = (vec, i, f) =>
   if i == vec->length {
     false
-  } else if f(. vec->getUnsafe(i)) {
+  } else if f(. getUnsafe(vec, i)) {
     true
   } else {
     someAux(vec, i + 1, f)
@@ -378,7 +378,7 @@ let some = (vec, f) => someU(vec, (. x) => f(x))
 let rec everyAux = (vec, i, f) =>
   if i == vec->length {
     true
-  } else if f(. vec->getUnsafe(i)) {
+  } else if f(. getUnsafe(vec, i)) {
     everyAux(vec, i + 1, f)
   } else {
     false

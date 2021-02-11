@@ -20,8 +20,8 @@ describe("Vector initialize", () => {
 })
 
 describe("Vector.push", () => {
-  testAll("push", A.range(1, 32)->Belt.List.fromArray, n => {
-    let v1 = A.range(1, n)->A.reduce(V.make(), (v, i) => V.push(v, i))
+  testAll("push", A.range(1, 128)->Belt.List.fromArray, n => {
+    let v1 = A.reduce(A.range(1, n), V.make(), (v, i) => V.push(v, i))
     let v2 = A.range(1, n)->V.fromArray
 
     expect(v1 == v2) |> toBeTruthy
@@ -30,7 +30,7 @@ describe("Vector.push", () => {
 
 let pushpop = (n, m) => {
   let v = V.fromArray(A.range(1, n))
-  A.range(1, m)->A.reduce(v, (v, _) => v->V.pop)
+  A.reduce(A.range(1, m), v, (v, _) => v->V.pop)
 }
 
 describe("Vector.pop", () =>
@@ -42,30 +42,31 @@ describe("Vector.pop", () =>
 describe("Vector.get", () => {
   let v = pushpop(20000, 10000)
   test("random access (10,000 times)", () => {
-    let every = A.range(1, 10000)->A.every(_ => {
+    let every = A.every(A.range(1, 10000), _ => {
       let idx = Js.Math.random_int(0, 10000)
-      v->V.getExn(idx) == idx + 1
+      V.getExn(v, idx) == idx + 1
     })
     expect(every) |> toBeTruthy
   })
 
-  testAll("out of bounds", list{-1, 10000}, idx => expect(() => v->V.getExn(idx)) |> toThrow)
+  testAll("out of bounds", list{-1, 10000}, idx => expect(() => V.getExn(v, idx)) |> toThrow)
 })
 
 describe("Vector.set", () => {
   let size = 100000
   let v = V.fromArray(A.range(1, size))
   test(j`random update ($size times)`, () => {
-    let v' = A.range(1, size)->A.shuffle->A.reduce(v, (v, idx) => v->V.setExn(idx - 1, idx * -1))
-    let every = v'->V.toArray->A.every(x => x < 0)
+    let ar = A.range(1, size)->A.shuffle
+    let v' = A.reduce(ar, v, (v, idx) => V.setExn(v, idx - 1, idx * -1))
+    let every = A.every(v'->V.toArray, x => x < 0)
 
     expect(every) |> toBeTruthy
   })
 
   let ar = A.range(1, size)
   test(j`mutable random update ($size times)`, () => {
-    A.range(1, size)->A.shuffle->A.forEach(idx => ar->A.setUnsafe(idx - 1, idx * -1))
-    let every = ar->A.every(x => x < 0)
+    A.forEach(A.range(1, size)->A.shuffle, idx => A.setUnsafe(ar, idx - 1, idx * -1))
+    let every = A.every(ar, x => x < 0)
 
     expect(every) |> toBeTruthy
   })
@@ -75,11 +76,11 @@ describe("Vector.reduce", () => {
   let size = 100
   let v = V.fromArray(A.range(1, size))
   test(j`sum`, () => {
-    let sum = v->V.reduce(0, (acc, i) => acc + i)
+    let sum = V.reduce(v, 0, (acc, i) => acc + i)
     expect(sum) |> toBe(5050)
   })
   test(j`sum (uncurried)`, () => {
-    let sum = v->V.reduceU(0, (. acc, i) => acc + i)
+    let sum = V.reduceU(v, 0, (. acc, i) => acc + i)
     expect(sum) |> toBe(5050)
   })
 })

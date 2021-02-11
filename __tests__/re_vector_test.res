@@ -64,6 +64,12 @@ describe("Vector.get", () => {
     expect(every) |> toBeTruthy
   })
 
+  test("tail offset 0", () => {
+    let v = V.push(V.make(), 1)
+    let v' = V.setUnsafe(v, 0, 2)
+    expect(V.getUnsafe(v', 0) == 2) |> toBeTruthy
+  })
+
   testAll("optional get", list{-1, 0, 10000}, idx => {
     switch V.get(v, idx) {
     | Some(_) => expect(idx >= 0 && idx < V.length(v)) |> toBeTruthy

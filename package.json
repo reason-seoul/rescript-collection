@@ -5,7 +5,8 @@
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
     "clean": "bsb -clean-world",
-    "test": "rm -f *.coverage && jest"
+    "test": "jest",
+    "coverage": "BISECT_ENABLE=yes npm run build && rm -f *.coverage && jest && npx bisect-ppx-report html"
   },
   "keywords": [
     "BuckleScript"

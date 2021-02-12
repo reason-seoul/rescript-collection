@@ -1,39 +1,40 @@
 type t<'a>
 
-let make: unit => t<'a>
-let length: t<'a> => int
+export make: unit => t<'a>
 
-let push: (t<'a>, 'a) => t<'a>
-let pop: t<'a> => t<'a>
+export length: t<'a> => int
 
-let get: (t<'a>, int) => option<'a>
-let getExn: (t<'a>, int) => 'a
-let getUnsafe: (t<'a>, int) => 'a
+export push: (t<'a>, 'a) => t<'a>
+export pop: t<'a> => t<'a>
 
-let set: (t<'a>, int, 'a) => option<t<'a>>
-let setExn: (t<'a>, int, 'a) => t<'a>
-let setUnsafe: (t<'a>, int, 'a) => t<'a>
+export get: (t<'a>, int) => option<'a>
+export getExn: (t<'a>, int) => 'a
+export getUnsafe: (t<'a>, int) => 'a
 
-let reduceU: (t<'a>, 'b, (. 'b, 'a) => 'b) => 'b
-let reduce: (t<'a>, 'b, ('b, 'a) => 'b) => 'b
+export set: (t<'a>, int, 'a) => option<t<'a>>
+export setExn: (t<'a>, int, 'a) => t<'a>
+export setUnsafe: (t<'a>, int, 'a) => t<'a>
 
-let mapU: (t<'a>, (. 'a) => 'b) => t<'b>
-let map: (t<'a>, 'a => 'b) => t<'b>
+export reduceU: (t<'a>, 'b, (. 'b, 'a) => 'b) => 'b
+export reduce: (t<'a>, 'b, ('b, 'a) => 'b) => 'b
 
-let keepU: (t<'a>, (. 'a) => bool) => t<'a>
-let keep: (t<'a>, 'a => bool) => t<'a>
+export mapU: (t<'a>, (. 'a) => 'b) => t<'b>
+export map: (t<'a>, 'a => 'b) => t<'b>
 
-let keepMapU: (t<'a>, (. 'a) => option<'b>) => t<'b>
-let keepMap: (t<'a>, 'a => option<'b>) => t<'b>
+export keepU: (t<'a>, (. 'a) => bool) => t<'a>
+export keep: (t<'a>, 'a => bool) => t<'a>
 
-let forEachU: (t<'a>, (. 'a) => unit) => unit
-let forEach: (t<'a>, 'a => unit) => unit
+export keepMapU: (t<'a>, (. 'a) => option<'b>) => t<'b>
+export keepMap: (t<'a>, 'a => option<'b>) => t<'b>
 
-let someU: (t<'a>, (. 'a) => bool) => bool
-let some: (t<'a>, 'a => bool) => bool
+export forEachU: (t<'a>, (. 'a) => unit) => unit
+export forEach: (t<'a>, 'a => unit) => unit
 
-let everyU: (t<'a>, (. 'a) => bool) => bool
-let every: (t<'a>, 'a => bool) => bool
+export someU: (t<'a>, (. 'a) => bool) => bool
+export some: (t<'a>, 'a => bool) => bool
 
-let fromArray: array<'a> => t<'a>
-let toArray: t<'a> => array<'a>
+export everyU: (t<'a>, (. 'a) => bool) => bool
+export every: (t<'a>, 'a => bool) => bool
+
+export fromArray: array<'a> => t<'a>
+export toArray: t<'a> => array<'a>

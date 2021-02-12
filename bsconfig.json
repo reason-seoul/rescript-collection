@@ -1,6 +1,5 @@
 {
   "name": "re-vector",
-  "version": "0.1.0",
   "sources": [
     {
       "dir": "src",
@@ -28,5 +27,13 @@
   "warnings": {
     "error": "+101"
   },
-  "refmt": 3
+  "refmt": 3,
+  "gentypeconfig": {
+    "language": "typescript",
+    "shims": {},
+    "debug": {
+      "all": false,
+      "basic": false
+    }
+  }
 }

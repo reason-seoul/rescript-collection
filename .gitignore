@@ -3,6 +3,8 @@
 .bsb.lock
 npm-debug.log
 /lib/bs/
+/lib/ocaml/
 /node_modules/
 *.bs.js
-lib/ocaml
+src/*.mjs
+src/*.gen.tsx

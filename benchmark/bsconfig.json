@@ -17,8 +17,7 @@
   "suffix": ".bs.js",
   "bs-dependencies": [
     "reason-react",
-    "bs-webapi",
-    "re-vector"
+    "res-vector"
   ],
   "bs-dev-dependencies": [],
   "ppx-flags": [],

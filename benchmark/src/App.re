@@ -6,20 +6,17 @@ module Prism = {
   external highlightAll: unit => unit = "highlightAll";
 };
 
+module MyDom = {
+  [@bs.val] external document: Dom.htmlDocument = "document";
+  [@bs.set] external setTitle: (Dom.htmlDocument, string) => unit = "setTitle";
+};
+
 module DocTitle = {
   let prefix = "re-vector";
 
-  let set = title =>
-    Webapi.Dom.(
-      document
-      ->Document.unsafeAsHtmlDocument
-      ->HtmlDocument.setTitle(prefix ++ " - " ++ title)
-    );
+  let set = title => MyDom.(document->setTitle(prefix ++ " - " ++ title));
 
-  let reset = () =>
-    Webapi.Dom.(
-      document->Document.unsafeAsHtmlDocument->HtmlDocument.setTitle(prefix)
-    );
+  let reset = () => MyDom.(document->setTitle(prefix));
 };
 
 type running =
@@ -353,11 +350,5 @@ let make = () => {
          </>;
        }}
     </main>
-    <footer className="footer">
-      <p>
-        "Copyright \xA9 2020 "->React.string
-        <a href="https://johnridesa.bike/"> "John Jackson"->React.string </a>
-      </p>
-    </footer>
   </div>;
 };

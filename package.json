@@ -1,5 +1,5 @@
 {
-  "name": "re-vector",
+  "name": "rescript-vector",
   "version": "0.1.0",
   "scripts": {
     "build": "bsb -make-world",
@@ -17,7 +17,6 @@
     "@glennsl/bs-jest": "^0.6.0",
     "bisect_ppx": "^2.6.0",
     "bs-platform": "^9.0.0",
-    "gentype": "^3.43.0",
     "jest": "^26.6.3"
   },
   "dependencies": {},

@@ -1,5 +1,5 @@
 {
-  "name": "re-vector",
+  "name": "rescript-vector",
   "sources": [
     {
       "dir": "src",
@@ -11,9 +11,8 @@
     }
   ],
   "package-specs": {
-    "module": "es6",
-    "in-source": true,
-    "suffix": ".mjs"
+    "module": "commonjs",
+    "in-source": true
   },
   "suffix": ".bs.js",
   "bs-dependencies": [
@@ -28,12 +27,5 @@
   "warnings": {
     "error": "+101"
   },
-  "refmt": 3,
-  "gentypeconfig": {
-    "language": "typescript",
-    "debug": {
-      "all": false,
-      "basic": false
-    }
-  }
+  "refmt": 3
 }

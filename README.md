@@ -1,11 +1,11 @@
-# re-vector
+# rescript-vector
 
 > Belt's missing piece, Persistent Vector for ReScript.
 
 
 ### Benchmarks
 
-https://reason-seoul.github.io/re-vector/
+https://reason-seoul.github.io/rescript-vector/
 
 
 ### References

@@ -12,7 +12,7 @@ module MyDom = {
 };
 
 module DocTitle = {
-  let prefix = "re-vector";
+  let prefix = "rescript-vector";
 
   let set = title => MyDom.(document->setTitle(prefix ++ " - " ++ title));
 
@@ -316,7 +316,7 @@ let make = () => {
       <header>
         <p className="site-title">
           <Router.HashLink to_=Router.Index className="site-title__link">
-            "re-vector"->React.string
+            "rescript-vector"->React.string
           </Router.HashLink>
         </p>
       </header>

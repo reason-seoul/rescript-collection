@@ -5323,10 +5323,10 @@ require-from-string@^2.0.2:
   resolved "https://registry.yarnpkg.com/require-from-string/-/require-from-string-2.0.2.tgz#89a7fdd938261267318eafe14f9c32e598c36909"
   integrity sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==
 
-res-vector@0.1.0:
+rescript-vector@0.1.0:
   version "0.1.0"
-  resolved "https://registry.yarnpkg.com/res-vector/-/res-vector-0.1.0.tgz#3c4908b5bce3d6324bd7f7e0bf3734818fbadbc2"
-  integrity sha512-XvemOJd05YY/l49FEa9twuA4Bc/kXSgdZri9IBT8F8NlPCDiylZJW7Y4X4f8u5PYYcnhDvdQg/bjXQtXlEgfdA==
+  resolved "https://registry.yarnpkg.com/rescript-vector/-/rescript-vector-0.1.0.tgz#cc94ab0beb438b7d24e603dbece378ed35ae3792"
+  integrity sha512-+OuZ0to7VaOuPQ0rXk3mHC1g58K5/s6xlTtf6sbB/5BJWVaQFh2z9S4sOyN7QceqS4Lr7maxZYzgDFvU4YKXuQ==
 
 resolve-from@^3.0.0:
   version "3.0.0"

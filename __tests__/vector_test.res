@@ -2,7 +2,7 @@ open Jest
 open ExpectJs
 
 module A = Belt.Array
-module V = Re_Vector
+module V = Vector
 
 describe("Vector initialize", () => {
   test("empty", () => expect(V.make()->V.length) |> toBe(0))

@@ -15,18 +15,18 @@ type t = {
 };
 
 module A = Belt.Array;
-module V = Re_Vector;
+module V = Vector;
 
 module Create = {
   let n = 1000;
   let benchmarks = [|
     {
-      name: {j|Re_Vector.fromArray|j},
+      name: {j|Vector.fromArray|j},
       f:
         (.) => {
-          A.range(1, n)->Re_Vector.fromArray->Any;
+          A.range(1, n)->Vector.fromArray->Any;
         },
-      code: {j|A.range(1, n)->Re_Vector.fromArray|j},
+      code: {j|A.range(1, n)->Vector.fromArray|j},
     },
     {
       name: {j|ImmutableJs.List.fromArray|j},
@@ -54,12 +54,12 @@ module Push = {
   let largeN = 100000;
 
   let vectorCase = n => {
-    name: {j|Re_Vector.push|j},
+    name: {j|Vector.push|j},
     f:
       (.) => {
         A.range(1, n)->A.reduce(V.make(), (v, i) => V.push(v, i))->Any;
       },
-    code: {j|A.range(1, n)\n->A.reduce(Re_Vector.make(), (v, i) => Re_Vector.push(v, i))|j},
+    code: {j|A.range(1, n)\n->A.reduce(Vector.make(), (v, i) => Vector.push(v, i))|j},
   };
 
   let immutableJsCase = n => {
@@ -140,13 +140,13 @@ module Push = {
 module Fixture = {
   let n = 10000;
   let v0 = A.range(1, n);
-  let v1 = Re_Vector.fromArray(A.range(1, n));
+  let v1 = Vector.fromArray(A.range(1, n));
   let v2 = ImmutableJs.List.fromArray(A.range(1, n));
   let v3 = Mori.into(Mori.vector(), A.range(1, n));
 
   let setup = {j|let n = 10000;
 let v0 = A.range(1, n);
-let v1 = Re_Vector.fromArray(A.range(1, n));
+let v1 = Vector.fromArray(A.range(1, n));
 let v2 = ImmutableJs.List.fromArray(A.range(1, n));
 let v3 = Mori.into(Mori.vector(), A.range(1, n));|j};
 };
@@ -161,14 +161,14 @@ module AccessUpdate = {
     setup,
     benchmarks: [|
       {
-        name: {j|Re_Vector.getExn|j},
+        name: {j|Vector.getExn|j},
         f:
           (.) => {
             indices
-            ->A.forEach(i => Re_Vector.getExn(Fixture.v1, i)->ignore)
+            ->A.forEach(i => Vector.getExn(Fixture.v1, i)->ignore)
             ->Any;
           },
-        code: {j|indices->A.forEach(i => Re_Vector.get(v1, i)->ignore)|j},
+        code: {j|indices->A.forEach(i => Vector.get(v1, i)->ignore)|j},
       },
       {
         name: {j|ImmutableJs.List.get|j},
@@ -196,14 +196,14 @@ module AccessUpdate = {
     setup,
     benchmarks: [|
       {
-        name: {j|Re_Vector.setExn|j},
+        name: {j|Vector.setExn|j},
         f:
           (.) => {
             indices
-            ->A.reduce(Fixture.v1, (v, i) => Re_Vector.setExn(v, i, -1))
+            ->A.reduce(Fixture.v1, (v, i) => Vector.setExn(v, i, -1))
             ->Any;
           },
-        code: {j|indices->A.reduce(v1, (v, i) => Re_Vector.setExn(v, i, -1))|j},
+        code: {j|indices->A.reduce(v1, (v, i) => Vector.setExn(v, i, -1))|j},
       },
       {
         name: {j|ImmutableJs.List.set|j},
@@ -237,12 +237,12 @@ module Reduce = {
     setup,
     benchmarks: [|
       {
-        name: {j|Re_Vector.reduce|j},
+        name: {j|Vector.reduce|j},
         f:
           (.) => {
-            Fixture.v1->Re_Vector.reduce(0, (+))->Any;
+            Fixture.v1->Vector.reduce(0, (+))->Any;
           },
-        code: {j|v1->Re_Vector.reduce(0, (+))|j},
+        code: {j|v1->Vector.reduce(0, (+))|j},
       },
       {
         name: {j|ImmutableJs.List.reduce|j},
@@ -283,12 +283,12 @@ module Reduce = {
         code: {j|v0->Belt.Array.reduce(0, (+))|j},
       },
       {
-        name: {j|Re_Vector.reduce|j},
+        name: {j|Vector.reduce|j},
         f:
           (.) => {
-            Fixture.v1->Re_Vector.reduce(0, (+))->Any;
+            Fixture.v1->Vector.reduce(0, (+))->Any;
           },
-        code: {j|v1->Re_Vector.reduce(0, (+))|j},
+        code: {j|v1->Vector.reduce(0, (+))|j},
       },
     |],
   };

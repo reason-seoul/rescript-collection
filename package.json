@@ -23,7 +23,7 @@
   "dependencies": {},
   "jest": {
     "setupFilesAfterEnv": [
-      "bisect_ppx/src/runtime/bucklescript/jest.bs.js"
+      "bisect_ppx/lib/js/src/runtime/bucklescript/jest.js"
     ]
   }
 }

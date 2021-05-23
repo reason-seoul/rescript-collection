@@ -6,8 +6,7 @@
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
     "clean": "bsb -clean-world",
-    "test": "jest",
-    "coverage": "BISECT_ENABLE=yes npm run build && rm -f *.coverage && jest && npx bisect-ppx-report html"
+    "test": "jest"
   },
   "keywords": [
     "rescript"
@@ -15,15 +14,10 @@
   "author": "Hyunwoo Nam",
   "license": "MIT",
   "devDependencies": {
-    "@glennsl/bs-jest": "^0.6.0",
-    "bisect_ppx": "^2.6.0",
+    "@glennsl/bs-jest": "^0.7.0",
     "bs-platform": "^9.0.0",
     "jest": "^26.6.3"
   },
   "dependencies": {},
-  "jest": {
-    "setupFilesAfterEnv": [
-      "bisect_ppx/lib/js/src/runtime/bucklescript/jest.js"
-    ]
-  }
+  "jest": {}
 }

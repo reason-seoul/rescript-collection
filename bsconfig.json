@@ -12,5 +12,6 @@
   ],
   "bs-dev-dependencies": [
     "@glennsl/bs-jest"
-  ]
+  ],
+  "external-stdlib" : "@rescript/std"
 }

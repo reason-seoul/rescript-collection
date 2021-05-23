@@ -22,7 +22,7 @@
     "gh-pages": "^3.1.0",
     "parcel": "^1.12.4",
     "stylelint": "^13.3.3",
-    "stylelint-config-standard": "^20.0.0"
+    "stylelint-config-standard": "^22.0.0"
   },
   "dependencies": {
     "immutable": "^4.0.0-rc.12",

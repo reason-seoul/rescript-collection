@@ -22,7 +22,8 @@ module A = {
       Js.Array2.unsafe_set(dst, dstOffset + i, get(src, srcOffset + i))
     }
 
-  let forEach = Js.Array2.forEach
+  @send
+  external forEach: (array<'a>, 'a => unit) => unit = "forEach"
 }
 
 // to handle the impossible case without throwing an exception
@@ -45,19 +46,19 @@ module Tree = {
   let cloneNode = x =>
     switch x {
     | Node(ar) => Node(ar->A.copy)
-    | Leaf(_) => absurd
+    | Leaf(_) => @coverage(off) absurd
     }
 
   let setNode = (node, idx, v) =>
     switch node {
     | Node(ar) => A.set(ar, idx, v)
-    | Leaf(_) => absurd
+    | Leaf(_) => @coverage(off) absurd
     }
 
   let getNode = (node, idx) =>
     switch node {
-    | Node(ar) => A.get(ar,idx)
-    | Leaf(_) => absurd
+    | Node(ar) => A.get(ar, idx)
+    | Leaf(_) => @coverage(off) absurd
     }
 }
 
@@ -110,7 +111,7 @@ let rec pushTail = (~size, ~level, parent, tail) => {
           : newPath(~level=level - numBits, tail)
       Tree.setNode(ret, subIdx, newChild)
       ret
-    | Leaf(_) => absurd
+    | Leaf(_) => @coverage(off) absurd
     }
   }
 }
@@ -157,7 +158,7 @@ let getArrayUnsafe = ({root, shift, tail} as vec, idx) => {
     }
 
     switch node.contents {
-    | Node(_) => absurd
+    | Node(_) => @coverage(off) absurd
     | Leaf(ar) => ar
     }
   }
@@ -183,7 +184,7 @@ let rec popTail = (~size, ~level, parent) =>
           Some(Node(newAr))
         }
       }
-    | Leaf(_) => absurd
+    | Leaf(_) => @coverage(off) absurd
     }
   } else {
     None
@@ -214,7 +215,7 @@ let pop = ({size, shift, root, tail} as vec) =>
       isRootUnderflow
         ? {shift: shift - numBits, size: size - 1, root: A.get(ar, 0), tail: newTail}
         : {...vec, size: size - 1, root: newRoot, tail: newTail}
-    | Leaf(_) => absurd
+    | Leaf(_) => @coverage(off) absurd
     }
   }
 

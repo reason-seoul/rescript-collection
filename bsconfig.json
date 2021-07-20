@@ -10,8 +10,14 @@
       "type": "dev"
     }
   ],
+  "bs-dependencies": [
+    "bisect_ppx"
+  ],
   "bs-dev-dependencies": [
     "@glennsl/bs-jest"
   ],
-  "external-stdlib" : "@rescript/std"
+  "ppx-flags": [
+    "bisect_ppx/ppx"
+  ],
+  "external-stdlib": "@rescript/std"
 }

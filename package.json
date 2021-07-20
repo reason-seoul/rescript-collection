@@ -6,7 +6,8 @@
     "build": "rescript build -with-deps",
     "start": "rescript build -w",
     "clean": "rescript clean",
-    "test": "jest"
+    "test": "jest",
+    "coverage": "BISECT_ENABLE=yes npm run build && rm -f *.coverage && jest && npx bisect-ppx-report html"
   },
   "keywords": [
     "rescript"
@@ -19,11 +20,16 @@
   ],
   "devDependencies": {
     "@glennsl/bs-jest": "^0.7.0",
-    "jest": "^26.6.3",
+    "bisect_ppx": "^2.6.2",
+    "jest": "^27.0.6",
     "rescript": "^9.1.2"
   },
   "dependencies": {
     "@rescript/std": "^9.1.0"
   },
-  "jest": {}
+  "jest": {
+    "setupFilesAfterEnv": [
+      "bisect_ppx/lib/js/src/runtime/bucklescript/jest.js"
+    ]
+  }
 }

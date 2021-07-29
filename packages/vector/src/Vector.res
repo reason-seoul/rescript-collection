@@ -374,6 +374,7 @@ let rec someAux = (vec, i, f) =>
   }
 
 let someU = (vec, f) => someAux(vec, 0, f)
+
 let some = (vec, f) => someU(vec, (. x) => f(x))
 
 let rec everyAux = (vec, i, f) =>
@@ -386,4 +387,5 @@ let rec everyAux = (vec, i, f) =>
   }
 
 let everyU = (vec, f) => everyAux(vec, 0, f)
+
 let every = (vec, f) => everyU(vec, (. x) => f(x))

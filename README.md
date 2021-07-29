@@ -1,15 +1,13 @@
-# rescript-vector
+# ReScript Collections
 
-> Belt's missing piece, Persistent Vector for ReScript.
+Fast and efficiant immutable collection for ReScript/TypeScript/JavaScript written in 100% ReScript!
 
+## Packages
 
-### Benchmarks
+| Package                            | Description                      |     |
+| :--------------------------------- | :------------------------------- | --- |
+| [rescript-vector](packages/vector) | Persistent Vector                | [![Package Version](https://img.shields.io/npm/v/rescript-vector)](https://www.npmjs.com/package/rescript-vector) |
 
-https://reason-seoul.github.io/rescript-vector/
+## License
 
-
-### References
-
-- [Extreme Cleverness: Functional Data Structures in Scala](https://www.infoq.com/presentations/Functional-Data-Structures-in-Scala/)
-- [Understanding Clojure's Persistent Vectors](https://hypirion.com/musings/understanding-persistent-vector-pt-1)
-- [ImmutableJs](https://immutable-js.github.io/immutable-js/)
+MIT

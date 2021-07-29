@@ -1,10 +1,14 @@
 .DS_Store
 .merlin
-*.lock
 *.log
-**/lib/bs/
-**/lib/ocaml/
-**/node_modules/
+*.tsbuildinfo
 
-*.bs.js
-/lib/js/
+node_modules/
+
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*

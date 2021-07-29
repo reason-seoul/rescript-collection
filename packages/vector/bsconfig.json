@@ -1,0 +1,28 @@
+{
+  "name": "rescript-vector",
+  "sources": [
+    {
+      "dir": "src"
+    },
+    {
+      "dir": "tests",
+      "type": "dev"
+    }
+  ],
+  "package-specs": [
+    {
+      "module": "es6",
+      "in-source": true
+    }
+  ],
+  "suffix": ".mjs",
+  "external-stdlib": "@rescript/std",
+  "bs-dev-dependencies": [
+    "@dusty-phillips/rescript-zora"
+  ],
+  "gentypeconfig": {
+    "language": "typescript",
+    "shims": {},
+    "generatedFileExtension": ".gen.ts"
+  }
+}

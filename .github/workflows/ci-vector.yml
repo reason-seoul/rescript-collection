@@ -26,8 +26,13 @@ jobs:
 
       - name: Install Packages
         if: steps.yarn-cache.outputs.cache-hit != 'true'
-        run: yarn install --immutable
+        run: |
+          yarn install --immutable
 
-      - run: yarn build
+      - name: Compile ReScript
+        run: |
+          yarn workspace rescript-vector build
 
-      - run: yarn test:coverage
+      - name: Run Unit Tests
+        run: |
+          yarn workspace rescript-vector test:coverage

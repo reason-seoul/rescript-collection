@@ -1,7 +1,14 @@
 name: "CI: rescript-vector"
 
 on:
-  pull_request:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  pull-requests: write
 
 jobs:
   build:
@@ -37,6 +44,14 @@ jobs:
         run: |
           yarn workspace rescript-vector test:coverage
 
-      - uses: romeovs/lcov-reporter-action@v0.2.16
-        with:
-          lcov-file: ./packages/vector/coverage/lcov.info
+      # See https://github.com/marocchino/sticky-pull-request-comment/issues/298
+      #
+      # - uses: HackingGate/lcov-reporter-action@7bf132b5f872f17fde607a37b7ca2308510abbb4
+      #   with:
+      #     lcov-file: ./packages/vector/coverage/lcov.info
+      #     path: ./packages/vector/coverage/body.html
+
+      # - uses: marocchino/sticky-pull-request-comment@v2
+      #   with:
+      #     header: coverage
+      #     path: ./packages/vector/coverage/body.html

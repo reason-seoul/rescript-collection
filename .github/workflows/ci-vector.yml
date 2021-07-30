@@ -1,0 +1,57 @@
+name: "CI: rescript-vector"
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+
+      - uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install Packages
+        # if: steps.yarn-cache.outputs.cache-hit != 'true'
+        run: |
+          yarn install --immutable
+
+      - name: Compile ReScript
+        run: |
+          yarn workspace rescript-vector build
+
+      - name: Run Unit Tests
+        run: |
+          yarn workspace rescript-vector test:coverage
+
+      # See https://github.com/marocchino/sticky-pull-request-comment/issues/298
+      #
+      # - uses: HackingGate/lcov-reporter-action@7bf132b5f872f17fde607a37b7ca2308510abbb4
+      #   with:
+      #     lcov-file: ./packages/vector/coverage/lcov.info
+      #     path: ./packages/vector/coverage/body.html
+
+      # - uses: marocchino/sticky-pull-request-comment@v2
+      #   with:
+      #     header: coverage
+      #     path: ./packages/vector/coverage/body.html

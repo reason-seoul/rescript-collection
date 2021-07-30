@@ -1,11 +1,8 @@
 {
-  "name": "benchmark-bs",
-  "version": "1.0.0",
-  "description": "A benchmarking application for bucklescript",
-  "main": "index.js",
+  "name": "benchmark",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "re:build": "bsb -make-world",
     "re:watch": "bsb -make-world -w",
     "re:clean": "bsb -clean-world",
@@ -13,8 +10,6 @@
     "build": "yarn re:build && parcel build src/index.html --public-url ./",
     "deploy": "yarn build && gh-pages -d dist"
   },
-  "author": "John",
-  "license": "MIT",
   "devDependencies": {
     "benchmark": "^2.1.4",
     "bs-platform": "^9.0.0",

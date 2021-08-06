@@ -1,13 +1,16 @@
-name: "CI: rescript-vector"
+name: chore
 
 on:
   pull_request:
 
 jobs:
-  build-vector:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
+          fetch-depth: 0
 
       - uses: actions/setup-node@v2
         with:
@@ -30,22 +33,6 @@ jobs:
         run: |
           yarn install --immutable
 
-      - name: Compile ReScript
+      - name: Check if changeset file is added
         run: |
-          yarn workspace rescript-vector build
-
-      - name: Run Unit Tests
-        run: |
-          yarn workspace rescript-vector test:coverage
-
-      # See https://github.com/marocchino/sticky-pull-request-comment/issues/298
-      #
-      # - uses: HackingGate/lcov-reporter-action@7bf132b5f872f17fde607a37b7ca2308510abbb4
-      #   with:
-      #     lcov-file: ./packages/vector/coverage/lcov.info
-      #     path: ./packages/vector/coverage/body.html
-
-      # - uses: marocchino/sticky-pull-request-comment@v2
-      #   with:
-      #     header: coverage
-      #     path: ./packages/vector/coverage/body.html
+          yarn changeset status --verbose

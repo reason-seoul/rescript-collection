@@ -5,7 +5,6 @@ import * as Zora$1 from "zora";
 import * as Vector from "../src/Vector.mjs";
 import * as Js_math from "@rescript/std/lib/es6/js_math.js";
 import * as Caml_obj from "@rescript/std/lib/es6/caml_obj.js";
-import * as Belt_List from "@rescript/std/lib/es6/belt_List.js";
 import * as Belt_Array from "@rescript/std/lib/es6/belt_Array.js";
 
 function isomorphic(ar) {
@@ -22,11 +21,11 @@ function pushpop(n, m) {
 Zora$1.test("Vector initialize", (function (t) {
         t.equal(Vector.length(Vector.make(undefined)), 0, "make empty vector");
         t.equal(Vector.fromArray([]), Vector.make(undefined), "make from empty array");
-        Belt_List.forEach(Belt_List.fromArray(Belt_Array.range(1, 32)), (function (n) {
+        Belt_Array.forEach(Belt_Array.range(1, 32), (function (n) {
                 t.ok(isomorphic(Belt_Array.range(1, n)), "fromArray length=" + String(n));
                 
               }));
-        Belt_List.forEach(Belt_List.fromArray(Belt_Array.rangeBy(1000, 10000, 1000)), (function (n) {
+        Belt_Array.forEach(Belt_Array.rangeBy(1000, 10000, 1000), (function (n) {
                 t.ok(isomorphic(Belt_Array.range(1, n)), "fromArray length=" + String(n));
                 
               }));
@@ -35,7 +34,7 @@ Zora$1.test("Vector initialize", (function (t) {
 
 Zora$1.test("Vector.push", (function (t) {
         t.test("push", (function (t) {
-                Belt_List.forEach(Belt_List.fromArray(Belt_Array.range(1, 64)), (function (n) {
+                Belt_Array.forEach(Belt_Array.range(1, 64), (function (n) {
                         var v1 = Belt_Array.reduce(Belt_Array.range(1, n), Vector.make(undefined), Vector.push);
                         var v2 = Vector.fromArray(Belt_Array.range(1, n));
                         t.equal(v1, v2, "should be equal");
@@ -54,25 +53,20 @@ Zora$1.test("Vector.push", (function (t) {
 
 Zora$1.test("Vector.pop", (function (t) {
         t.test("pop", (function (t) {
-                Belt_List.forEach({
-                      hd: [
+                Belt_Array.forEach([
+                      [
                         100,
                         50
                       ],
-                      tl: {
-                        hd: [
-                          100,
-                          100
-                        ],
-                        tl: {
-                          hd: [
-                            10000,
-                            5000
-                          ],
-                          tl: /* [] */0
-                        }
-                      }
-                    }, (function (param) {
+                      [
+                        100,
+                        100
+                      ],
+                      [
+                        10000,
+                        5000
+                      ]
+                    ], (function (param) {
                         var m = param[1];
                         var n = param[0];
                         t.equal(Vector.toArray(pushpop(n, m)), Belt_Array.range(1, n - m | 0), "should be equal");
@@ -109,41 +103,23 @@ Zora$1.test("Vector.get", (function (t) {
                 
               }));
         t.test("optional get", (function (t) {
-                return Belt_List.forEach({
-                            hd: -1,
-                            tl: {
-                              hd: 0,
-                              tl: {
-                                hd: 10000,
-                                tl: /* [] */0
-                              }
-                            }
-                          }, (function (idx) {
+                return Belt_Array.forEach([
+                            -1,
+                            0,
+                            10000
+                          ], (function (idx) {
                               var match = Vector.get(v, idx);
                               if (match !== undefined) {
-                                var partial_arg = idx >= 0 && idx < Vector.length(v);
-                                return function (param) {
-                                  t.ok(partial_arg, param);
-                                  
-                                };
+                                t.ok(idx >= 0 && idx < Vector.length(v), "should be ok");
+                              } else {
+                                t.notOk(idx >= 0 && idx < Vector.length(v), "should not be ok");
                               }
-                              var partial_arg$1 = idx >= 0 && idx < Vector.length(v);
-                              return function (param) {
-                                t.ok(partial_arg$1, param);
-                                
-                              };
+                              
                             }));
               }));
         t.test("out of bounds", (function (t) {
-                return Belt_List.forEach({
-                            hd: -1,
-                            tl: {
-                              hd: 10000,
-                              tl: /* [] */0
-                            }
-                          }, (function (idx) {
-                              return Zora.optionNone(t, Vector.get(v, idx), "should be none");
-                            }));
+                Zora.optionNone(t, Vector.get(v, -1), "should be none");
+                return Zora.optionNone(t, Vector.get(v, 10000), "should be none");
               }));
         return Zora.done(undefined);
       }));
@@ -162,29 +138,18 @@ Zora$1.test("Vector.set", (function (t) {
                 
               }));
         t.test("optional set", (function (t) {
-                return Belt_List.forEach({
-                            hd: -1,
-                            tl: {
-                              hd: 0,
-                              tl: {
-                                hd: 10000,
-                                tl: /* [] */0
-                              }
-                            }
-                          }, (function (idx) {
+                return Belt_Array.forEach([
+                            -1,
+                            0,
+                            10000
+                          ], (function (idx) {
                               var match = Vector.set(v, idx, 42);
                               if (match !== undefined) {
-                                var partial_arg = idx >= 0 && idx < Vector.length(v);
-                                return function (param) {
-                                  t.ok(partial_arg, param);
-                                  
-                                };
+                                t.ok(idx >= 0 && idx < Vector.length(v), "should be ok");
+                              } else {
+                                t.notOk(idx >= 0 && idx < Vector.length(v), "should not be ok");
                               }
-                              var partial_arg$1 = idx >= 0 && idx < Vector.length(v);
-                              return function (param) {
-                                t.ok(partial_arg$1, param);
-                                
-                              };
+                              
                             }));
               }));
         var ar = Belt_Array.range(1, 10000);

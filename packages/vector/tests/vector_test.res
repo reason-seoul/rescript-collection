@@ -13,15 +13,11 @@ zora("Vector initialize", t => {
   t->equal(V.make()->V.length, 0, "make empty vector")
   t->equal(V.fromArray([]), V.make(), "make from empty array")
 
-  A.range(1, 32)
-  ->Belt.List.fromArray
-  ->Belt.List.forEach(n => {
+  A.range(1, 32)->A.forEach(n => {
     t->ok(isomorphic(A.range(1, n)), `fromArray length=${n->Belt.Int.toString}`)
   })
 
-  A.rangeBy(1000, 10000, ~step=1000)
-  ->Belt.List.fromArray
-  ->Belt.List.forEach(n => {
+  A.rangeBy(1000, 10000, ~step=1000)->A.forEach(n => {
     t->ok(isomorphic(A.range(1, n)), `fromArray length=${n->Belt.Int.toString}`)
   })
 
@@ -30,9 +26,7 @@ zora("Vector initialize", t => {
 
 zora("Vector.push", t => {
   t->test("push", t => {
-    A.range(1, 64)
-    ->Belt.List.fromArray
-    ->Belt.List.forEach(n => {
+    A.range(1, 64)->A.forEach(n => {
       let v1 = A.reduce(A.range(1, n), V.make(), (v, i) => V.push(v, i))
       let v2 = A.range(1, n)->V.fromArray
       t->equal(v1, v2, "should be equal")
@@ -56,7 +50,7 @@ zora("Vector.push", t => {
 
 zora("Vector.pop", t => {
   t->test("pop", t => {
-    list{(100, 50), (100, 100), (10000, 5000)}->Belt.List.forEach(((n, m)) => {
+    [(100, 50), (100, 100), (10000, 5000)]->A.forEach(((n, m)) => {
       t->equal(pushpop(n, m)->V.toArray, A.range(1, n - m), "should be equal")
     })
     done()
@@ -91,18 +85,17 @@ zora("Vector.get", t => {
   })
 
   t->block("optional get", t => {
-    list{-1, 0, 10000}->Belt.List.forEach(idx => {
+    [-1, 0, 10000]->A.forEach(idx => {
       switch V.get(v, idx) {
-      | Some(_) => t->ok(idx >= 0 && idx < V.length(v))
-      | None => t->ok(idx >= 0 && idx < V.length(v))
+      | Some(_) => t->ok(idx >= 0 && idx < V.length(v), "should be ok")
+      | None => t->notOk(idx >= 0 && idx < V.length(v), "should not be ok")
       }
     })
   })
 
   t->block("out of bounds", t => {
-    list{-1, 10000}->Belt.List.forEach(idx => {
-      t->optionNone(V.get(v, idx), "should be none")
-    })
+    t->optionNone(V.get(v, -1), "should be none")
+    t->optionNone(V.get(v, 10000), "should be none")
   })
 
   done()
@@ -121,10 +114,10 @@ zora("Vector.set", t => {
   })
 
   t->block("optional set", t => {
-    list{-1, 0, 10000}->Belt.List.forEach(idx => {
+    [-1, 0, 10000]->A.forEach(idx => {
       switch V.set(v, idx, 42) {
-      | Some(_) => t->ok(idx >= 0 && idx < V.length(v))
-      | None => t->ok(idx >= 0 && idx < V.length(v))
+      | Some(_) => t->ok(idx >= 0 && idx < V.length(v), "should be ok")
+      | None => t->notOk(idx >= 0 && idx < V.length(v), "should not be ok")
       }
     })
   })

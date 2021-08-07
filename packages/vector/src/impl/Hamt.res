@@ -13,7 +13,6 @@ type value = int
 type rec trie = {
   bitmap: int,
   data: array<node>,
-  // count: int, // TODO: make it countable
 }
 and node = SubTrie(trie) | MapEntry(key, value)
 
@@ -68,7 +67,7 @@ function (n) {
 //   bitmap = 0b0110
 //   hash   = 0b0010
 //   index  = 1
-let rec trieFind = ({bitmap, data}, ~shift, ~hash, ~key) => {
+let rec find = ({bitmap, data}, ~shift, ~hash, ~key) => {
   let bit = bitpos(hash, shift)
 
   switch bitmap->land(bit) {
@@ -78,7 +77,7 @@ let rec trieFind = ({bitmap, data}, ~shift, ~hash, ~key) => {
       let idx = indexAtBitmapTrie(bitmap, bit)
       let child = data->Js.Array2.unsafe_get(idx)
       switch child {
-      | SubTrie(trie) => trieFind(trie, ~shift=shift + numBits, ~hash, ~key)
+      | SubTrie(trie) => find(trie, ~shift=shift + numBits, ~hash, ~key)
       | MapEntry(k, v) => k == key ? Some(v) : None
       }
     }
@@ -87,17 +86,7 @@ let rec trieFind = ({bitmap, data}, ~shift, ~hash, ~key) => {
 
 module A = JsArray
 
-// test hash
-let hashFn = k => {
-  switch k {
-  | "Sir Robin" => 0b00001101
-  | "Sir Lancelot" => 0b10010010
-  | "Sir Bedevere" => 0b11111010
-  | _ => 0
-  }
-}
-
-let rec trieAssoc = ({bitmap, data} as self, ~shift, ~hash, ~key, ~value) => {
+let rec assoc = ({bitmap, data} as self, ~shift, ~hash, ~key, ~value) => {
   let bit = bitpos(hash, shift)
   let idx = indexAtBitmapTrie(bitmap, bit)
 
@@ -122,11 +111,11 @@ let rec trieAssoc = ({bitmap, data} as self, ~shift, ~hash, ~key, ~value) => {
       }
     }
   | _ => {
-      // copy new path then recursively call trieAssoc
+      // copy new path then recursively call assoc
       let child = data->A.get(idx)
       switch child {
       | SubTrie(trie) => {
-          let newChild = SubTrie(trieAssoc(trie, ~shift=shift + numBits, ~hash, ~key, ~value))
+          let newChild = SubTrie(assoc(trie, ~shift=shift + numBits, ~hash, ~key, ~value))
 
           // TODO: check if newChild is identical to child so we can skip cloning
           //       the data array and return the original argument instead.
@@ -149,7 +138,7 @@ let rec trieAssoc = ({bitmap, data} as self, ~shift, ~hash, ~key, ~value) => {
           }
         } else {
           // extend a leaf, change child into subtrie
-          let leaf = makeNode(~shift, hashFn(k), k, v, hash, key, value)
+          let leaf = makeNode(~shift, Hash.hash(k), k, v, hash, key, value)
           {
             bitmap: bitmap,
             data: A.cloneAndSet(data, idx, SubTrie(leaf)),
@@ -160,18 +149,18 @@ let rec trieAssoc = ({bitmap, data} as self, ~shift, ~hash, ~key, ~value) => {
   }
 }
 /**
- * TODO: could it be non-rec? (i.e. no trieAssoc)
+ * TODO: could it be non-rec? (i.e. no assoc)
  */
 and makeNode = (~shift, h1, k1, v1, h2, k2, v2) => {
   // TODO: this requires perfect hashing fn ;)
   assert (h1 != h2)
 
   make()
-  ->trieAssoc(~shift=shift + numBits, ~hash=h1, ~key=k1, ~value=v1)
-  ->trieAssoc(~shift=shift + numBits, ~hash=h2, ~key=k2, ~value=v2)
+  ->assoc(~shift=shift + numBits, ~hash=h1, ~key=k1, ~value=v1)
+  ->assoc(~shift=shift + numBits, ~hash=h2, ~key=k2, ~value=v2)
 }
 
-let rec trieDissoc = ({bitmap, data} as m, ~shift, ~hash, ~key) => {
+let rec dissoc = ({bitmap, data} as m, ~shift, ~hash, ~key) => {
   let bit = bitpos(hash, shift)
 
   switch bitmap->land(bit) {
@@ -182,7 +171,7 @@ let rec trieDissoc = ({bitmap, data} as m, ~shift, ~hash, ~key) => {
     let child = data->A.get(idx)
     switch child {
     | SubTrie(trie) =>
-      let newChild = trieDissoc(trie, ~shift=shift + numBits, ~hash, ~key)
+      let newChild = dissoc(trie, ~shift=shift + numBits, ~hash, ~key)
       // TODO: (optimization) newChild 가 trie 랑 같으면 => m 반환
 
       // TODO: trie compaction
@@ -207,15 +196,15 @@ let rec trieDissoc = ({bitmap, data} as m, ~shift, ~hash, ~key) => {
 }
 
 let get = (m, k) => {
-  trieFind(m, ~shift=0, ~hash=hashFn(k), ~key=k)
+  find(m, ~shift=0, ~hash=Hash.hash(k), ~key=k)
 }
 
 let set = (m, k, v) => {
-  trieAssoc(m, ~shift=0, ~hash=hashFn(k), ~key=k, ~value=v)
+  assoc(m, ~shift=0, ~hash=Hash.hash(k), ~key=k, ~value=v)
 }
 
 let remove = (m, k) => {
-  trieDissoc(m, ~shift=0, ~hash=hashFn(k), ~key=k)
+  dissoc(m, ~shift=0, ~hash=Hash.hash(k), ~key=k)
 }
 
 ///// scratchpad

@@ -11,3 +11,5 @@ let make: unit => t
 let get: (t, key) => option<value>
 
 let set: (t, key, value) => t
+
+let remove: (t, key) => t

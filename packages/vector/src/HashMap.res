@@ -123,7 +123,7 @@ let rec trieAssoc = ({bitmap, data} as self, ~shift, ~hash, ~key, ~value) => {
     }
   | _ => {
       // copy new path then recursively call trieAssoc
-      let child = data->Js.Array2.unsafe_get(idx)
+      let child = data->A.get(idx)
       switch child {
       | SubTrie(trie) => {
           let newChild = SubTrie(trieAssoc(trie, ~shift=shift + numBits, ~hash, ~key, ~value))
@@ -171,12 +171,51 @@ and makeNode = (~shift, h1, k1, v1, h2, k2, v2) => {
   ->trieAssoc(~shift=shift + numBits, ~hash=h2, ~key=k2, ~value=v2)
 }
 
+let rec trieDissoc = ({bitmap, data} as m, ~shift, ~hash, ~key) => {
+  let bit = bitpos(hash, shift)
+
+  switch bitmap->land(bit) {
+  | 0 => // not exists
+    m
+  | _ =>
+    let idx = indexAtBitmapTrie(bitmap, bit)
+    let child = data->A.get(idx)
+    switch child {
+    | SubTrie(trie) =>
+      let newChild = trieDissoc(trie, ~shift=shift + numBits, ~hash, ~key)
+      // TODO: (optimization) newChild 가 trie 랑 같으면 => m 반환
+
+      // TODO: trie compaction
+      {
+        bitmap: bitmap,
+        data: A.cloneAndSet(data, idx, SubTrie(newChild)),
+      }
+
+    | MapEntry(k, _) =>
+      if k == key {
+        // TODO: trie compaction
+        {
+          bitmap: bitmap->lxor(bit),
+          data: data->A.cloneWithout(idx),
+        }
+      } else {
+        // wrong key, sorry!
+        m
+      }
+    }
+  }
+}
+
 let get = (m, k) => {
   trieFind(m, ~shift=0, ~hash=hashFn(k), ~key=k)
 }
 
 let set = (m, k, v) => {
   trieAssoc(m, ~shift=0, ~hash=hashFn(k), ~key=k, ~value=v)
+}
+
+let remove = (m, k) => {
+  trieDissoc(m, ~shift=0, ~hash=hashFn(k), ~key=k)
 }
 
 ///// scratchpad

@@ -21,7 +21,8 @@ let set = ({root}, k, v) => {
 }
 
 let remove = ({root}, k) => {
-  {
-    root: Hamt.dissoc(root, ~shift=0, ~hash=Hash.hash(k), ~key=k),
+  switch Hamt.dissoc(root, ~shift=0, ~hash=Hash.hash(k), ~key=k) {
+  | Some(root') => {root: root'}
+  | None => make()
   }
 }

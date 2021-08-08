@@ -20,9 +20,16 @@ function set(param, k, v) {
 }
 
 function remove(param, k) {
-  return {
-          root: Hamt.dissoc(param.root, 0, Hash.hash(k), k)
-        };
+  var root$p = Hamt.dissoc(param.root, 0, Hash.hash(k), k);
+  if (root$p !== undefined) {
+    return {
+            root: root$p
+          };
+  } else {
+    return {
+            root: Hamt.make(undefined)
+          };
+  }
 }
 
 export {

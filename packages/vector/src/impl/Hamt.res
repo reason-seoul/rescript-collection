@@ -160,12 +160,17 @@ and makeNode = (~shift, h1, k1, v1, h2, k2, v2) => {
   ->assoc(~shift=shift + numBits, ~hash=h2, ~key=k2, ~value=v2)
 }
 
+/**
+ * 논문에서는 노드가 2개 이하인 경우 trie 축소를 하지만,
+ * dissoc 구현에서는 노드가 1개 인 경우에만 축소를 수행하여 메모리보다 성능을 우선하였음.
+ */
 let rec dissoc = ({bitmap, data} as m, ~shift, ~hash, ~key) => {
   let bit = bitpos(hash, shift)
 
   switch bitmap->land(bit) {
-  | 0 => // not exists
-    m
+  | 0 =>
+    // not exists
+    Some(m)
   | _ =>
     let idx = indexAtBitmapTrie(bitmap, bit)
     let child = data->A.get(idx)
@@ -174,22 +179,38 @@ let rec dissoc = ({bitmap, data} as m, ~shift, ~hash, ~key) => {
       let newChild = dissoc(trie, ~shift=shift + numBits, ~hash, ~key)
       // TODO: (optimization) newChild 가 trie 랑 같으면 => m 반환
 
-      // TODO: trie compaction
-      {
-        bitmap: bitmap,
-        data: A.cloneAndSet(data, idx, SubTrie(newChild)),
+      switch newChild {
+      | Some(newChild') =>
+        Some({
+          bitmap: bitmap,
+          data: A.cloneAndSet(data, idx, SubTrie(newChild')),
+        })
+      | None =>
+        if bitmap == bit {
+          // compaction, recursively
+          None
+        } else {
+          Some({
+            bitmap: bitmap->lxor(bit),
+            data: data->A.cloneWithout(idx),
+          })
+        }
       }
 
     | MapEntry(k, _) =>
       if k == key {
-        // TODO: trie compaction
-        {
-          bitmap: bitmap->lxor(bit),
-          data: data->A.cloneWithout(idx),
+        if bitmap == bit {
+          // trie compaction
+          None
+        } else {
+          Some({
+            bitmap: bitmap->lxor(bit),
+            data: data->A.cloneWithout(idx),
+          })
         }
       } else {
         // wrong key, sorry!
-        m
+        Some(m)
       }
     }
   }

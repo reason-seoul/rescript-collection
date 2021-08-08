@@ -1,8 +1,7 @@
 type key = Hamt.key
-type value = Hamt.value
 
-type t = {
-  root: Hamt.trie,
+type t<'v> = {
+  root: Hamt.t<'v>,
   count: int,
 }
 

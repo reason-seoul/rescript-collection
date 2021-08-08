@@ -3,6 +3,7 @@
 import * as Hash from "./Hash.mjs";
 import * as JsArray from "./JsArray.mjs";
 import * as Caml_obj from "@rescript/std/lib/es6/caml_obj.js";
+import * as Caml_option from "@rescript/std/lib/es6/caml_option.js";
 
 function make(param) {
   return {
@@ -48,7 +49,7 @@ function find(_param, _shift, hash, key) {
     var child = param.data[idx];
     if (child.TAG !== /* SubTrie */0) {
       if (child._0 === key) {
-        return child._1;
+        return Caml_option.some(child._1);
       } else {
         return ;
       }
@@ -85,7 +86,7 @@ function assoc(self, shift, hash, key, value) {
     var v = child._1;
     var k = child._0;
     if (k === key) {
-      if (v === value) {
+      if (Caml_obj.caml_equal(v, value)) {
         return self;
       } else {
         return {
@@ -128,7 +129,7 @@ function makeNode(shift, h1, k1, v1, h2, k2, v2) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Hamt.res",
-            154,
+            151,
             2
           ],
           Error: new Error()
@@ -256,7 +257,7 @@ if (!Caml_obj.caml_equal(t2, trie$1)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "Hamt.res",
-          256,
+          253,
           0
         ],
         Error: new Error()

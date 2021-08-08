@@ -2,16 +2,15 @@
 
 // TODO: no polymorhphic yet
 type key = Hamt.key
-type value = Hamt.value
 
-type t
+type t<'v>
 
-let make: unit => t
+let make: unit => t<'v>
 
-let get: (t, key) => option<value>
+let get: (t<'v>, key) => option<'v>
 
-let set: (t, Hamt.key, Hamt.value) => t
+let set: (t<'v>, Hamt.key, 'v) => t<'v>
 
-let remove: (t, key) => t
+let remove: (t<'v>, key) => t<'v>
 
-let size: t => int
+let size: t<'v> => int

@@ -6,17 +6,14 @@ let numBits = 2
 let maskBits = 0b011 // 1bits
 
 type key = string
-type value = int
 
 // bitmap 은 32비트를 가정
 // bit가 1이면 은 해당 인덱스의 자식 노드가 있는지 여부를 나타냄
-type rec trie = {
+type rec t<'v> = {
   bitmap: int,
-  data: array<node>,
+  data: array<node<'v>>,
 }
-and node = SubTrie(trie) | MapEntry(key, value)
-
-type t = trie
+and node<'v> = SubTrie(t<'v>) | MapEntry(key, 'v)
 
 let make = () => {
   bitmap: 0,

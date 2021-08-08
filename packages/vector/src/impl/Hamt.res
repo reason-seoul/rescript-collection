@@ -72,14 +72,13 @@ let rec find = ({bitmap, data}, ~shift, ~hash, ~key) => {
 
   switch bitmap->land(bit) {
   | 0 => None
-  | _ => {
-      // hash값을 bitmap에서의 위치로 변환한 뒤 하위에 있는 1의 갯수를 구하면 index가 됨
-      let idx = indexAtBitmapTrie(bitmap, bit)
-      let child = data->Js.Array2.unsafe_get(idx)
-      switch child {
-      | SubTrie(trie) => find(trie, ~shift=shift + numBits, ~hash, ~key)
-      | MapEntry(k, v) => k == key ? Some(v) : None
-      }
+  | _ =>
+    // hash값을 bitmap에서의 위치로 변환한 뒤 하위에 있는 1의 갯수를 구하면 index가 됨
+    let idx = indexAtBitmapTrie(bitmap, bit)
+    let child = data->Js.Array2.unsafe_get(idx)
+    switch child {
+    | SubTrie(trie) => find(trie, ~shift=shift + numBits, ~hash, ~key)
+    | MapEntry(k, v) => k == key ? Some(v) : None
     }
   }
 }
@@ -92,57 +91,56 @@ let rec assoc = ({bitmap, data} as self, ~shift, ~hash, ~key, ~value) => {
 
   // has child at idx?
   switch bitmap->land(bit) {
-  | 0 => {
-      // insert here!
+  | 0 =>
+    // insert here!
 
-      let n = ctpop(bitmap)
-      let ar = A.make(n + 1)
+    let n = ctpop(bitmap)
+    let ar = A.make(n + 1)
 
-      // 1. copy data[0, idx)
-      A.blit(~src=data, ~srcOffset=0, ~dst=ar, ~dstOffset=0, ~len=idx)
-      // 2. set idx
-      A.set(ar, idx, MapEntry(key, value))
-      // 3. copy data[idx, n)
-      A.blit(~src=data, ~srcOffset=idx, ~dst=ar, ~dstOffset=idx + 1, ~len=n - idx)
+    // 1. copy data[0, idx)
+    A.blit(~src=data, ~srcOffset=0, ~dst=ar, ~dstOffset=0, ~len=idx)
+    // 2. set idx
+    A.set(ar, idx, MapEntry(key, value))
+    // 3. copy data[idx, n)
+    A.blit(~src=data, ~srcOffset=idx, ~dst=ar, ~dstOffset=idx + 1, ~len=n - idx)
 
-      {
-        bitmap: bitmap->lor(bit),
-        data: ar,
-      }
+    {
+      bitmap: bitmap->lor(bit),
+      data: ar,
     }
-  | _ => {
-      // copy new path then recursively call assoc
-      let child = data->A.get(idx)
-      switch child {
-      | SubTrie(trie) => {
-          let newChild = SubTrie(assoc(trie, ~shift=shift + numBits, ~hash, ~key, ~value))
-
-          // TODO: check if newChild is identical to child so we can skip cloning
-          //       the data array and return the original argument instead.
+  | _ =>
+    // copy new path then recursively call assoc
+    let child = data->A.get(idx)
+    switch child {
+    | SubTrie(trie) =>
+      let newChild = assoc(trie, ~shift=shift + numBits, ~hash, ~key, ~value)
+      if newChild === trie {
+        // already exists
+        self
+      } else {
+        {
+          bitmap: bitmap,
+          data: A.cloneAndSet(data, idx, SubTrie(newChild)),
+        }
+      }
+    | MapEntry(k, v) =>
+      if k == key {
+        if v == value {
+          // already exists
+          self
+        } else {
+          // only value updated
           {
             bitmap: bitmap,
-            data: A.cloneAndSet(data, idx, newChild),
+            data: A.cloneAndSet(data, idx, MapEntry(k, v)),
           }
         }
-      | MapEntry(k, v) =>
-        if k == key {
-          if v == value {
-            // already exists
-            self
-          } else {
-            // only value updated
-            {
-              bitmap: bitmap,
-              data: A.cloneAndSet(data, idx, MapEntry(k, v)),
-            }
-          }
-        } else {
-          // extend a leaf, change child into subtrie
-          let leaf = makeNode(~shift, Hash.hash(k), k, v, hash, key, value)
-          {
-            bitmap: bitmap,
-            data: A.cloneAndSet(data, idx, SubTrie(leaf)),
-          }
+      } else {
+        // extend a leaf, change child into subtrie
+        let leaf = makeNode(~shift, Hash.hash(k), k, v, hash, key, value)
+        {
+          bitmap: bitmap,
+          data: A.cloneAndSet(data, idx, SubTrie(leaf)),
         }
       }
     }
@@ -164,27 +162,27 @@ and makeNode = (~shift, h1, k1, v1, h2, k2, v2) => {
  * 논문에서는 노드가 2개 이하인 경우 trie 축소를 하지만,
  * dissoc 구현에서는 노드가 1개 인 경우에만 축소를 수행하여 메모리보다 성능을 우선하였음.
  */
-let rec dissoc = ({bitmap, data} as m, ~shift, ~hash, ~key) => {
+let rec dissoc = ({bitmap, data} as self, ~shift, ~hash, ~key) => {
   let bit = bitpos(hash, shift)
 
   switch bitmap->land(bit) {
   | 0 =>
-    // not exists
-    Some(m)
+    // key doesn't exist
+    Some(self)
   | _ =>
     let idx = indexAtBitmapTrie(bitmap, bit)
     let child = data->A.get(idx)
     switch child {
     | SubTrie(trie) =>
-      let newChild = dissoc(trie, ~shift=shift + numBits, ~hash, ~key)
-      switch newChild {
-      | Some(newChild') =>
-        if newChild' === trie {
-          Some(m)
+      switch dissoc(trie, ~shift=shift + numBits, ~hash, ~key) {
+      | Some(newChild) =>
+        if newChild === trie {
+          // key doesn't exist
+          Some(self)
         } else {
           Some({
             bitmap: bitmap,
-            data: A.cloneAndSet(data, idx, SubTrie(newChild')),
+            data: A.cloneAndSet(data, idx, SubTrie(newChild)),
           })
         }
       | None =>
@@ -211,8 +209,8 @@ let rec dissoc = ({bitmap, data} as m, ~shift, ~hash, ~key) => {
           })
         }
       } else {
-        // wrong key, sorry!
-        Some(m)
+        // key doesn't exist
+        Some(self)
       }
     }
   }

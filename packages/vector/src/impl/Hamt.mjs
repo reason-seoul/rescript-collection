@@ -68,14 +68,19 @@ function assoc(self, shift, hash, key, value) {
   if (match !== 0) {
     var child = data[idx];
     if (child.TAG === /* SubTrie */0) {
-      var newChild = {
-        TAG: /* SubTrie */0,
-        _0: assoc(child._0, shift + 2 | 0, hash, key, value)
-      };
-      return {
-              bitmap: bitmap,
-              data: JsArray.cloneAndSet(data, idx, newChild)
-            };
+      var trie = child._0;
+      var newChild = assoc(trie, shift + 2 | 0, hash, key, value);
+      if (newChild === trie) {
+        return self;
+      } else {
+        return {
+                bitmap: bitmap,
+                data: JsArray.cloneAndSet(data, idx, {
+                      TAG: /* SubTrie */0,
+                      _0: newChild
+                    })
+              };
+      }
     }
     var v = child._1;
     var k = child._0;
@@ -123,7 +128,7 @@ function makeNode(shift, h1, k1, v1, h2, k2, v2) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Hamt.res",
-            156,
+            154,
             2
           ],
           Error: new Error()
@@ -135,13 +140,13 @@ function makeNode(shift, h1, k1, v1, h2, k2, v2) {
                 }, shift + 2 | 0, h1, k1, v1), shift + 2 | 0, h2, k2, v2);
 }
 
-function dissoc(m, shift, hash, key) {
-  var data = m.data;
-  var bitmap = m.bitmap;
+function dissoc(self, shift, hash, key) {
+  var data = self.data;
+  var bitmap = self.bitmap;
   var bit = bitpos(hash, shift);
   var match = bitmap & bit;
   if (match === 0) {
-    return m;
+    return self;
   }
   var idx = indexAtBitmapTrie(bitmap, bit);
   var child = data[idx];
@@ -156,14 +161,14 @@ function dissoc(m, shift, hash, key) {
               };
       }
     } else {
-      return m;
+      return self;
     }
   }
   var trie = child._0;
   var newChild = dissoc(trie, shift + 2 | 0, hash, key);
   if (newChild !== undefined) {
     if (newChild === trie) {
-      return m;
+      return self;
     } else {
       return {
               bitmap: bitmap,
@@ -251,7 +256,7 @@ if (!Caml_obj.caml_equal(t2, trie$1)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "Hamt.res",
-          258,
+          256,
           0
         ],
         Error: new Error()

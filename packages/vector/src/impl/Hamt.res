@@ -177,14 +177,16 @@ let rec dissoc = ({bitmap, data} as m, ~shift, ~hash, ~key) => {
     switch child {
     | SubTrie(trie) =>
       let newChild = dissoc(trie, ~shift=shift + numBits, ~hash, ~key)
-      // TODO: (optimization) newChild 가 trie 랑 같으면 => m 반환
-
       switch newChild {
       | Some(newChild') =>
-        Some({
-          bitmap: bitmap,
-          data: A.cloneAndSet(data, idx, SubTrie(newChild')),
-        })
+        if newChild' === trie {
+          Some(m)
+        } else {
+          Some({
+            bitmap: bitmap,
+            data: A.cloneAndSet(data, idx, SubTrie(newChild')),
+          })
+        }
       | None =>
         if bitmap == bit {
           // compaction, recursively

@@ -159,15 +159,20 @@ function dissoc(m, shift, hash, key) {
       return m;
     }
   }
-  var newChild = dissoc(child._0, shift + 2 | 0, hash, key);
+  var trie = child._0;
+  var newChild = dissoc(trie, shift + 2 | 0, hash, key);
   if (newChild !== undefined) {
-    return {
-            bitmap: bitmap,
-            data: JsArray.cloneAndSet(data, idx, {
-                  TAG: /* SubTrie */0,
-                  _0: newChild
-                })
-          };
+    if (newChild === trie) {
+      return m;
+    } else {
+      return {
+              bitmap: bitmap,
+              data: JsArray.cloneAndSet(data, idx, {
+                    TAG: /* SubTrie */0,
+                    _0: newChild
+                  })
+            };
+    }
   } else if (bitmap === bit) {
     return ;
   } else {
@@ -246,7 +251,7 @@ if (!Caml_obj.caml_equal(t2, trie$1)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "Hamt.res",
-          256,
+          258,
           0
         ],
         Error: new Error()

@@ -5,7 +5,8 @@ import * as Hash from "./impl/Hash.mjs";
 
 function make(param) {
   return {
-          root: Hamt.make(undefined)
+          root: Hamt.make(undefined),
+          count: 0
         };
 }
 
@@ -13,23 +14,41 @@ function get(param, k) {
   return Hamt.find(param.root, 0, Hash.hash(k), k);
 }
 
-function set(param, k, v) {
-  return {
-          root: Hamt.assoc(param.root, 0, Hash.hash(k), k, v)
-        };
-}
-
-function remove(param, k) {
-  var root$p = Hamt.dissoc(param.root, 0, Hash.hash(k), k);
-  if (root$p !== undefined) {
-    return {
-            root: root$p
-          };
+function set(m, k, v) {
+  var root = m.root;
+  var root$p = Hamt.assoc(root, 0, Hash.hash(k), k, v);
+  if (root$p === root) {
+    return m;
   } else {
     return {
-            root: Hamt.make(undefined)
+            root: root$p,
+            count: m.count - 1 | 0
           };
   }
+}
+
+function remove(m, k) {
+  var root = m.root;
+  var root$p = Hamt.dissoc(root, 0, Hash.hash(k), k);
+  if (root$p !== undefined) {
+    if (root$p === root) {
+      return m;
+    } else {
+      return {
+              root: root$p,
+              count: m.count - 1 | 0
+            };
+    }
+  } else {
+    return {
+            root: Hamt.make(undefined),
+            count: 0
+          };
+  }
+}
+
+function size(m) {
+  return m.count;
 }
 
 export {
@@ -37,6 +56,7 @@ export {
   get ,
   set ,
   remove ,
+  size ,
   
 }
 /* Hamt Not a pure module */

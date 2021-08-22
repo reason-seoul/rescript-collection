@@ -1,19 +1,19 @@
 // Bit-partitioned Hash Trie
 
+module A = JsArray
+
 // let numBits = 5;
 // let maskBits = 0x01F // 31bits
 let numBits = 2
 let maskBits = 0b011 // 1bits
 
-type key = string
-
 // bitmap 은 32비트를 가정
 // bit가 1이면 은 해당 인덱스의 자식 노드가 있는지 여부를 나타냄
-type rec t<'v> = {
+type rec t<'k, 'v> = {
   bitmap: int,
-  data: array<node<'v>>,
+  data: array<node<'k, 'v>>,
 }
-and node<'v> = SubTrie(t<'v>) | MapEntry(key, 'v)
+and node<'k, 'v> = SubTrie(t<'k, 'v>) | MapEntry('k, 'v)
 
 let make = () => {
   bitmap: 0,
@@ -80,9 +80,7 @@ let rec find = ({bitmap, data}, ~shift, ~hash, ~key) => {
   }
 }
 
-module A = JsArray
-
-let rec assoc = ({bitmap, data} as self, ~shift, ~hash, ~key, ~value) => {
+let rec assoc = ({bitmap, data} as self, ~shift, ~hasher, ~hash, ~key, ~value) => {
   let bit = bitpos(hash, shift)
   let idx = indexAtBitmapTrie(bitmap, bit)
 
@@ -110,7 +108,7 @@ let rec assoc = ({bitmap, data} as self, ~shift, ~hash, ~key, ~value) => {
     let child = data->A.get(idx)
     switch child {
     | SubTrie(trie) =>
-      let newChild = assoc(trie, ~shift=shift + numBits, ~hash, ~key, ~value)
+      let newChild = assoc(trie, ~shift=shift + numBits, ~hasher, ~hash, ~key, ~value)
       if newChild === trie {
         // already exists
         self
@@ -134,7 +132,7 @@ let rec assoc = ({bitmap, data} as self, ~shift, ~hash, ~key, ~value) => {
         }
       } else {
         // extend a leaf, change child into subtrie
-        let leaf = makeNode(~shift, Hash.hash(k), k, v, hash, key, value)
+        let leaf = makeNode(~shift, ~hasher, hasher(k), k, v, hash, key, value)
         {
           bitmap: bitmap,
           data: A.cloneAndSet(data, idx, SubTrie(leaf)),
@@ -146,13 +144,13 @@ let rec assoc = ({bitmap, data} as self, ~shift, ~hash, ~key, ~value) => {
 /**
  * TODO: could it be non-rec? (i.e. no assoc)
  */
-and makeNode = (~shift, h1, k1, v1, h2, k2, v2) => {
+and makeNode = (~shift, ~hasher, h1, k1, v1, h2, k2, v2) => {
   // TODO: this requires perfect hashing fn ;)
   assert (h1 != h2)
 
   make()
-  ->assoc(~shift=shift + numBits, ~hash=h1, ~key=k1, ~value=v1)
-  ->assoc(~shift=shift + numBits, ~hash=h2, ~key=k2, ~value=v2)
+  ->assoc(~shift=shift + numBits, ~hasher, ~hash=h1, ~key=k1, ~value=v1)
+  ->assoc(~shift=shift + numBits, ~hasher, ~hash=h2, ~key=k2, ~value=v2)
 }
 
 /**
@@ -212,46 +210,3 @@ let rec dissoc = ({bitmap, data} as self, ~shift, ~hash, ~key) => {
     }
   }
 }
-
-let get = (m, k) => {
-  find(m, ~shift=0, ~hash=Hash.hash(k), ~key=k)
-}
-
-let set = (m, k, v) => {
-  assoc(m, ~shift=0, ~hash=Hash.hash(k), ~key=k, ~value=v)
-}
-
-let remove = (m, k) => {
-  dissoc(m, ~shift=0, ~hash=Hash.hash(k), ~key=k)
-}
-
-///// scratchpad
-
-let trie = {
-  bitmap: 0b0110,
-  data: [MapEntry("Sir Robin", 10), MapEntry("Sir Bedevere", 20)],
-}
-
-// get(trie, "Sir Robin")->Js.log
-// get(trie, "Sir Bedevere")->Js.log
-
-// trie->set("Sir Lancelot", 30)->Js.log
-
-let t2 = trie->set("Sir Lancelot", 30)
-
-let trie = {
-  bitmap: 0b0110,
-  data: [
-    MapEntry("Sir Robin", 10),
-    SubTrie({
-      bitmap: 0b0101,
-      data: [MapEntry("Sir Lancelot", 30), MapEntry("Sir Bedevere", 20)],
-    }),
-  ],
-}
-
-assert (t2 == trie)
-
-// get(trie, "Sir Robin")->Js.log
-// get(trie, "Sir Bedevere")->Js.log
-// get(trie, "Sir Lancelot")->Js.log

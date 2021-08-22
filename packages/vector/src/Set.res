@@ -1,10 +1,10 @@
-type value = Hamt.key
+type hasher<'v> = 'v => int
 
-type t = {hashMap: Map.t<option<value>>}
+type t<'v> = {hashMap: Map.t<'v, option<'v>>}
 
-let make = () => {
+let make = (~hasher) => {
   {
-    hashMap: Map.make(),
+    hashMap: Map.make(~hasher),
   }
 }
 

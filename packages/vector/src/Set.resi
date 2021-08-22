@@ -1,13 +1,13 @@
-type value = Hamt.key
+type hasher<'v> = 'v => int
 
-type t
+type t<'v>
 
-let make: unit => t
+let make: (~hasher: hasher<'v>) => t<'v>
 
-let get: (t, value) => option<value>
+let get: (t<'v>, 'v) => option<'v>
 
-let set: (t, value) => t
+let set: (t<'v>, 'v) => t<'v>
 
-let remove: (t, value) => t
+let remove: (t<'v>, 'v) => t<'v>
 
-let size: t => int
+let size: t<'v> => int

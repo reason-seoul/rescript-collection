@@ -1,41 +1,44 @@
-type key = Hamt.key
+type hasher<'k> = 'k => int
 
-type t<'v> = {
-  root: Hamt.t<'v>,
+type t<'k, 'v> = {
+  root: Hamt.t<'k, 'v>,
   count: int,
+  hasher: hasher<'k>,
 }
 
-let make = () => {
+let make = (~hasher) => {
   root: Hamt.make(),
   count: 0,
+  hasher: hasher,
 }
 
-let get = ({root}, k) => {
-  Hamt.find(root, ~shift=0, ~hash=Hash.hash(k), ~key=k)
+let get = ({root, hasher}, k) => {
+  Hamt.find(root, ~shift=0, ~hash=hasher(k), ~key=k)
 }
 
-let set = ({root, count} as m, k, v) => {
-  let root' = Hamt.assoc(root, ~shift=0, ~hash=Hash.hash(k), ~key=k, ~value=v)
+let set = ({root, count, hasher} as m, k, v) => {
+  let root' = Hamt.assoc(root, ~shift=0, ~hasher, ~hash=hasher(k), ~key=k, ~value=v)
   if root' === root {
     m
   } else {
     {
+      ...m,
       root: root',
       count: count - 1,
     }
   }
 }
 
-let remove = ({root, count} as m, k) => {
-  switch Hamt.dissoc(root, ~shift=0, ~hash=Hash.hash(k), ~key=k) {
+let remove = ({root, count, hasher} as m, k) => {
+  switch Hamt.dissoc(root, ~shift=0, ~hash=hasher(k), ~key=k) {
   | Some(root') =>
     if root' === root {
       m
     } else {
-      {root: root', count: count - 1}
+      {...m, root: root', count: count - 1}
     }
 
-  | None => make()
+  | None => make(~hasher)
   }
 }
 

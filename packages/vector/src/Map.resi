@@ -1,16 +1,15 @@
 // Bit-partitioned Hash Trie
 
-// TODO: no polymorhphic yet
-type key = Hamt.key
+type hasher<'k> = 'k => int
 
-type t<'v>
+type t<'k, 'v>
 
-let make: unit => t<'v>
+let make: (~hasher: hasher<'k>) => t<'k, 'v>
 
-let get: (t<'v>, key) => option<'v>
+let get: (t<'k, 'v>, 'k) => option<'v>
 
-let set: (t<'v>, Hamt.key, 'v) => t<'v>
+let set: (t<'k, 'v>, 'k, 'v) => t<'k, 'v>
 
-let remove: (t<'v>, key) => t<'v>
+let remove: (t<'k, 'v>, 'k) => t<'k, 'v>
 
-let size: t<'v> => int
+let size: t<'k, 'v> => int

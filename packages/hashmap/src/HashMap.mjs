@@ -24,7 +24,7 @@ function set(m, k, v) {
   } else {
     return {
             root: root$p,
-            count: m.count - 1 | 0,
+            count: m.count + 1 | 0,
             hasher: m.hasher
           };
   }

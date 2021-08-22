@@ -24,7 +24,7 @@ let set = ({root, count, hasher} as m, k, v) => {
     {
       ...m,
       root: root',
-      count: count - 1,
+      count: count + 1,
     }
   }
 }
@@ -35,7 +35,11 @@ let remove = ({root, count, hasher} as m, k) => {
     if root' === root {
       m
     } else {
-      {...m, root: root', count: count - 1}
+      {
+        ...m,
+        root: root',
+        count: count - 1,
+      }
     }
 
   | None => make(~hasher)

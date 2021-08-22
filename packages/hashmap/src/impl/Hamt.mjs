@@ -20,7 +20,7 @@ function ctpop(v) {
 }
 
 function mask(hash, shift) {
-  return (hash >>> shift) & 3;
+  return (hash >>> shift) & 31;
 }
 
 function bitpos(hash, shift) {
@@ -30,10 +30,6 @@ function bitpos(hash, shift) {
 function indexAtBitmapTrie(bitmap, bit) {
   return ctpop(bitmap & (bit - 1 | 0));
 }
-
-var toBinString = (function (n) { 
-  return "0b" + n.toString(2).padStart(8, '0');
-});
 
 function find(_param, _shift, hash, key) {
   while(true) {
@@ -54,7 +50,7 @@ function find(_param, _shift, hash, key) {
         return ;
       }
     }
-    _shift = shift + 2 | 0;
+    _shift = shift + 5 | 0;
     _param = child._0;
     continue ;
   };
@@ -70,7 +66,7 @@ function assoc(self, shift, hasher, hash, key, value) {
     var child = data[idx];
     if (child.TAG === /* SubTrie */0) {
       var trie = child._0;
-      var newChild = assoc(trie, shift + 2 | 0, hasher, hash, key, value);
+      var newChild = assoc(trie, shift + 5 | 0, hasher, hash, key, value);
       if (newChild === trie) {
         return self;
       } else {
@@ -129,7 +125,7 @@ function makeNode(shift, hasher, h1, k1, v1, h2, k2, v2) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Hamt.res",
-            149,
+            139,
             2
           ],
           Error: new Error()
@@ -138,7 +134,7 @@ function makeNode(shift, hasher, h1, k1, v1, h2, k2, v2) {
   return assoc(assoc({
                   bitmap: 0,
                   data: []
-                }, shift + 2 | 0, hasher, h1, k1, v1), shift + 2 | 0, hasher, h2, k2, v2);
+                }, shift + 5 | 0, hasher, h1, k1, v1), shift + 5 | 0, hasher, h2, k2, v2);
 }
 
 function dissoc(self, shift, hash, key) {
@@ -166,7 +162,7 @@ function dissoc(self, shift, hash, key) {
     }
   }
   var trie = child._0;
-  var newChild = dissoc(trie, shift + 2 | 0, hash, key);
+  var newChild = dissoc(trie, shift + 5 | 0, hash, key);
   if (newChild !== undefined) {
     if (newChild === trie) {
       return self;
@@ -191,9 +187,9 @@ function dissoc(self, shift, hash, key) {
 
 var A;
 
-var numBits = 2;
+var numBits = 5;
 
-var maskBits = 3;
+var maskBits = 31;
 
 export {
   A ,
@@ -204,7 +200,6 @@ export {
   mask ,
   bitpos ,
   indexAtBitmapTrie ,
-  toBinString ,
   find ,
   assoc ,
   makeNode ,

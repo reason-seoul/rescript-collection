@@ -27,6 +27,14 @@ let cloneAndSet = (ar, i, a) => {
   newAr
 }
 
+let cloneAndAdd = (ar, a) => {
+  let len = length(ar)
+  let newAr = make(len + 1)
+  blit(~src=ar, ~srcOffset=0, ~dst=newAr, ~dstOffset=0, ~len)
+  set(newAr, len, a)
+  newAr
+}
+
 let cloneWithout = (ar, i) => {
   let newAr = make(length(ar) - 1)
   blit(~src=ar, ~srcOffset=0, ~dst=newAr, ~dstOffset=0, ~len=i)
@@ -36,3 +44,9 @@ let cloneWithout = (ar, i) => {
 
 @send
 external forEach: (array<'a>, 'a => unit) => unit = "forEach"
+
+@send
+external findIndex: (array<'a>, @uncurry ('a => bool)) => int = "findIndex"
+
+@send
+external find: (array<'a>, @uncurry ('a => bool)) => option<'a> = "find"

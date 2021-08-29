@@ -40,6 +40,9 @@ let log = root => {
         log(j`[$idx] SubTrie:`)
         p(t, ~depth=depth + 1)
       | MapEntry(k, v) => log(j`[$idx] MapEntry: $k => $v`)
+      | HashCollision({entries}) => {
+        log(j`[$idx] HashCollision: $entries`)
+      }
       }
     })
   }

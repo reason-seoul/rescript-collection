@@ -18,6 +18,14 @@ function cloneAndSet(ar, i, a) {
   return newAr;
 }
 
+function cloneAndAdd(ar, a) {
+  var len = ar.length;
+  var newAr = Array(len + 1 | 0);
+  blit(ar, 0, newAr, 0, len);
+  newAr[len] = a;
+  return newAr;
+}
+
 function cloneWithout(ar, i) {
   var newAr = Array(ar.length - 1 | 0);
   blit(ar, 0, newAr, 0, i);
@@ -29,6 +37,7 @@ export {
   slice ,
   blit ,
   cloneAndSet ,
+  cloneAndAdd ,
   cloneWithout ,
   
 }

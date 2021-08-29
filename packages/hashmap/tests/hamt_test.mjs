@@ -55,12 +55,17 @@ function log(root) {
     return Belt_Array.forEach(Belt_Array.zip(bitPositions(root.bitmap), root.data), (function (param) {
                   var v = param[1];
                   var idx = param[0];
-                  if (v.TAG === /* BitmapIndexed */0) {
-                    log("[" + idx + "] SubTrie:");
-                    return p(v._0, depth + 1 | 0);
+                  switch (v.TAG | 0) {
+                    case /* BitmapIndexed */0 :
+                        log("[" + idx + "] SubTrie:");
+                        return p(v._0, depth + 1 | 0);
+                    case /* MapEntry */1 :
+                        var match = v._0;
+                        return log("[" + idx + "] MapEntry: " + match[0] + " => " + match[1]);
+                    case /* HashCollision */2 :
+                        return log("[" + idx + "] HashCollision: " + v._0.entries);
+                    
                   }
-                  var match = v._0;
-                  return log("[" + idx + "] MapEntry: " + match[0] + " => " + match[1]);
                 }));
   };
   return p(root, 0);
@@ -105,7 +110,7 @@ if (!Caml_obj.caml_equal(get(m, "Sir Robin"), 10)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          65,
+          68,
           0
         ],
         Error: new Error()
@@ -117,7 +122,7 @@ if (!Caml_obj.caml_equal(get(m, "Sir Bedevere"), 20)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          66,
+          69,
           0
         ],
         Error: new Error()
@@ -129,7 +134,7 @@ if (get(m, "Sir Lancelot") !== undefined) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          67,
+          70,
           0
         ],
         Error: new Error()
@@ -180,7 +185,7 @@ if (!Caml_obj.caml_equal(t2, m2)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          82,
+          85,
           0
         ],
         Error: new Error()
@@ -192,7 +197,7 @@ if (!Caml_obj.caml_equal(get(m2, "Sir Robin"), 10)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          83,
+          86,
           0
         ],
         Error: new Error()
@@ -204,7 +209,7 @@ if (!Caml_obj.caml_equal(get(m2, "Sir Bedevere"), 20)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          84,
+          87,
           0
         ],
         Error: new Error()
@@ -216,7 +221,7 @@ if (!Caml_obj.caml_equal(get(m2, "Sir Lancelot"), 30)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          85,
+          88,
           0
         ],
         Error: new Error()

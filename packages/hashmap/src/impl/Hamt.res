@@ -15,7 +15,57 @@ type mapEntry<'k, 'v> = ('k, 'v)
 type rec node<'k, 'v> =
   | BitmapIndexed(bitmapIndexedNode<'k, 'v>)
   | MapEntry(mapEntry<'k, 'v>)
+  | HashCollision(hashCollisionNode<'k, 'v>)
 and bitmapIndexedNode<'k, 'v> = {bitmap: int, data: array<node<'k, 'v>>}
+and hashCollisionNode<'k, 'v> = {hash: int, entries: array<mapEntry<'k, 'v>>}
+
+module HashCollision = {
+  type t<'k, 'v> = hashCollisionNode<'k, 'v>
+
+  let make = (hash, entries) => {
+    {hash: hash, entries: entries}
+  }
+
+  let findIndex = ({entries}: t<'k, 'v>, ~key: 'k): int => {
+    A.findIndex(entries, ((k, _)) => k == key)
+  }
+
+  let find = ({entries}: t<'k, 'v>, ~key: 'k): option<'v> => {
+    switch A.find(entries, ((k, _)) => k == key) {
+    | None => None
+    | Some(_, v) => Some(v)
+    }
+  }
+
+  let assoc = ({entries} as self: t<'k, 'v>, ~hash, ~key: 'k, ~value: 'v): t<'k, 'v> => {
+    // TODO: when hash != hash
+    assert (self.hash == hash)
+
+    let idx = findIndex(self, ~key)
+    if idx == -1 {
+      {
+        ...self,
+        entries: A.cloneAndAdd(entries, (key, value)),
+      }
+    } else {
+      self
+    }
+  }
+
+  /**
+   * 값이 2개 -> 1개가 된다면 MapEntry로도 볼 수 있지만, 로직의 간소화를 위해 HashCollisionNode로 일반화하였음
+   */
+  let dissoc = ({entries} as self: t<'k, 'v>, ~key: 'k): option<t<'k, 'v>> => {
+    let idx = findIndex(self, ~key)
+    if idx == -1 {
+      Some(self)
+    } else if A.length(entries) == 1 {
+      None
+    } else {
+      Some({...self, entries: A.cloneWithout(entries, idx)})
+    }
+  }
+}
 
 module BitmapIndexed = {
   type t<'k, 'v> = bitmapIndexedNode<'k, 'v>
@@ -71,6 +121,7 @@ module BitmapIndexed = {
       switch child {
       | BitmapIndexed(trie) => find(trie, ~shift=shift + numBits, ~hash, ~key)
       | MapEntry(k, v) => k == key ? Some(v) : None
+      | HashCollision(node) => HashCollision.find(node, ~key)
       }
     }
   }
@@ -131,7 +182,19 @@ module BitmapIndexed = {
           let leaf = makeNode(~shift, ~hasher, hasher(k), k, v, hash, key, value)
           {
             bitmap: bitmap,
-            data: A.cloneAndSet(data, idx, BitmapIndexed(leaf)),
+            data: A.cloneAndSet(data, idx, leaf),
+          }
+        }
+
+      | HashCollision(node) =>
+        let newChild = HashCollision.assoc(node, ~hash, ~key, ~value)
+        if newChild === node {
+          // already exists
+          self
+        } else {
+          {
+            bitmap: bitmap,
+            data: A.cloneAndSet(data, idx, HashCollision(newChild)),
           }
         }
       }
@@ -140,20 +203,25 @@ module BitmapIndexed = {
   /**
    * TODO: could it be non-rec? (i.e. no assoc)
    */
-  and makeNode = (~shift, ~hasher, h1, k1, v1, h2, k2, v2) => {
+  and makeNode = (~shift, ~hasher, h1, k1, v1, h2, k2, v2): node<'k, 'v> => {
     // TODO: this requires perfect hashing fn ;)
     assert (h1 != h2)
-
-    make()
-    ->assoc(~shift=shift + numBits, ~hasher, ~hash=h1, ~key=k1, ~value=v1)
-    ->assoc(~shift=shift + numBits, ~hasher, ~hash=h2, ~key=k2, ~value=v2)
+    if h1 == h2 {
+      HashCollision(HashCollision.make(h1, [(k1, v1), (k2, v2)]))
+    } else {
+      BitmapIndexed(
+        make()
+        ->assoc(~shift=shift + numBits, ~hasher, ~hash=h1, ~key=k1, ~value=v1)
+        ->assoc(~shift=shift + numBits, ~hasher, ~hash=h2, ~key=k2, ~value=v2),
+      )
+    }
   }
 
   /**
    * 논문에서는 노드가 2개 이하인 경우 trie 축소를 하지만,
    * dissoc 구현에서는 노드가 1개 인 경우에만 축소를 수행하여 메모리보다 성능을 우선하였음.
    */
-  let rec dissoc = ({bitmap, data} as self, ~shift, ~hash, ~key) => {
+  let rec dissoc = ({bitmap, data} as self, ~shift, ~hash, ~key): option<t<'k, 'v>> => {
     let bit = bitpos(hash, shift)
 
     switch bitmap->land(bit) {
@@ -176,34 +244,44 @@ module BitmapIndexed = {
               data: A.cloneAndSet(data, idx, BitmapIndexed(newChild)),
             })
           }
-        | None =>
-          if bitmap == bit {
-            // compaction, recursively
-            None
-          } else {
-            Some({
-              bitmap: bitmap->lxor(bit),
-              data: data->A.cloneWithout(idx),
-            })
-          }
+        | None => unset(self, bit, idx)
         }
 
       | MapEntry(k, _) =>
         if k == key {
-          if bitmap == bit {
-            // trie compaction
-            None
-          } else {
-            Some({
-              bitmap: bitmap->lxor(bit),
-              data: data->A.cloneWithout(idx),
-            })
-          }
+          unset(self, bit, idx)
         } else {
           // key doesn't exist
           Some(self)
         }
+
+      | HashCollision(node) =>
+        switch HashCollision.dissoc(node, ~key) {
+        | Some(newChild) =>
+          if newChild === node {
+            // key doesn't exist
+            Some(self)
+          } else {
+            // assert (A.length(newChild.entries) == A.length(node.entries) - 1)
+            Some({
+              bitmap: bitmap,
+              data: A.cloneAndSet(data, idx, HashCollision(newChild)),
+            })
+          }
+        | None => unset(self, bit, idx)
+        }
       }
+    }
+  }
+  and unset = ({bitmap, data}, bit, idx) => {
+    if bitmap == bit {
+      // compaction, recursively
+      None
+    } else {
+      Some({
+        bitmap: bitmap->lxor(bit),
+        data: data->A.cloneWithout(idx),
+      })
     }
   }
 }

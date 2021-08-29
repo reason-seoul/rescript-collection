@@ -43,16 +43,17 @@ function find(_param, _shift, hash, key) {
     }
     var idx = indexAtBitmapTrie(bitmap, bit);
     var child = param.data[idx];
-    if (child.TAG !== /* SubTrie */0) {
-      if (Caml_obj.caml_equal(child._0, key)) {
-        return Caml_option.some(child._1);
-      } else {
-        return ;
-      }
+    if (child.TAG === /* BitmapIndexed */0) {
+      _shift = shift + 5 | 0;
+      _param = child._0;
+      continue ;
     }
-    _shift = shift + 5 | 0;
-    _param = child._0;
-    continue ;
+    var match$1 = child._0;
+    if (Caml_obj.caml_equal(match$1[0], key)) {
+      return Caml_option.some(match$1[1]);
+    } else {
+      return ;
+    }
   };
 }
 
@@ -64,7 +65,7 @@ function assoc(self, shift, hasher, hash, key, value) {
   var match = bitmap & bit;
   if (match !== 0) {
     var child = data[idx];
-    if (child.TAG === /* SubTrie */0) {
+    if (child.TAG === /* BitmapIndexed */0) {
       var trie = child._0;
       var newChild = assoc(trie, shift + 5 | 0, hasher, hash, key, value);
       if (newChild === trie) {
@@ -73,14 +74,15 @@ function assoc(self, shift, hasher, hash, key, value) {
         return {
                 bitmap: bitmap,
                 data: JsArray.cloneAndSet(data, idx, {
-                      TAG: /* SubTrie */0,
+                      TAG: /* BitmapIndexed */0,
                       _0: newChild
                     })
               };
       }
     }
-    var v = child._1;
-    var k = child._0;
+    var match$1 = child._0;
+    var v = match$1[1];
+    var k = match$1[0];
     if (Caml_obj.caml_equal(k, key)) {
       if (Caml_obj.caml_equal(v, value)) {
         return self;
@@ -89,8 +91,10 @@ function assoc(self, shift, hasher, hash, key, value) {
                 bitmap: bitmap,
                 data: JsArray.cloneAndSet(data, idx, {
                       TAG: /* MapEntry */1,
-                      _0: k,
-                      _1: v
+                      _0: [
+                        k,
+                        v
+                      ]
                     })
               };
       }
@@ -99,7 +103,7 @@ function assoc(self, shift, hasher, hash, key, value) {
     return {
             bitmap: bitmap,
             data: JsArray.cloneAndSet(data, idx, {
-                  TAG: /* SubTrie */0,
+                  TAG: /* BitmapIndexed */0,
                   _0: leaf
                 })
           };
@@ -109,8 +113,10 @@ function assoc(self, shift, hasher, hash, key, value) {
   JsArray.blit(data, 0, ar, 0, idx);
   ar[idx] = {
     TAG: /* MapEntry */1,
-    _0: key,
-    _1: value
+    _0: [
+      key,
+      value
+    ]
   };
   JsArray.blit(data, idx, ar, idx + 1 | 0, n - idx | 0);
   return {
@@ -125,8 +131,8 @@ function makeNode(shift, hasher, h1, k1, v1, h2, k2, v2) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Hamt.res",
-            139,
-            2
+            145,
+            4
           ],
           Error: new Error()
         };
@@ -147,8 +153,8 @@ function dissoc(self, shift, hash, key) {
   }
   var idx = indexAtBitmapTrie(bitmap, bit);
   var child = data[idx];
-  if (child.TAG !== /* SubTrie */0) {
-    if (Caml_obj.caml_equal(child._0, key)) {
+  if (child.TAG !== /* BitmapIndexed */0) {
+    if (Caml_obj.caml_equal(child._0[0], key)) {
       if (bitmap === bit) {
         return ;
       } else {
@@ -170,7 +176,7 @@ function dissoc(self, shift, hash, key) {
       return {
               bitmap: bitmap,
               data: JsArray.cloneAndSet(data, idx, {
-                    TAG: /* SubTrie */0,
+                    TAG: /* BitmapIndexed */0,
                     _0: newChild
                   })
             };
@@ -185,6 +191,18 @@ function dissoc(self, shift, hash, key) {
   }
 }
 
+var BitmapIndexed = {
+  make: make,
+  ctpop: ctpop,
+  mask: mask,
+  bitpos: bitpos,
+  indexAtBitmapTrie: indexAtBitmapTrie,
+  find: find,
+  assoc: assoc,
+  makeNode: makeNode,
+  dissoc: dissoc
+};
+
 var A;
 
 var numBits = 5;
@@ -195,15 +213,7 @@ export {
   A ,
   numBits ,
   maskBits ,
-  make ,
-  ctpop ,
-  mask ,
-  bitpos ,
-  indexAtBitmapTrie ,
-  find ,
-  assoc ,
-  makeNode ,
-  dissoc ,
+  BitmapIndexed ,
   
 }
 /* No side effect */

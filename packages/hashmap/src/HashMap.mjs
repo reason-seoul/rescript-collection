@@ -5,20 +5,20 @@ import * as Curry from "@rescript/std/lib/es6/curry.js";
 
 function make(hasher) {
   return {
-          root: Hamt.make(undefined),
+          root: Hamt.BitmapIndexed.make(undefined),
           count: 0,
           hasher: hasher
         };
 }
 
 function get(param, k) {
-  return Hamt.find(param.root, 0, Curry._1(param.hasher, k), k);
+  return Hamt.BitmapIndexed.find(param.root, 0, Curry._1(param.hasher, k), k);
 }
 
 function set(m, k, v) {
   var hasher = m.hasher;
   var root = m.root;
-  var root$p = Hamt.assoc(root, 0, hasher, Curry._1(hasher, k), k, v);
+  var root$p = Hamt.BitmapIndexed.assoc(root, 0, hasher, Curry._1(hasher, k), k, v);
   if (root$p === root) {
     return m;
   } else {
@@ -33,7 +33,7 @@ function set(m, k, v) {
 function remove(m, k) {
   var hasher = m.hasher;
   var root = m.root;
-  var root$p = Hamt.dissoc(root, 0, Curry._1(hasher, k), k);
+  var root$p = Hamt.BitmapIndexed.dissoc(root, 0, Curry._1(hasher, k), k);
   if (root$p !== undefined) {
     if (root$p === root) {
       return m;

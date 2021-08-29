@@ -55,11 +55,12 @@ function log(root) {
     return Belt_Array.forEach(Belt_Array.zip(bitPositions(root.bitmap), root.data), (function (param) {
                   var v = param[1];
                   var idx = param[0];
-                  if (v.TAG !== /* SubTrie */0) {
-                    return log("[" + idx + "] MapEntry: " + v._0 + " => " + v._1);
+                  if (v.TAG === /* BitmapIndexed */0) {
+                    log("[" + idx + "] SubTrie:");
+                    return p(v._0, depth + 1 | 0);
                   }
-                  log("[" + idx + "] SubTrie:");
-                  return p(v._0, depth + 1 | 0);
+                  var match = v._0;
+                  return log("[" + idx + "] MapEntry: " + match[0] + " => " + match[1]);
                 }));
   };
   return p(root, 0);
@@ -68,13 +69,17 @@ function log(root) {
 var m_data = [
   {
     TAG: /* MapEntry */1,
-    _0: "Sir Robin",
-    _1: 10
+    _0: [
+      "Sir Robin",
+      10
+    ]
   },
   {
     TAG: /* MapEntry */1,
-    _0: "Sir Bedevere",
-    _1: 20
+    _0: [
+      "Sir Bedevere",
+      20
+    ]
   }
 ];
 
@@ -84,15 +89,15 @@ var m = {
 };
 
 function get(m, k) {
-  return Hamt.find(m, 0, testHasher(k), k);
+  return Hamt.BitmapIndexed.find(m, 0, testHasher(k), k);
 }
 
 function set(m, k, v) {
-  return Hamt.assoc(m, 0, testHasher, testHasher(k), k, v);
+  return Hamt.BitmapIndexed.assoc(m, 0, testHasher, testHasher(k), k, v);
 }
 
 function remove(m, k) {
-  return Hamt.dissoc(m, 0, testHasher(k), k);
+  return Hamt.BitmapIndexed.dissoc(m, 0, testHasher(k), k);
 }
 
 if (!Caml_obj.caml_equal(get(m, "Sir Robin"), 10)) {
@@ -136,23 +141,29 @@ var t2 = set(m, "Sir Lancelot", 30);
 var m2_data = [
   {
     TAG: /* MapEntry */1,
-    _0: "Sir Robin",
-    _1: 10
+    _0: [
+      "Sir Robin",
+      10
+    ]
   },
   {
-    TAG: /* SubTrie */0,
+    TAG: /* BitmapIndexed */0,
     _0: {
       bitmap: 5,
       data: [
         {
           TAG: /* MapEntry */1,
-          _0: "Sir Lancelot",
-          _1: 30
+          _0: [
+            "Sir Lancelot",
+            30
+          ]
         },
         {
           TAG: /* MapEntry */1,
-          _0: "Sir Bedevere",
-          _1: 20
+          _0: [
+            "Sir Bedevere",
+            20
+          ]
         }
       ]
     }

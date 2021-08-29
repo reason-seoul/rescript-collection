@@ -36,7 +36,7 @@ let log = root => {
     log(`Bitmap: ` ++ root.bitmap->toBinString)
     Belt.Array.zip(bitPositions(root.bitmap), root.data)->Belt.Array.forEach(((idx, v)) => {
       switch v {
-      | SubTrie(t) =>
+      | BitmapIndexed(t) =>
         log(j`[$idx] SubTrie:`)
         p(t, ~depth=depth + 1)
       | MapEntry(k, v) => log(j`[$idx] MapEntry: $k => $v`)
@@ -51,15 +51,15 @@ let m = {
 }
 
 let get = (m, k) => {
-  find(m, ~shift=0, ~hash=testHasher(k), ~key=k)
+  BitmapIndexed.find(m, ~shift=0, ~hash=testHasher(k), ~key=k)
 }
 
 let set = (m, k, v) => {
-  assoc(m, ~shift=0, ~hasher=testHasher, ~hash=testHasher(k), ~key=k, ~value=v)
+  BitmapIndexed.assoc(m, ~shift=0, ~hasher=testHasher, ~hash=testHasher(k), ~key=k, ~value=v)
 }
 
 let remove = (m, k) => {
-  dissoc(m, ~shift=0, ~hash=testHasher(k), ~key=k)
+  BitmapIndexed.dissoc(m, ~shift=0, ~hash=testHasher(k), ~key=k)
 }
 
 assert (get(m, "Sir Robin") == Some(10))
@@ -72,7 +72,7 @@ let m2 = {
   bitmap: 0b0110,
   data: [
     MapEntry("Sir Robin", 10),
-    SubTrie({
+    BitmapIndexed({
       bitmap: 0b0101,
       data: [MapEntry("Sir Lancelot", 30), MapEntry("Sir Bedevere", 20)],
     }),

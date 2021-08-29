@@ -1,0 +1,49 @@
+{
+  "name": "rescript-hashmap",
+  "version": "0.1.0",
+  "description": "Persistent Hash-map implemenetation in ReScript",
+  "license": "MIT",
+  "author": {
+    "name": "Hyunwoo Nam"
+  },
+  "keywords": [
+    "rescript",
+    "data-structure",
+    "immutable",
+    "hashmap",
+    "hashset"
+  ],
+  "main": "./dist/hashset.js",
+  "module": "./dist/hashset.mjs",
+  "exports": {
+    ".": {
+      "require": "./dist/hashset.js",
+      "import": "./dist/hashset.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "postinstall": "rescript build -with-deps",
+    "build": "rescript build",
+    "bundle": "yarn build && concurrently \"yarn:bundle:*\"",
+    "bundle:cjs": "esbuild src/HashSet.mjs --bundle --sourcemap --minify --format=cjs --platform=node --target=node12 --outfile=dist/hashset.js",
+    "bundle:esm": "esbuild src/HashSet.mjs --bundle --sourcemap --minify --format=esm --outfile=dist/hashset.mjs",
+    "prepack": "yarn build && yarn bundle",
+    "start": "rescript build -w",
+    "clean": "rescript clean"
+  },
+  "files": [
+    "dist",
+    "src/*.res",
+    "src/*.resi",
+    "bsconfig.json"
+  ],
+  "dependencies": {
+    "@rescript/std": "^9.1.3"
+  },
+  "devDependencies": {
+    "concurrently": "^6.2.0",
+    "esbuild": "^0.12.17",
+    "rescript": "^9.1.4"
+  }
+}

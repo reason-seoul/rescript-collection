@@ -28,18 +28,7 @@ function find(param, key) {
   
 }
 
-function assoc(self, hash, key, value) {
-  if (self.hash !== hash) {
-    throw {
-          RE_EXN_ID: "Assert_failure",
-          _1: [
-            "Hamt.res",
-            42,
-            4
-          ],
-          Error: new Error()
-        };
-  }
+function assoc(self, key, value) {
   var idx = findIndex(self, key);
   if (idx === -1) {
     return {
@@ -77,10 +66,10 @@ var HashCollision = {
   dissoc: dissoc
 };
 
-function make$1(param) {
+function make$1(bitmap, data) {
   return {
-          bitmap: 0,
-          data: []
+          bitmap: bitmap,
+          data: data
         };
 }
 
@@ -92,7 +81,7 @@ function ctpop(v) {
 }
 
 function mask(hash, shift) {
-  return (hash >>> shift) & 31;
+  return (hash >>> shift) & 3;
 }
 
 function bitpos(hash, shift) {
@@ -117,7 +106,7 @@ function find$1(_param, _shift, hash, key) {
     var child = param.data[idx];
     switch (child.TAG | 0) {
       case /* BitmapIndexed */0 :
-          _shift = shift + 5 | 0;
+          _shift = shift + 2 | 0;
           _param = child._0;
           continue ;
       case /* MapEntry */1 :
@@ -145,7 +134,7 @@ function assoc$1(self, shift, hasher, hash, key, value) {
     switch (child.TAG | 0) {
       case /* BitmapIndexed */0 :
           var trie = child._0;
-          var newChild = assoc$1(trie, shift + 5 | 0, hasher, hash, key, value);
+          var newChild = assoc$1(trie, shift + 2 | 0, hasher, hash, key, value);
           if (newChild === trie) {
             return self;
           } else {
@@ -177,25 +166,41 @@ function assoc$1(self, shift, hasher, hash, key, value) {
                     };
             }
           }
-          var leaf = makeNode(shift, hasher, Curry._1(hasher, k), k, v, hash, key, value);
+          var leaf = makeNode(shift + 2 | 0, hasher, Curry._1(hasher, k), k, v, hash, key, value);
           return {
                   bitmap: bitmap,
                   data: JsArray.cloneAndSet(data, idx, leaf)
                 };
       case /* HashCollision */2 :
           var node = child._0;
-          var newChild$1 = assoc(node, hash, key, value);
-          if (newChild$1 === node) {
-            return self;
-          } else {
-            return {
-                    bitmap: bitmap,
-                    data: JsArray.cloneAndSet(data, idx, {
-                          TAG: /* HashCollision */2,
-                          _0: newChild$1
-                        })
-                  };
+          if (node.hash === hash) {
+            var newChild$1 = assoc(node, key, value);
+            if (newChild$1 === node) {
+              return self;
+            } else {
+              return {
+                      bitmap: bitmap,
+                      data: JsArray.cloneAndSet(data, idx, {
+                            TAG: /* HashCollision */2,
+                            _0: newChild$1
+                          })
+                    };
+            }
           }
+          var newChild$2 = assoc$1({
+                bitmap: bitpos(node.hash, shift + 2 | 0),
+                data: [{
+                    TAG: /* HashCollision */2,
+                    _0: node
+                  }]
+              }, shift + 2 | 0, hasher, hash, key, value);
+          return {
+                  bitmap: bitmap,
+                  data: JsArray.cloneAndSet(data, idx, {
+                        TAG: /* BitmapIndexed */0,
+                        _0: newChild$2
+                      })
+                };
       
     }
   } else {
@@ -219,17 +224,6 @@ function assoc$1(self, shift, hasher, hash, key, value) {
 
 function makeNode(shift, hasher, h1, k1, v1, h2, k2, v2) {
   if (h1 === h2) {
-    throw {
-          RE_EXN_ID: "Assert_failure",
-          _1: [
-            "Hamt.res",
-            208,
-            4
-          ],
-          Error: new Error()
-        };
-  }
-  if (h1 === h2) {
     return {
             TAG: /* HashCollision */2,
             _0: {
@@ -252,7 +246,7 @@ function makeNode(shift, hasher, h1, k1, v1, h2, k2, v2) {
             _0: assoc$1(assoc$1({
                       bitmap: 0,
                       data: []
-                    }, shift + 5 | 0, hasher, h1, k1, v1), shift + 5 | 0, hasher, h2, k2, v2)
+                    }, shift, hasher, h1, k1, v1), shift, hasher, h2, k2, v2)
           };
   }
 }
@@ -270,7 +264,7 @@ function dissoc$1(self, shift, hash, key) {
   switch (child.TAG | 0) {
     case /* BitmapIndexed */0 :
         var trie = child._0;
-        var newChild = dissoc$1(trie, shift + 5 | 0, hash, key);
+        var newChild = dissoc$1(trie, shift + 2 | 0, hash, key);
         if (newChild !== undefined) {
           if (newChild === trie) {
             return self;
@@ -341,9 +335,9 @@ var BitmapIndexed = {
 
 var A;
 
-var numBits = 5;
+var numBits = 2;
 
-var maskBits = 31;
+var maskBits = 3;
 
 export {
   A ,

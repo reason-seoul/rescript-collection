@@ -10,7 +10,7 @@ function intHasher(x) {
   return x;
 }
 
-var actions = Belt_Array.makeBy(3000000, (function (i) {
+var actions = Belt_Array.makeBy(3000000, (function (param) {
         var x = Js_math.random_int(0, 1500000);
         var match = Js_math.random_int(0, 2);
         if (match !== 0) {

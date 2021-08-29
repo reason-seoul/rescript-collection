@@ -2,10 +2,10 @@
 
 module A = JsArray
 
-let numBits = 5
-let maskBits = 0x01F // 31bits
-// let numBits = 2
-// let maskBits = 0b011 // 1bits
+// let numBits = 5
+// let maskBits = 0x01F // 31bits
+let numBits = 2
+let maskBits = 0b011 // 1bits
 
 // bitmap 은 32비트를 가정
 // bit가 1이면 은 해당 인덱스의 자식 노드가 있는지 여부를 나타냄
@@ -37,10 +37,8 @@ module HashCollision = {
     }
   }
 
-  let assoc = ({entries} as self: t<'k, 'v>, ~hash, ~key: 'k, ~value: 'v): t<'k, 'v> => {
-    // TODO: when hash != hash
-    assert (self.hash == hash)
-
+  let assoc = ({entries} as self: t<'k, 'v>, ~key: 'k, ~value: 'v): t<'k, 'v> => {
+    // assert (self.hash == hash)
     let idx = findIndex(self, ~key)
     if idx == -1 {
       {
@@ -70,9 +68,9 @@ module HashCollision = {
 module BitmapIndexed = {
   type t<'k, 'v> = bitmapIndexedNode<'k, 'v>
 
-  let make = () => {
-    bitmap: 0,
-    data: [],
+  let make = (bitmap, data) => {
+    bitmap: bitmap,
+    data: data,
   }
 
   // Hacker's Delight, COUNTING BITS
@@ -179,7 +177,7 @@ module BitmapIndexed = {
           }
         } else {
           // extend a leaf, change child into subtrie
-          let leaf = makeNode(~shift, ~hasher, hasher(k), k, v, hash, key, value)
+          let leaf = makeNode(~shift=shift + numBits, ~hasher, hasher(k), k, v, hash, key, value)
           {
             bitmap: bitmap,
             data: A.cloneAndSet(data, idx, leaf),
@@ -187,32 +185,43 @@ module BitmapIndexed = {
         }
 
       | HashCollision(node) =>
-        let newChild = HashCollision.assoc(node, ~hash, ~key, ~value)
-        if newChild === node {
-          // already exists
-          self
+        if node.hash == hash {
+          let newChild = HashCollision.assoc(node, ~key, ~value)
+          if newChild === node {
+            // already exists
+            self
+          } else {
+            // assert (A.length(newChild.entries) == A.length(node.entries) + 1)
+            {
+              bitmap: bitmap,
+              data: A.cloneAndSet(data, idx, HashCollision(newChild)),
+            }
+          }
         } else {
+          let newChild =
+            make(bitpos(node.hash, shift + numBits), [HashCollision(node)])->assoc(
+              ~shift=shift + numBits,
+              ~hasher,
+              ~hash,
+              ~key,
+              ~value,
+            )
           {
             bitmap: bitmap,
-            data: A.cloneAndSet(data, idx, HashCollision(newChild)),
+            data: A.cloneAndSet(data, idx, BitmapIndexed(newChild)),
           }
         }
       }
     }
   }
-  /**
-   * TODO: could it be non-rec? (i.e. no assoc)
-   */
   and makeNode = (~shift, ~hasher, h1, k1, v1, h2, k2, v2): node<'k, 'v> => {
-    // TODO: this requires perfect hashing fn ;)
-    assert (h1 != h2)
     if h1 == h2 {
       HashCollision(HashCollision.make(h1, [(k1, v1), (k2, v2)]))
     } else {
       BitmapIndexed(
-        make()
-        ->assoc(~shift=shift + numBits, ~hasher, ~hash=h1, ~key=k1, ~value=v1)
-        ->assoc(~shift=shift + numBits, ~hasher, ~hash=h2, ~key=k2, ~value=v2),
+        make(0, [])
+        ->assoc(~shift, ~hasher, ~hash=h1, ~key=k1, ~value=v1)
+        ->assoc(~shift, ~hasher, ~hash=h2, ~key=k2, ~value=v2),
       )
     }
   }

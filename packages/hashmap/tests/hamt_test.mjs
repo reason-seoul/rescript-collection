@@ -11,6 +11,7 @@ function testHasher(k) {
     case "Sir Bedevere" :
         return 250;
     case "Sir Lancelot" :
+    case "Sir Percival" :
         return 146;
     case "Sir Robin" :
         return 13;
@@ -102,7 +103,7 @@ function set(m, k, v) {
 }
 
 function remove(m, k) {
-  return Hamt.BitmapIndexed.dissoc(m, 0, testHasher(k), k);
+  return Belt_Option.getWithDefault(Hamt.BitmapIndexed.dissoc(m, 0, testHasher(k), k), m);
 }
 
 if (!Caml_obj.caml_equal(get(m, "Sir Robin"), 10)) {
@@ -110,7 +111,7 @@ if (!Caml_obj.caml_equal(get(m, "Sir Robin"), 10)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          68,
+          67,
           0
         ],
         Error: new Error()
@@ -122,7 +123,7 @@ if (!Caml_obj.caml_equal(get(m, "Sir Bedevere"), 20)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          69,
+          68,
           0
         ],
         Error: new Error()
@@ -134,7 +135,7 @@ if (get(m, "Sir Lancelot") !== undefined) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          70,
+          69,
           0
         ],
         Error: new Error()
@@ -185,7 +186,7 @@ if (!Caml_obj.caml_equal(t2, m2)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          85,
+          84,
           0
         ],
         Error: new Error()
@@ -197,7 +198,7 @@ if (!Caml_obj.caml_equal(get(m2, "Sir Robin"), 10)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          86,
+          85,
           0
         ],
         Error: new Error()
@@ -209,7 +210,7 @@ if (!Caml_obj.caml_equal(get(m2, "Sir Bedevere"), 20)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          87,
+          86,
           0
         ],
         Error: new Error()
@@ -221,18 +222,82 @@ if (!Caml_obj.caml_equal(get(m2, "Sir Lancelot"), 30)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          88,
+          87,
           0
         ],
         Error: new Error()
       };
 }
 
-Belt_Option.forEach(remove(m2, "Sir Robin"), log);
+var m3_data = [
+  {
+    TAG: /* MapEntry */1,
+    _0: [
+      "Sir Robin",
+      10
+    ]
+  },
+  {
+    TAG: /* BitmapIndexed */0,
+    _0: {
+      bitmap: 5,
+      data: [
+        {
+          TAG: /* HashCollision */2,
+          _0: {
+            hash: 146,
+            entries: [
+              [
+                "Sir Lancelot",
+                30
+              ],
+              [
+                "Sir Percival",
+                40
+              ]
+            ]
+          }
+        },
+        {
+          TAG: /* MapEntry */1,
+          _0: [
+            "Sir Bedevere",
+            20
+          ]
+        }
+      ]
+    }
+  }
+];
 
-Belt_Option.forEach(Belt_Option.flatMap(remove(m2, "Sir Lancelot"), (function (__x) {
-            return remove(__x, "Sir Bedevere");
-          })), log);
+var m3 = {
+  bitmap: 6,
+  data: m3_data
+};
+
+if (!Caml_obj.caml_equal(set(m2, "Sir Percival", 40), m3)) {
+  throw {
+        RE_EXN_ID: "Assert_failure",
+        _1: [
+          "hamt_test.res",
+          111,
+          0
+        ],
+        Error: new Error()
+      };
+}
+
+if (!Caml_obj.caml_equal(get(remove(m3, "Sir Lancelot"), "Sir Percival"), 40)) {
+  throw {
+        RE_EXN_ID: "Assert_failure",
+        _1: [
+          "hamt_test.res",
+          112,
+          0
+        ],
+        Error: new Error()
+      };
+}
 
 export {
   testHasher ,
@@ -245,6 +310,7 @@ export {
   remove ,
   t2 ,
   m2 ,
+  m3 ,
   
 }
 /*  Not a pure module */

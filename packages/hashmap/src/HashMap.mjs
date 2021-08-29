@@ -5,7 +5,7 @@ import * as Curry from "@rescript/std/lib/es6/curry.js";
 
 function make(hasher) {
   return {
-          root: Hamt.BitmapIndexed.make(undefined),
+          root: Hamt.BitmapIndexed.make(0, []),
           count: 0,
           hasher: hasher
         };

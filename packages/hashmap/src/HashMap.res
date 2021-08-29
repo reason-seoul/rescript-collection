@@ -7,7 +7,7 @@ type t<'k, 'v> = {
 }
 
 let make = (~hasher) => {
-  root: Hamt.BitmapIndexed.make(),
+  root: Hamt.BitmapIndexed.make(0, []),
   count: 0,
   hasher: hasher,
 }

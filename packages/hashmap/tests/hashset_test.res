@@ -4,7 +4,7 @@ let n = 3000000
 
 type action = Insert(int) | Remove(int)
 
-let actions = Belt.Array.makeBy(n, i => {
+let actions = Belt.Array.makeBy(n, _ => {
   let x = Js.Math.random_int(0, n / 2)
   switch Js.Math.random_int(0, 2) {
   | 0 => Insert(x)

@@ -129,6 +129,31 @@ let zipBy: (t<'a>, t<'b>, ('a, 'b) => 'c) => t<'c>
 @genType
 let unzip: t<('a, 'b)> => (t<'a>, t<'b>)
 
+// @genType
+// let drop: (t<'a>, int) => option<t<'a>>
+
+// @genType
+// let take: (t<'a>, int) => option<t<'a>>
+
+// @genType
+// let splitAt: (t<'a>, int) => option<(t<'a>, t<'a>)>
+
+// @genType
+// let parititionU: (t<'a>, (. 'a) => bool) => (t<'a>, t<'a>)
+// @genType
+// let paritition: (t<'a>, 'a => bool) => (t<'a>, t<'a>)
+
+@genType
+let sortU: (t<'a>, (. 'a, 'a) => int) => t<'a>
+@genType
+let sort: (t<'a>, ('a, 'a) => int) => t<'a>
+
+@genType
+let reverse: t<'a> => t<'a>
+
+@genType
+let shuffle: t<'a> => t<'a>
+
 @genType
 let fromArray: array<'a> => t<'a>
 @genType

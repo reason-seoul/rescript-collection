@@ -286,14 +286,26 @@ let zip = (v1, v2) => zipByU(v1, v2, (. a, b) => (a, b))
 let unzip = vec =>
   reduceU(vec, (make(), make()), (. (r1, r2), (a, b)) => (r1->push(a), r2->push(b)))
 
+let sortU = (vec, f) => vec->toArray->Js.Array2.sortInPlaceWith((a, b) => f(. a, b))->fromArray
+
+let sort = (vec, f) => vec->toArray->Js.Array2.sortInPlaceWith(f)->fromArray
+
+let reverse = vec => vec->toArray->Js.Array2.reverseInPlace->fromArray
+
+let shuffle = vec => {
+  let ar = vec->toArray
+  ar->Belt.Array.shuffleInPlace
+  ar->fromArray
+}
+
 let _pushMany = (to_, from) =>
-  A.reduce(from, Transient.push, to_->Transient.make)->Transient.toPersistent
+  Js.Array2.reduce(from, Transient.push, to_->Transient.make)->Transient.toPersistent
 
 let _concat = (to_, from) =>
   reduceU(from, to_->Transient.make, Transient.pushU)->Transient.toPersistent
 
 let _concatMany = (to_: t<'a>, fromAr: array<t<'a>>): t<'a> =>
-  A.reduce(
+  Js.Array2.reduce(
     fromAr,
     (acc, v) => reduceU(v, acc, Transient.pushU),
     to_->Transient.make,

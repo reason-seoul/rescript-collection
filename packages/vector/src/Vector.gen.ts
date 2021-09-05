@@ -255,6 +255,20 @@ export const zipBy: <a,b,c>(_1:t<a>, _2:t<b>, _3:((_1:a, _2:b) => c)) => t<c> = 
 
 export const unzip: <a,b>(_1:t<[a, b]>) => [t<a>, t<b>] = VectorBS.unzip;
 
+export const sortU: <a>(_1:t<a>, _2:((_1:a, _2:a) => number)) => t<a> = function <a>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.sortU, Arg1, Arg2);
+  return result
+};
+
+export const sort: <a>(_1:t<a>, _2:((_1:a, _2:a) => number)) => t<a> = function <a>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.sort, Arg1, Arg2);
+  return result
+};
+
+export const reverse: <a>(_1:t<a>) => t<a> = VectorBS.reverse;
+
+export const shuffle: <a>(_1:t<a>) => t<a> = VectorBS.shuffle;
+
 export const fromArray: <a>(_1:a[]) => t<a> = VectorBS.fromArray;
 
 export const toArray: <a>(_1:t<a>) => a[] = VectorBS.toArray;

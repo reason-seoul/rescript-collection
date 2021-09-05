@@ -2,6 +2,7 @@
 
 import * as Bvt from "./impl/Bvt.mjs";
 import * as Curry from "@rescript/std/lib/es6/curry.js";
+import * as Belt_Array from "@rescript/std/lib/es6/belt_Array.js";
 import * as Caml_option from "@rescript/std/lib/es6/caml_option.js";
 
 function makeBy(size, f) {
@@ -402,6 +403,26 @@ function unzip(vec) {
               }));
 }
 
+function sortU(vec, f) {
+  return Bvt.fromArray(Bvt.toArray(vec).sort(function (a, b) {
+                  return f(a, b);
+                }));
+}
+
+function sort(vec, f) {
+  return Bvt.fromArray(Bvt.toArray(vec).sort(Curry.__2(f)));
+}
+
+function reverse(vec) {
+  return Bvt.fromArray(Bvt.toArray(vec).reverse());
+}
+
+function shuffle(vec) {
+  var ar = Bvt.toArray(vec);
+  Belt_Array.shuffleInPlace(ar);
+  return Bvt.fromArray(ar);
+}
+
 var make = Bvt.make;
 
 var makeByU = Bvt.makeByU;
@@ -470,6 +491,10 @@ export {
   zipByU ,
   zipBy ,
   unzip ,
+  sortU ,
+  sort ,
+  reverse ,
+  shuffle ,
   fromArray ,
   toArray ,
   

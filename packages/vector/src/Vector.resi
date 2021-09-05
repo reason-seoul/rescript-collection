@@ -10,9 +10,12 @@ let makeBy: (int, int => 'a) => t<'a>
 
 @genType
 let length: t<'a> => int
+@genType
+let size: t<'a> => int
 
 @genType
 let push: (t<'a>, 'a) => t<'a>
+
 @genType
 let pop: t<'a> => t<'a>
 
@@ -92,9 +95,39 @@ let someU: (t<'a>, (. 'a) => bool) => bool
 let some: (t<'a>, 'a => bool) => bool
 
 @genType
+let some2U: (t<'a>, t<'a>, (. 'a, 'a) => bool) => bool
+@genType
+let some2: (t<'a>, t<'a>, ('a, 'a) => bool) => bool
+
+@genType
 let everyU: (t<'a>, (. 'a) => bool) => bool
 @genType
 let every: (t<'a>, 'a => bool) => bool
+
+@genType
+let every2U: (t<'a>, t<'a>, (. 'a, 'a) => bool) => bool
+@genType
+let every2: (t<'a>, t<'a>, ('a, 'a) => bool) => bool
+
+@genType
+let cmpU: (t<'a>, t<'a>, (. 'a, 'a) => int) => int
+@genType
+let cmp: (t<'a>, t<'a>, ('a, 'a) => int) => int
+
+@genType
+let eqU: (t<'a>, t<'a>, (. 'a, 'a) => bool) => bool
+@genType
+let eq: (t<'a>, t<'a>, ('a, 'a) => bool) => bool
+
+@genType
+let zip: (t<'a>, t<'b>) => t<('a, 'b)>
+@genType
+let zipByU: (t<'a>, t<'b>, (. 'a, 'b) => 'c) => t<'c>
+@genType
+let zipBy: (t<'a>, t<'b>, ('a, 'b) => 'c) => t<'c>
+
+@genType
+let unzip: t<('a, 'b)> => (t<'a>, t<'b>)
 
 @genType
 let fromArray: array<'a> => t<'a>

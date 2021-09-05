@@ -28,6 +28,8 @@ export const makeBy: <a>(_1:number, _2:((_1:number) => a)) => t<a> = function <a
 
 export const length: <a>(_1:t<a>) => number = VectorBS.length;
 
+export const size: <a>(_1:t<a>) => number = VectorBS.size;
+
 export const push: <a>(_1:t<a>, _2:a) => t<a> = function <a>(Arg1: any, Arg2: any) {
   const result = Curry._2(VectorBS.push, Arg1, Arg2);
   return result
@@ -186,6 +188,16 @@ export const some: <a>(_1:t<a>, _2:((_1:a) => boolean)) => boolean = function <a
   return result
 };
 
+export const some2U: <a>(_1:t<a>, _2:t<a>, _3:((_1:a, _2:a) => boolean)) => boolean = function <a>(Arg1: any, Arg2: any, Arg3: any) {
+  const result = Curry._3(VectorBS.some2U, Arg1, Arg2, Arg3);
+  return result
+};
+
+export const some2: <a>(_1:t<a>, _2:t<a>, _3:((_1:a, _2:a) => boolean)) => boolean = function <a>(Arg1: any, Arg2: any, Arg3: any) {
+  const result = Curry._3(VectorBS.some2, Arg1, Arg2, Arg3);
+  return result
+};
+
 export const everyU: <a>(_1:t<a>, _2:((_1:a) => boolean)) => boolean = function <a>(Arg1: any, Arg2: any) {
   const result = Curry._2(VectorBS.everyU, Arg1, Arg2);
   return result
@@ -195,6 +207,53 @@ export const every: <a>(_1:t<a>, _2:((_1:a) => boolean)) => boolean = function <
   const result = Curry._2(VectorBS.every, Arg1, Arg2);
   return result
 };
+
+export const every2U: <a>(_1:t<a>, _2:t<a>, _3:((_1:a, _2:a) => boolean)) => boolean = function <a>(Arg1: any, Arg2: any, Arg3: any) {
+  const result = Curry._3(VectorBS.every2U, Arg1, Arg2, Arg3);
+  return result
+};
+
+export const every2: <a>(_1:t<a>, _2:t<a>, _3:((_1:a, _2:a) => boolean)) => boolean = function <a>(Arg1: any, Arg2: any, Arg3: any) {
+  const result = Curry._3(VectorBS.every2, Arg1, Arg2, Arg3);
+  return result
+};
+
+export const cmpU: <a>(_1:t<a>, _2:t<a>, _3:((_1:a, _2:a) => number)) => number = function <a>(Arg1: any, Arg2: any, Arg3: any) {
+  const result = Curry._3(VectorBS.cmpU, Arg1, Arg2, Arg3);
+  return result
+};
+
+export const cmp: <a>(_1:t<a>, _2:t<a>, _3:((_1:a, _2:a) => number)) => number = function <a>(Arg1: any, Arg2: any, Arg3: any) {
+  const result = Curry._3(VectorBS.cmp, Arg1, Arg2, Arg3);
+  return result
+};
+
+export const eqU: <a>(_1:t<a>, _2:t<a>, _3:((_1:a, _2:a) => boolean)) => boolean = function <a>(Arg1: any, Arg2: any, Arg3: any) {
+  const result = Curry._3(VectorBS.eqU, Arg1, Arg2, Arg3);
+  return result
+};
+
+export const eq: <a>(_1:t<a>, _2:t<a>, _3:((_1:a, _2:a) => boolean)) => boolean = function <a>(Arg1: any, Arg2: any, Arg3: any) {
+  const result = Curry._3(VectorBS.eq, Arg1, Arg2, Arg3);
+  return result
+};
+
+export const zip: <a,b>(_1:t<a>, _2:t<b>) => t<[a, b]> = function <a,b>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.zip, Arg1, Arg2);
+  return result
+};
+
+export const zipByU: <a,b,c>(_1:t<a>, _2:t<b>, _3:((_1:a, _2:b) => c)) => t<c> = function <a,b,c>(Arg1: any, Arg2: any, Arg3: any) {
+  const result = Curry._3(VectorBS.zipByU, Arg1, Arg2, Arg3);
+  return result
+};
+
+export const zipBy: <a,b,c>(_1:t<a>, _2:t<b>, _3:((_1:a, _2:b) => c)) => t<c> = function <a,b,c>(Arg1: any, Arg2: any, Arg3: any) {
+  const result = Curry._3(VectorBS.zipBy, Arg1, Arg2, Arg3);
+  return result
+};
+
+export const unzip: <a,b>(_1:t<[a, b]>) => [t<a>, t<b>] = VectorBS.unzip;
 
 export const fromArray: <a>(_1:a[]) => t<a> = VectorBS.fromArray;
 

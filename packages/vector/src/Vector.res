@@ -2,6 +2,10 @@ include Bvt
 
 let makeBy = (size, f) => makeByU(size, (. i) => f(i))
 
+let length = v => v.size
+
+let size = v => v.size
+
 let get = ({size} as v, i) =>
   if i < 0 || i >= size {
     None
@@ -177,19 +181,120 @@ let rec someAux = (vec, i, f) =>
     someAux(vec, i + 1, f)
   }
 
-let someU = (vec, f) => someAux(vec, 0, f)
-
-let some = (vec, f) => someU(vec, (. x) => f(x))
-
-let rec everyAux = (vec, i, f) =>
-  if i == vec->length {
+let rec everyAux = (vec, i, f, len) =>
+  if i == len {
     true
   } else if f(. getUnsafe(vec, i)) {
-    everyAux(vec, i + 1, f)
+    everyAux(vec, i + 1, f, len)
   } else {
     false
   }
 
-let everyU = (vec, f) => everyAux(vec, 0, f)
+let someU = (vec, f) => someAux(vec, 0, f)
+
+let some = (vec, f) => someU(vec, (. x) => f(x))
+
+let everyU = (vec, f) => everyAux(vec, 0, f, length(vec))
 
 let every = (vec, f) => everyU(vec, (. x) => f(x))
+
+let rec someAux2 = (v1, v2, i, f, len) =>
+  if i == len {
+    false
+  } else if f(. getUnsafe(v1, i), getUnsafe(v2, i)) {
+    true
+  } else {
+    someAux2(v1, v2, i + 1, f, len)
+  }
+
+let rec everyAux2 = (v1, v2, i, f, len) =>
+  if i == len {
+    true
+  } else if f(. getUnsafe(v1, i), getUnsafe(v2, i)) {
+    everyAux2(v1, v2, i + 1, f, len)
+  } else {
+    false
+  }
+
+let some2U = (v1, v2, f) => someAux2(v1, v2, 0, f, Pervasives.min(length(v1), length(v2)))
+
+let some2 = (v1, v2, f) => some2U(v1, v2, (. a, b) => f(a, b))
+
+let every2U = (v1, v2, f) => everyAux2(v1, v2, 0, f, Pervasives.min(length(v1), length(v2)))
+
+let every2 = (v1, v2, f) => every2U(v1, v2, (. a, b) => f(a, b))
+
+let rec cmpAux2 = (v1, v2, i, f, len) => {
+  if i == len {
+    0
+  } else {
+    let c = f(. getUnsafe(v1, i), getUnsafe(v2, i))
+    if c == 0 {
+      cmpAux2(v1, v2, i + 1, f, len)
+    } else {
+      c
+    }
+  }
+}
+
+let cmpU = (v1, v2, f) => {
+  let len1 = length(v1)
+  let len2 = length(v2)
+  if len1 > len2 {
+    1
+  } else if len1 < len2 {
+    -1
+  } else {
+    cmpAux2(v1, v2, 0, f, len1)
+  }
+}
+
+let cmp = (v1, v2, f) => cmpU(v1, v2, (. a, b) => f(a, b))
+
+let eqU = (v1, v2, f) => {
+  let len1 = length(v1)
+  let len2 = length(v2)
+  if len1 == len2 {
+    everyAux2(v1, v2, 0, f, len1)
+  } else {
+    false
+  }
+}
+
+let eq = (v1, v2, f) => eqU(v1, v2, (. a, b) => f(a, b))
+
+let zipByU = (v1, v2, f) => {
+  let len = min(length(v1), length(v2))
+  let i = ref(0)
+  let r = ref(make())
+  while i.contents < len {
+    let ar1 = getArrayUnsafe(v1, i.contents)
+    let ar2 = getArrayUnsafe(v2, i.contents)
+    let l = ar1->A.length
+    for j in 0 to l - 1 {
+      r := r.contents->push(f(. A.get(ar1, j), A.get(ar2, j)))
+    }
+    i := i.contents + l
+  }
+  r.contents
+}
+
+let zipBy = (v1, v2, f) => zipByU(v1, v2, (. a, b) => f(a, b))
+
+let zip = (v1, v2) => zipByU(v1, v2, (. a, b) => (a, b))
+
+let unzip = vec =>
+  reduceU(vec, (make(), make()), (. (r1, r2), (a, b)) => (r1->push(a), r2->push(b)))
+
+let _pushMany = (to_, from) =>
+  A.reduce(from, Transient.push, to_->Transient.make)->Transient.toPersistent
+
+let _concat = (to_, from) =>
+  reduceU(from, to_->Transient.make, Transient.pushU)->Transient.toPersistent
+
+let _concatMany = (to_: t<'a>, fromAr: array<t<'a>>): t<'a> =>
+  A.reduce(
+    fromAr,
+    (acc, v) => reduceU(v, acc, Transient.pushU),
+    to_->Transient.make,
+  )->Transient.toPersistent

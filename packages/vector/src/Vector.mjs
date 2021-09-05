@@ -8,6 +8,14 @@ function makeBy(size, f) {
   return Bvt.makeByU(size, Curry.__1(f));
 }
 
+function length(v) {
+  return v.size;
+}
+
+function size(v) {
+  return v.size;
+}
+
 function get(v, i) {
   if (i < 0 || i >= v.size) {
     return ;
@@ -22,7 +30,7 @@ function getExn(v, i) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Vector.res",
-            13,
+            17,
             2
           ],
           Error: new Error()
@@ -88,7 +96,7 @@ function setExn(vec, i, x) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Vector.res",
-            63,
+            67,
             2
           ],
           Error: new Error()
@@ -234,7 +242,7 @@ function someU(vec, f) {
   var _i = 0;
   while(true) {
     var i = _i;
-    if (i === Bvt.length(vec)) {
+    if (i === vec.size) {
       return false;
     }
     if (f(Bvt.getUnsafe(vec, i))) {
@@ -251,9 +259,10 @@ function some(vec, f) {
 
 function everyU(vec, f) {
   var _i = 0;
+  var len = vec.size;
   while(true) {
     var i = _i;
-    if (i === Bvt.length(vec)) {
+    if (i === len) {
       return true;
     }
     if (!f(Bvt.getUnsafe(vec, i))) {
@@ -268,11 +277,134 @@ function every(vec, f) {
   return everyU(vec, Curry.__1(f));
 }
 
+function everyAux2(v1, v2, _i, f, len) {
+  while(true) {
+    var i = _i;
+    if (i === len) {
+      return true;
+    }
+    if (!f(Bvt.getUnsafe(v1, i), Bvt.getUnsafe(v2, i))) {
+      return false;
+    }
+    _i = i + 1 | 0;
+    continue ;
+  };
+}
+
+function some2U(v1, v2, f) {
+  var _i = 0;
+  var len = v1.size < v2.size ? v1.size : v2.size;
+  while(true) {
+    var i = _i;
+    if (i === len) {
+      return false;
+    }
+    if (f(Bvt.getUnsafe(v1, i), Bvt.getUnsafe(v2, i))) {
+      return true;
+    }
+    _i = i + 1 | 0;
+    continue ;
+  };
+}
+
+function some2(v1, v2, f) {
+  return some2U(v1, v2, Curry.__2(f));
+}
+
+function every2U(v1, v2, f) {
+  return everyAux2(v1, v2, 0, f, v1.size < v2.size ? v1.size : v2.size);
+}
+
+function every2(v1, v2, f) {
+  return every2U(v1, v2, Curry.__2(f));
+}
+
+function cmpU(v1, v2, f) {
+  var len1 = v1.size;
+  var len2 = v2.size;
+  if (len1 > len2) {
+    return 1;
+  } else if (len1 < len2) {
+    return -1;
+  } else {
+    var _i = 0;
+    while(true) {
+      var i = _i;
+      if (i === len1) {
+        return 0;
+      }
+      var c = f(Bvt.getUnsafe(v1, i), Bvt.getUnsafe(v2, i));
+      if (c !== 0) {
+        return c;
+      }
+      _i = i + 1 | 0;
+      continue ;
+    };
+  }
+}
+
+function cmp(v1, v2, f) {
+  return cmpU(v1, v2, Curry.__2(f));
+}
+
+function eqU(v1, v2, f) {
+  var len1 = v1.size;
+  var len2 = v2.size;
+  if (len1 === len2) {
+    return everyAux2(v1, v2, 0, f, len1);
+  } else {
+    return false;
+  }
+}
+
+function eq(v1, v2, f) {
+  return eqU(v1, v2, Curry.__2(f));
+}
+
+function zipByU(v1, v2, f) {
+  var len = v1.size < v2.size ? v1.size : v2.size;
+  var i = 0;
+  var r = Bvt.make(undefined);
+  while(i < len) {
+    var ar1 = Bvt.getArrayUnsafe(v1, i);
+    var ar2 = Bvt.getArrayUnsafe(v2, i);
+    var l = ar1.length;
+    for(var j = 0; j < l; ++j){
+      r = Bvt.push(r, f(ar1[j], ar2[j]));
+    }
+    i = i + l | 0;
+  };
+  return r;
+}
+
+function zipBy(v1, v2, f) {
+  return zipByU(v1, v2, Curry.__2(f));
+}
+
+function zip(v1, v2) {
+  return zipByU(v1, v2, (function (a, b) {
+                return [
+                        a,
+                        b
+                      ];
+              }));
+}
+
+function unzip(vec) {
+  return reduceU(vec, [
+              Bvt.make(undefined),
+              Bvt.make(undefined)
+            ], (function (param, param$1) {
+                return [
+                        Bvt.push(param[0], param$1[0]),
+                        Bvt.push(param[1], param$1[1])
+                      ];
+              }));
+}
+
 var make = Bvt.make;
 
 var makeByU = Bvt.makeByU;
-
-var length = Bvt.length;
 
 var push = Bvt.push;
 
@@ -291,6 +423,7 @@ export {
   makeByU ,
   makeBy ,
   length ,
+  size ,
   push ,
   pop ,
   get ,
@@ -323,8 +456,20 @@ export {
   forEachWithIndex ,
   someU ,
   some ,
+  some2U ,
+  some2 ,
   everyU ,
   every ,
+  every2U ,
+  every2 ,
+  cmpU ,
+  cmp ,
+  eqU ,
+  eq ,
+  zip ,
+  zipByU ,
+  zipBy ,
+  unzip ,
   fromArray ,
   toArray ,
   

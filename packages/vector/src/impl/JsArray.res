@@ -46,6 +46,9 @@ let cloneWithout = (ar, i) => {
 external forEach: (array<'a>, 'a => unit) => unit = "forEach"
 
 @send
+external reduce: (array<'a>, @uncurry ('b, 'a) => 'b, 'b) => 'b = "reduce"
+
+@send
 external findIndex: (array<'a>, @uncurry ('a => bool)) => int = "findIndex"
 
 @send

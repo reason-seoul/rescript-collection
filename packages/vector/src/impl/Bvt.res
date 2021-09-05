@@ -13,11 +13,11 @@ let absurd = Obj.magic()
 // let numBits = 2
 // let numBranches = lsl(1, numBits)
 // let bitMask = numBranches - 1
-@inline 
+@inline
 let numBits = 5
-@inline 
+@inline
 let numBranches = 32
-@inline 
+@inline
 let bitMask = 0x1f
 
 type rec tree<'a> =
@@ -57,8 +57,6 @@ let make = () => {
   root: Node([]),
   tail: [],
 }
-
-let length = v => v.size
 
 let tailOffset = ({size}) =>
   if size < numBranches {
@@ -320,16 +318,33 @@ let makeByU = (len, f) => {
   }
 }
 
-// debug only
-let log = ({root, tail}) => {
-  let rec p = (depth, node) => {
-    Js.log("\t"->Js.String2.repeat(depth))
-
-    switch node {
-    | Node(node) => A.forEach(node, child => p(depth + 1, child))
-    | Leaf(leaf) => Js.log(leaf)
-    }
+module Transient = {
+  type tr<'a> = {
+    mutable size: int,
+    mutable shift: int,
+    mutable root: tree<'a>,
+    mutable tail: array<'a>,
   }
-  p(0, root)
-  Js.log2("tail", tail)
+
+  let make = (v: t<'a>): tr<'a> => {
+    size: v.size,
+    shift: v.shift,
+    root: v.root,
+    tail: v.tail,
+  }
+
+  let toPersistent = (v): t<'a> => {
+    size: v.size,
+    shift: v.shift,
+    root: v.root,
+    tail: v.tail,
+  }
+
+  let pushU = (. _v, _x) => {
+    failwith("not implemented yet")
+  }
+
+  let push = (_v, _x) => {
+    failwith("not implemented yet")
+  }
 }

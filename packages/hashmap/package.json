@@ -23,7 +23,6 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "postinstall": "rescript build -with-deps",
     "build": "rescript build",
     "bundle": "yarn build && concurrently \"yarn:bundle:*\"",
     "bundle:cjs": "esbuild src/HashSet.mjs --bundle --sourcemap --minify --format=cjs --platform=node --target=node12 --outfile=dist/hashset.js",

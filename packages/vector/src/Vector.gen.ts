@@ -40,6 +40,26 @@ export const getUnsafe: <a>(_1:t<a>, _2:number) => a = function <a>(Arg1: any, A
   return result
 };
 
+export const getByU: <a>(_1:t<a>, _2:((_1:a) => boolean)) => (null | undefined | a) = function <a>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.getByU, Arg1, Arg2);
+  return result
+};
+
+export const getBy: <a>(_1:t<a>, _2:((_1:a) => boolean)) => (null | undefined | a) = function <a>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.getBy, Arg1, Arg2);
+  return result
+};
+
+export const getIndexByU: <a>(_1:t<a>, _2:((_1:a) => boolean)) => (null | undefined | number) = function <a>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.getIndexByU, Arg1, Arg2);
+  return result
+};
+
+export const getIndexBy: <a>(_1:t<a>, _2:((_1:a) => boolean)) => (null | undefined | number) = function <a>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.getIndexBy, Arg1, Arg2);
+  return result
+};
+
 export const set: <a>(_1:t<a>, _2:number, _3:a) => (null | undefined | t<a>) = function <a>(Arg1: any, Arg2: any, Arg3: any) {
   const result = Curry._3(VectorBS.set, Arg1, Arg2, Arg3);
   return result
@@ -65,6 +85,16 @@ export const reduce: <a,b>(_1:t<a>, _2:b, _3:((_1:b, _2:a) => b)) => b = functio
   return result
 };
 
+export const reduceWithIndexU: <a,b>(_1:t<a>, _2:b, _3:((_1:b, _2:a, _3:number) => b)) => b = function <a,b>(Arg1: any, Arg2: any, Arg3: any) {
+  const result = Curry._3(VectorBS.reduceWithIndexU, Arg1, Arg2, Arg3);
+  return result
+};
+
+export const reduceWithIndex: <a,b>(_1:t<a>, _2:b, _3:((_1:b, _2:a, _3:number) => b)) => b = function <a,b>(Arg1: any, Arg2: any, Arg3: any) {
+  const result = Curry._3(VectorBS.reduceWithIndex, Arg1, Arg2, Arg3);
+  return result
+};
+
 export const mapU: <a,b>(_1:t<a>, _2:((_1:a) => b)) => t<b> = function <a,b>(Arg1: any, Arg2: any) {
   const result = Curry._2(VectorBS.mapU, Arg1, Arg2);
   return result
@@ -72,6 +102,11 @@ export const mapU: <a,b>(_1:t<a>, _2:((_1:a) => b)) => t<b> = function <a,b>(Arg
 
 export const map: <a,b>(_1:t<a>, _2:((_1:a) => b)) => t<b> = function <a,b>(Arg1: any, Arg2: any) {
   const result = Curry._2(VectorBS.map, Arg1, Arg2);
+  return result
+};
+
+export const mapWithIndex: <a,b>(_1:t<a>, _2:((_1:a, _2:number) => b)) => t<b> = function <a,b>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.mapWithIndex, Arg1, Arg2);
   return result
 };
 
@@ -101,6 +136,16 @@ export const keepMap: <a,b>(_1:t<a>, _2:((_1:a) => (null | undefined | b))) => t
   return result
 };
 
+export const keepWithIndexU: <a>(_1:t<a>, _2:((_1:a, _2:number) => boolean)) => t<a> = function <a>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.keepWithIndexU, Arg1, Arg2);
+  return result
+};
+
+export const keepWithIndex: <a>(_1:t<a>, _2:((_1:a, _2:number) => boolean)) => t<a> = function <a>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.keepWithIndex, Arg1, Arg2);
+  return result
+};
+
 export const forEachU: <a>(_1:t<a>, _2:((_1:a) => void)) => void = function <a>(Arg1: any, Arg2: any) {
   const result = Curry._2(VectorBS.forEachU, Arg1, Arg2);
   return result
@@ -108,6 +153,16 @@ export const forEachU: <a>(_1:t<a>, _2:((_1:a) => void)) => void = function <a>(
 
 export const forEach: <a>(_1:t<a>, _2:((_1:a) => void)) => void = function <a>(Arg1: any, Arg2: any) {
   const result = Curry._2(VectorBS.forEach, Arg1, Arg2);
+  return result
+};
+
+export const forEachWithIndexU: <a>(_1:t<a>, _2:((_1:a, _2:number) => void)) => void = function <a>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.forEachWithIndexU, Arg1, Arg2);
+  return result
+};
+
+export const forEachWithIndex: <a>(_1:t<a>, _2:((_1:a, _2:number) => void)) => void = function <a>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.forEachWithIndex, Arg1, Arg2);
   return result
 };
 

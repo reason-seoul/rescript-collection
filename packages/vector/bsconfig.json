@@ -2,7 +2,8 @@
   "name": "rescript-vector",
   "sources": [
     {
-      "dir": "src"
+      "dir": "src",
+      "subdirs": true
     },
     {
       "dir": "tests",

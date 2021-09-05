@@ -1,0 +1,47 @@
+rescript = 1
+rule astj
+  command = /home/runner/work/rescript-collection/rescript-collection/node_modules/rescript/linux/bsc.exe  -bs-v 9.1.4  -absname -bs-ast -o $out $i
+o tests/hamt_test.ast : astj ../../tests/hamt_test.res
+rule deps_dev
+  command = /home/runner/work/rescript-collection/rescript-collection/node_modules/rescript/linux/bsb_helper.exe -g -hash 620de4f3c9b9f7ce6d080c02cce2263a $in
+  restat = 1
+o tests/hamt_test.d : deps_dev tests/hamt_test.ast
+rule mij_dev
+  command = /home/runner/work/rescript-collection/rescript-collection/node_modules/rescript/linux/bsc.exe -I tests -I src/impl -I src    -bs-package-name rescript-hashmap -bs-package-output es6:$in_d:.mjs -runtime /home/runner/work/rescript-collection/rescript-collection/node_modules/@rescript/std $i
+  dyndep = 1
+  restat = 1
+o tests/hamt_test.cmj tests/hamt_test.cmi ../../tests/hamt_test.mjs : mij_dev tests/hamt_test.ast
+o tests/hashset_test.ast : astj ../../tests/hashset_test.res
+o tests/hashset_test.d : deps_dev tests/hashset_test.ast
+o tests/hashset_test.cmj tests/hashset_test.cmi ../../tests/hashset_test.mjs : mij_dev tests/hashset_test.ast
+o src/HashMap.ast : astj ../../src/HashMap.res
+rule deps
+  command = /home/runner/work/rescript-collection/rescript-collection/node_modules/rescript/linux/bsb_helper.exe -hash 620de4f3c9b9f7ce6d080c02cce2263a $in
+  restat = 1
+o src/HashMap.d : deps src/HashMap.ast src/HashMap.iast
+o src/HashMap.iast : astj ../../src/HashMap.resi
+rule mi
+  command = /home/runner/work/rescript-collection/rescript-collection/node_modules/rescript/linux/bsc.exe -I src/impl -I src   $i
+  dyndep = 1
+  restat = 1
+o src/HashMap.cmi : mi src/HashMap.iast
+rule mj
+  command = /home/runner/work/rescript-collection/rescript-collection/node_modules/rescript/linux/bsc.exe -bs-read-cmi -I src/impl -I src   -bs-package-name rescript-hashmap -bs-package-output es6:$in_d:.mjs -runtime /home/runner/work/rescript-collection/rescript-collection/node_modules/@rescript/std $i
+  dyndep = 1
+  restat = 1
+o src/HashMap.cmj ../../src/HashMap.mjs : mj src/HashMap.ast src/HashMap.cmi
+o src/HashSet.ast : astj ../../src/HashSet.res
+o src/HashSet.d : deps src/HashSet.ast src/HashSet.iast
+o src/HashSet.iast : astj ../../src/HashSet.resi
+o src/HashSet.cmi : mi src/HashSet.iast
+o src/HashSet.cmj ../../src/HashSet.mjs : mj src/HashSet.ast src/HashSet.cmi
+o src/impl/Hamt.ast : astj ../../src/impl/Hamt.res
+o src/impl/Hamt.d : deps src/impl/Hamt.ast
+rule mij
+  command = /home/runner/work/rescript-collection/rescript-collection/node_modules/rescript/linux/bsc.exe -I src/impl -I src   -bs-package-name rescript-hashmap -bs-package-output es6:$in_d:.mjs -runtime /home/runner/work/rescript-collection/rescript-collection/node_modules/@rescript/std $i
+  dyndep = 1
+  restat = 1
+o src/impl/Hamt.cmj src/impl/Hamt.cmi ../../src/impl/Hamt.mjs : mij src/impl/Hamt.ast
+o src/impl/JsArray.ast : astj ../../src/impl/JsArray.res
+o src/impl/JsArray.d : deps src/impl/JsArray.ast
+o src/impl/JsArray.cmj src/impl/JsArray.cmi ../../src/impl/JsArray.mjs : mij src/impl/JsArray.ast

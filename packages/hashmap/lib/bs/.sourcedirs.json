@@ -1,0 +1,1 @@
+{ "dirs" : [ "tests" , "src" , "src/impl" ] , "pkgs" : [ [ "@rescript/std" , "/home/runner/work/rescript-collection/rescript-collection/node_modules/@rescript/std" ] ] , "generated" : [] }

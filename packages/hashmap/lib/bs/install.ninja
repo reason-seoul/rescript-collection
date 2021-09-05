@@ -1,0 +1,26 @@
+rescript = 1
+rule cp
+  command = cp $i $out
+rule touch
+ command = touch $out
+o HashMap.cmi : cp ../bs/src/HashMap.cmi
+o HashMap.cmj : cp ../bs/src/HashMap.cmj
+o HashMap.cmt : cp ../bs/src/HashMap.cmt
+o HashMap.res : cp ../../src/HashMap.res
+o HashMap.resi : cp ../../src/HashMap.resi
+o HashMap.cmti : cp ../bs/src/HashMap.cmti
+o HashSet.cmi : cp ../bs/src/HashSet.cmi
+o HashSet.cmj : cp ../bs/src/HashSet.cmj
+o HashSet.cmt : cp ../bs/src/HashSet.cmt
+o HashSet.res : cp ../../src/HashSet.res
+o HashSet.resi : cp ../../src/HashSet.resi
+o HashSet.cmti : cp ../bs/src/HashSet.cmti
+o Hamt.cmi : cp ../bs/src/impl/Hamt.cmi
+o Hamt.cmj : cp ../bs/src/impl/Hamt.cmj
+o Hamt.cmt : cp ../bs/src/impl/Hamt.cmt
+o Hamt.res : cp ../../src/impl/Hamt.res
+o JsArray.cmi : cp ../bs/src/impl/JsArray.cmi
+o JsArray.cmj : cp ../bs/src/impl/JsArray.cmj
+o JsArray.cmt : cp ../bs/src/impl/JsArray.cmt
+o JsArray.res : cp ../../src/impl/JsArray.res
+build install.stamp : touch HashMap.cmi HashMap.cmj HashSet.cmi HashSet.cmj Hamt.cmi Hamt.cmj JsArray.cmi JsArray.cmj 

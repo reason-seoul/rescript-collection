@@ -1,5 +1,5 @@
 ---
-"rescript-hashmap": major
+"rescript-hashmap": minor
 ---
 
 The inception of rescript-hashmap

@@ -26,13 +26,12 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install Packages
-        # if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: |
           yarn install --immutable
 
       - name: Compile ReScript
         run: |
-          yarn workspace rescript-vector build
+          yarn workspace rescript-vector build:res -with-deps
 
       - name: Run Unit Tests
         run: |

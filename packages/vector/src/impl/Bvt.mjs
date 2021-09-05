@@ -364,6 +364,98 @@ function toArray(param) {
   return data;
 }
 
+function makeByU(len, f) {
+  if (len === 0) {
+    return {
+            size: 0,
+            shift: 5,
+            root: {
+              TAG: /* Node */0,
+              _0: []
+            },
+            tail: []
+          };
+  }
+  var tailSize = (len & 31) === 0 ? 32 : len & 31;
+  var tailOffset = len - tailSize | 0;
+  var tail = Array(tailSize);
+  var i = 0;
+  var init_root = {
+    TAG: /* Node */0,
+    _0: []
+  };
+  var init_tail = [];
+  var state = {
+    size: tailSize,
+    shift: 5,
+    root: init_root,
+    tail: tail
+  };
+  while(i < tailOffset) {
+    var offset = i;
+    var vec = state;
+    var root = vec.root;
+    var shift = vec.shift;
+    var size = vec.size;
+    var ar = Array(32);
+    for(var j = 0; j <= 31; ++j){
+      ar[j] = f(offset + j | 0);
+    }
+    var leaf = {
+      TAG: /* Leaf */1,
+      _0: ar
+    };
+    var isRootOverflow = offset === (1 << (shift + 5 | 0));
+    var tmp;
+    if (isRootOverflow) {
+      var newRoot = {
+        TAG: /* Node */0,
+        _0: [
+          root,
+          newPath(shift, leaf)
+        ]
+      };
+      tmp = {
+        size: size + 32 | 0,
+        shift: shift + 5 | 0,
+        root: newRoot,
+        tail: vec.tail
+      };
+    } else {
+      var newRoot$1 = pushTail(offset + 1 | 0, shift, root, leaf);
+      tmp = {
+        size: size + 32 | 0,
+        shift: vec.shift,
+        root: newRoot$1,
+        tail: vec.tail
+      };
+    }
+    state = tmp;
+    i = offset + 32 | 0;
+  };
+  for(var j$1 = 0; j$1 < tailSize; ++j$1){
+    tail[j$1] = f(tailOffset + j$1 | 0);
+  }
+  return state;
+}
+
+function log(param) {
+  var p = function (depth, node) {
+    console.log("\t".repeat(depth));
+    if (node.TAG === /* Node */0) {
+      node._0.forEach(function (child) {
+            return p(depth + 1 | 0, child);
+          });
+      return ;
+    }
+    console.log(node._0);
+    
+  };
+  p(0, param.root);
+  console.log("tail", param.tail);
+  
+}
+
 var A;
 
 var absurd;
@@ -386,6 +478,8 @@ export {
   setUnsafe ,
   fromArray ,
   toArray ,
+  makeByU ,
+  log ,
   
 }
 /* No side effect */

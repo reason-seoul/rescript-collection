@@ -4,6 +4,10 @@ import * as Bvt from "./impl/Bvt.mjs";
 import * as Curry from "@rescript/std/lib/es6/curry.js";
 import * as Caml_option from "@rescript/std/lib/es6/caml_option.js";
 
+function makeBy(size, f) {
+  return Bvt.makeByU(size, Curry.__1(f));
+}
+
 function get(v, i) {
   if (i < 0 || i >= v.size) {
     return ;
@@ -18,7 +22,7 @@ function getExn(v, i) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Vector.res",
-            11,
+            13,
             2
           ],
           Error: new Error()
@@ -84,7 +88,7 @@ function setExn(vec, i, x) {
           RE_EXN_ID: "Assert_failure",
           _1: [
             "Vector.res",
-            61,
+            63,
             2
           ],
           Error: new Error()
@@ -266,6 +270,8 @@ function every(vec, f) {
 
 var make = Bvt.make;
 
+var makeByU = Bvt.makeByU;
+
 var length = Bvt.length;
 
 var push = Bvt.push;
@@ -282,6 +288,8 @@ var toArray = Bvt.toArray;
 
 export {
   make ,
+  makeByU ,
+  makeBy ,
   length ,
   push ,
   pop ,

@@ -1,5 +1,7 @@
 include Bvt
 
+let makeBy = (size, f) => makeByU(size, (. i) => f(i))
+
 let get = ({size} as v, i) =>
   if i < 0 || i >= size {
     None

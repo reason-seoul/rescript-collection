@@ -10,11 +10,14 @@ let absurd = Obj.magic()
 //  numBits := n
 //  numBranches := lsl(1, numBits)
 //  bitMask := numBranches - 1
-@inline
+// let numBits = 2
+// let numBranches = lsl(1, numBits)
+// let bitMask = numBranches - 1
+@inline 
 let numBits = 5
-@inline
+@inline 
 let numBranches = 32
-@inline
+@inline 
 let bitMask = 0x1f
 
 type rec tree<'a> =
@@ -274,4 +277,59 @@ let toArray = ({size, root, tail}) => {
   // from Tail
   A.blit(~src=tail, ~srcOffset=0, ~dst=data, ~dstOffset=idx.contents, ~len=tail->A.length)
   data
+}
+
+let makeByU = (len, f) => {
+  if len == 0 {
+    make()
+  } else {
+    let tailSize = len->land(bitMask) == 0 ? numBranches : len->land(bitMask)
+    let tailOffset = len - tailSize
+    let tail = A.make(tailSize)
+
+    // unroll reduce
+    let i = ref(0)
+    let state = ref({...make(), size: tailSize, tail: tail})
+    while i.contents < tailOffset {
+      let offset = i.contents
+      let {shift, size, root} as vec = state.contents
+
+      let ar = A.make(numBranches)
+      for j in 0 to numBranches - 1 {
+        A.set(ar, j, f(. offset + j))
+      }
+      let leaf = Leaf(ar)
+      let isRootOverflow = offset == lsl(1, shift + numBits)
+      state := if isRootOverflow {
+          let newRoot = Node([root, newPath(~level=shift, leaf)])
+          {...vec, size: size + numBranches, shift: shift + numBits, root: newRoot}
+        } else {
+          // size must be greater than 0
+          let newRoot = pushTail(~size=offset + 1, ~level=shift, root, leaf)
+          {...vec, size: size + numBranches, root: newRoot}
+        }
+
+      i := offset + numBranches
+    }
+
+    for j in 0 to tailSize - 1 {
+      A.set(tail, j, f(. tailOffset + j))
+    }
+
+    state.contents
+  }
+}
+
+// debug only
+let log = ({root, tail}) => {
+  let rec p = (depth, node) => {
+    Js.log("\t"->Js.String2.repeat(depth))
+
+    switch node {
+    | Node(node) => A.forEach(node, child => p(depth + 1, child))
+    | Leaf(leaf) => Js.log(leaf)
+    }
+  }
+  p(0, root)
+  Js.log2("tail", tail)
 }

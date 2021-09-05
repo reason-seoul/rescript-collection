@@ -16,6 +16,16 @@ export abstract class t<a> { protected opaque!: a }; /* simulate opaque types */
 
 export const make: <a>() => t<a> = VectorBS.make;
 
+export const makeByU: <a>(_1:number, _2:((_1:number) => a)) => t<a> = function <a>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.makeByU, Arg1, Arg2);
+  return result
+};
+
+export const makeBy: <a>(_1:number, _2:((_1:number) => a)) => t<a> = function <a>(Arg1: any, Arg2: any) {
+  const result = Curry._2(VectorBS.makeBy, Arg1, Arg2);
+  return result
+};
+
 export const length: <a>(_1:t<a>) => number = VectorBS.length;
 
 export const push: <a>(_1:t<a>, _2:a) => t<a> = function <a>(Arg1: any, Arg2: any) {

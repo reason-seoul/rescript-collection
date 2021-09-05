@@ -3,6 +3,10 @@ type t<'a>
 
 @genType
 let make: unit => t<'a>
+@genType
+let makeByU: (int, (. int) => 'a) => t<'a>
+@genType
+let makeBy: (int, int => 'a) => t<'a>
 
 @genType
 let length: t<'a> => int

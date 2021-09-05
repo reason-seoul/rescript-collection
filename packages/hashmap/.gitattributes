@@ -1,0 +1,4 @@
+src/*.mjs       linguist-generated
+src/*.gen.ts    linguist-generated
+tests/*.mjs     linguist-generated
+tests/*.gen.ts  linguist-generated

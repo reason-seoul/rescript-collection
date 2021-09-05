@@ -7,7 +7,7 @@ import * as Curry__Es6Import from '@rescript/std/lib/es6/curry.js';
 const Curry: any = Curry__Es6Import;
 
 // @ts-ignore: Implicit any on import
-import * as VectorBS__Es6Import from './Vector.mjs';
+import * as VectorBS__Es6Import from './Vector.js';
 const VectorBS: any = VectorBS__Es6Import;
 
 // tslint:disable-next-line:max-classes-per-file 

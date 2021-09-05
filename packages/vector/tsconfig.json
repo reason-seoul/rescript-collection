@@ -3,10 +3,12 @@
     "target": "ESNext",
     "module": "ESNext",
     "strict": true,
+    "jsx": "preserve",
+    "composite": true,
+    "incremental": true,
     "rootDir": "src",
     "outDir": "dist",
-    "composite": true,
-    "incremental": true
+    "declarationDir": "dist"
   },
   "include": ["src"]
 }

@@ -7,7 +7,7 @@ Belt's missing piece, Persistent Vector for ReScript.
 
 ## Benchmarks
 
-https://reason-seoul.github.io/rescript-vector/
+https://reason-seoul.github.io/rescript-collection/
 
 ## References
 

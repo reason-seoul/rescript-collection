@@ -1,28 +1,27 @@
-type any;
+type any
 
 type benchmark = {
   name: string,
   code: string,
   f: (. unit) => any,
-};
+}
 
 type t = {
   name: string,
   setup: string,
-  benchmarks: array(benchmark),
-};
+  benchmarks: array<benchmark>,
+}
 
 module Routes: {
   type item = {
     suite: t,
     url: string,
-  };
-  type key;
+  }
+  type key
 
-  let map: key => item;
+  let map: key => item
 
-  let fromUrl: string => option(key);
+  let fromUrl: string => option<key>
 
-  let routes: array(key);
-};
-
+  let routes: array<key>
+}

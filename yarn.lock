@@ -1319,6 +1319,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@rescript/react@npm:^0.10.3":
+  version: 0.10.3
+  resolution: "@rescript/react@npm:0.10.3"
+  peerDependencies:
+    react: ">=16.8.1"
+    react-dom: ">=16.8.1"
+  checksum: 8561282f78b87c73c864b21d7f94f23545b6e7488167370aab2effa9268bab14f78b948dd0de4b84580467eff7c55c7dd1d080726ec63cb5b2dde030d37a1fbf
+  languageName: node
+  linkType: hard
+
 "@rescript/std@npm:^9.1.3":
   version: 9.1.3
   resolution: "@rescript/std@npm:9.1.3"
@@ -1854,6 +1864,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "benchmark@workspace:benchmark"
   dependencies:
+    "@rescript/react": ^0.10.3
     benchmark: ^2.1.4
     gh-pages: ^3.1.0
     immutable: ^4.0.0-rc.12
@@ -1862,7 +1873,6 @@ __metadata:
     parcel: ^2.0.0-rc.0
     react: ^17.0.1
     react-dom: ^17.0.1
-    reason-react: 0.9.1
     rescript: ^9.1.2
     rescript-hashmap: "workspace:packages/hashmap"
     rescript-vector: "workspace:packages/vector"
@@ -7537,17 +7547,6 @@ __metadata:
     isarray: 0.0.1
     string_decoder: ~0.10.x
   checksum: 17dfeae3e909945a4a1abc5613ea92d03269ef54c49288599507fc98ff4615988a1c39a999dcf9aacba70233d9b7040bc11a5f2bfc947e262dedcc0a8b32b5a0
-  languageName: node
-  linkType: hard
-
-"reason-react@npm:0.9.1":
-  version: 0.9.1
-  resolution: "reason-react@npm:0.9.1"
-  peerDependencies:
-    bs-platform: ^7.1.1
-    react: ^16.8.1
-    react-dom: ^16.8.1
-  checksum: 08e363fbf4ada90445081a2355d08008d6e31f7c36e4d9e29e1f341f2e2fdc06a74b562ad8192de924dd69223ddb090b690122ca41a4c63c9cef2aca4de05822
   languageName: node
   linkType: hard
 

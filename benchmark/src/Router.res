@@ -24,7 +24,7 @@ let menu = Belt.Array.map(Suites.Routes.routes, a => Suite(a))
 
 let useUrl = () =>
   {
-    open ReasonReact.Router
+    open RescriptReactRouter
     useUrl().hash
   }->fromString
 

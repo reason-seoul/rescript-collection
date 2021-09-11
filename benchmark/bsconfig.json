@@ -16,8 +16,9 @@
   ],
   "suffix": ".bs.js",
   "bs-dependencies": [
-    "reason-react",
-    "rescript-vector"
+    "@rescript/react",
+    "rescript-vector",
+    "rescript-hashmap"
   ],
   "bs-dev-dependencies": [],
   "ppx-flags": [],

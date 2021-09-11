@@ -13,7 +13,7 @@
   "devDependencies": {
     "benchmark": "^2.1.4",
     "gh-pages": "^3.1.0",
-    "parcel": "^1.12.4",
+    "parcel": "^2.0.0-rc.0",
     "rescript": "^9.1.2",
     "stylelint": "^13.3.3",
     "stylelint-config-standard": "^22.0.0"
@@ -21,10 +21,11 @@
   "dependencies": {
     "immutable": "^4.0.0-rc.12",
     "mori": "^0.3.2",
+    "node-gyp": "^8.2.0",
     "normalize.css": "^8.0.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "reason-react": "0.9.1",
-    "rescript-vector": "0.2.0"
+    "rescript-vector": "workspace:packages/vector"
   }
 }

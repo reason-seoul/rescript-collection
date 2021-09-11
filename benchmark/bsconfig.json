@@ -10,7 +10,7 @@
   ],
   "package-specs": [
     {
-      "module": "commonjs",
+      "module": "es6",
       "in-source": true
     }
   ],
@@ -25,7 +25,6 @@
     "number": "+A-48-42",
     "error": "+A-3-44-102"
   },
-  "refmt": 3,
   "reason": {
     "react-jsx": 3
   }

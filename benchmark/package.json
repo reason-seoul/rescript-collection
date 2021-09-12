@@ -7,7 +7,7 @@
     "res:watch": "rescript build -w",
     "res:clean": "rescript clean",
     "dev": "parcel src/index.html",
-    "build": "yarn re:build && parcel build src/index.html --public-url ./",
+    "build": "yarn res:build && parcel build src/index.html --public-url ./",
     "deploy": "yarn build && gh-pages -d dist"
   },
   "devDependencies": {

@@ -298,15 +298,21 @@ let shuffle = vec => {
   ar->fromArray
 }
 
-let _pushMany = (to_, from) =>
-  Js.Array2.reduce(from, Transient.push, to_->Transient.make)->Transient.toPersistent
+let concat = (to_, from) => {
+  reduceU(from, to_, (. v, x) => push(v, x))
+  // reduceU(from, to_->Transient.make, Transient.push)->Transient.toPersistent
+}
 
-let _concat = (to_, from) =>
-  reduceU(from, to_->Transient.make, Transient.pushU)->Transient.toPersistent
+let concatMany = vs => {
+  Js.Array2.reduce(vs, (acc, v) => reduceU(v, acc, (. v, x) => push(v, x)), make())
+  // Js.Array2.reduce(
+  //   fromAr,
+  //   (acc, v) => reduceU(v, acc, Transient.pushU),
+  //   to_->Transient.make,
+  // )->Transient.toPersistent
+}
 
-let _concatMany = (to_: t<'a>, fromAr: array<t<'a>>): t<'a> =>
-  Js.Array2.reduce(
-    fromAr,
-    (acc, v) => reduceU(v, acc, Transient.pushU),
-    to_->Transient.make,
-  )->Transient.toPersistent
+let pushMany = (to_, from) => {
+  Js.Array2.reduce(from, push, to_)
+  // Js.Array2.reduce(from, Transient.push, to_->Transient.make)->Transient.toPersistent
+}

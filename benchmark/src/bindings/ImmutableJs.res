@@ -1,6 +1,8 @@
 module List = {
   type t<'value>
 
+  @module("immutable") @new external make: unit => t<'value> = "List"
+
   @module("immutable")
   external fromArray: array<'value> => t<'value> = "List"
 
@@ -14,6 +16,18 @@ module List = {
   @send external count: t<'value> => int = "count"
   @send external push: (t<'value>, 'value) => t<'value> = "push"
   @send external isEmpty: t<'value> => bool = "isEmpty"
+
+  @send
+  external concat: (t<'value>, t<'value>) => t<'value> = "concat"
+
+  let concatMany = (l: array<t<'a>>) => {
+    let res = ref(Belt.Array.getUnsafe(l, 0))
+    for i in 1 to l->Belt.Array.length - 1 {
+      res := concat(res.contents, Belt.Array.getUnsafe(l, i))
+    }
+    res.contents
+  }
+
   @send
   external map: (t<'value>, ('value, int, t<'value>) => 'value2) => t<'value2> = "map"
   @send

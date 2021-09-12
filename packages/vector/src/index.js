@@ -12,7 +12,13 @@ var length = Vector.length;
 
 var size = Vector.size;
 
+var concat = Vector.concat;
+
+var concatMany = Vector.concatMany;
+
 var push = Vector.push;
+
+var pushMany = Vector.pushMany;
 
 var pop = Vector.pop;
 
@@ -122,7 +128,10 @@ export {
   makeBy ,
   length ,
   size ,
+  concat ,
+  concatMany ,
   push ,
+  pushMany ,
   pop ,
   get ,
   getExn ,

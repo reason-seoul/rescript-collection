@@ -77,7 +77,9 @@ function ctpop(v) {
   var v$1 = v - ((v >>> 1) & 1431655765) | 0;
   var v$2 = (v$1 & 858993459) + ((v$1 >>> 2) & 858993459) | 0;
   var v$3 = v$2 + (v$2 >>> 4) & 252645135;
-  return (Math.imul(v$3, 16843009) >>> 24);
+  var v$4 = v$3 + (v$3 >>> 8) | 0;
+  var v$5 = v$4 + (v$4 >>> 16) | 0;
+  return v$5 & 127;
 }
 
 function mask(hash, shift) {

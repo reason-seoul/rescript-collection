@@ -181,7 +181,7 @@ module BitmapIndexed = {
           }
         } else {
           // extend a leaf, change child into subtrie
-          let leaf = makeNode(~shift=shift + numBits, ~hasher, hasher(k), k, v, hash, key, value)
+          let leaf = makeNode(~shift=shift + numBits, ~hasher, hasher(. k), k, v, hash, key, value)
           {
             bitmap: bitmap,
             data: A.cloneAndSet(data, idx, leaf),

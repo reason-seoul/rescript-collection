@@ -1,4 +1,4 @@
-type hasher<'k> = 'k => int
+type hasher<'k> = (. 'k) => int
 
 type t<'k, 'v> = {
   root: Hamt.BitmapIndexed.t<'k, 'v>,
@@ -13,11 +13,11 @@ let make = (~hasher) => {
 }
 
 let get = ({root, hasher}, k) => {
-  Hamt.BitmapIndexed.find(root, ~shift=0, ~hash=hasher(k), ~key=k)
+  Hamt.BitmapIndexed.find(root, ~shift=0, ~hash=hasher(. k), ~key=k)
 }
 
 let set = ({root, count, hasher} as m, k, v) => {
-  let root' = Hamt.BitmapIndexed.assoc(root, ~shift=0, ~hasher, ~hash=hasher(k), ~key=k, ~value=v)
+  let root' = Hamt.BitmapIndexed.assoc(root, ~shift=0, ~hasher, ~hash=hasher(. k), ~key=k, ~value=v)
   if root' === root {
     m
   } else {
@@ -30,7 +30,7 @@ let set = ({root, count, hasher} as m, k, v) => {
 }
 
 let remove = ({root, count, hasher} as m, k) => {
-  switch Hamt.BitmapIndexed.dissoc(root, ~shift=0, ~hash=hasher(k), ~key=k) {
+  switch Hamt.BitmapIndexed.dissoc(root, ~shift=0, ~hash=hasher(. k), ~key=k) {
   | Some(root') =>
     if root' === root {
       m

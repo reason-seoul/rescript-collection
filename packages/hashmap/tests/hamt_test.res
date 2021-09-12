@@ -1,6 +1,6 @@
 open Hamt
 
-let testHasher = k => {
+let testHasher = (. k) => {
   switch k {
   | "Sir Robin" => 0b00001101
   | "Sir Lancelot" => 0b10010010
@@ -53,15 +53,15 @@ let m = {
 }
 
 let get = (m, k) => {
-  BitmapIndexed.find(m, ~shift=0, ~hash=testHasher(k), ~key=k)
+  BitmapIndexed.find(m, ~shift=0, ~hash=testHasher(. k), ~key=k)
 }
 
 let set = (m, k, v) => {
-  BitmapIndexed.assoc(m, ~shift=0, ~hasher=testHasher, ~hash=testHasher(k), ~key=k, ~value=v)
+  BitmapIndexed.assoc(m, ~shift=0, ~hasher=testHasher, ~hash=testHasher(. k), ~key=k, ~value=v)
 }
 
 let remove = (m, k) => {
-  BitmapIndexed.dissoc(m, ~shift=0, ~hash=testHasher(k), ~key=k)->Belt.Option.getWithDefault(m)
+  BitmapIndexed.dissoc(m, ~shift=0, ~hash=testHasher(. k), ~key=k)->Belt.Option.getWithDefault(m)
 }
 
 assert (get(m, "Sir Robin") == Some(10))

@@ -1,4 +1,4 @@
-type hasher<'v> = 'v => int
+type hasher<'v> = (. 'v) => int
 
 type t<'v>
 

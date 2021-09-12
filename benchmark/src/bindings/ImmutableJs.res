@@ -23,3 +23,12 @@ module List = {
 
   @send external set: (t<'value>, int, 'value) => t<'value> = "set"
 }
+
+module Set = {
+  type t<'value>
+
+  @module("immutable") @new external make: unit => t<'value> = "Set"
+  @module("immutable") @new external fromArray: array<'value> => t<'value> = "Set"
+
+  @send external add: (t<'value>, 'value) => t<'value> = "add"
+}

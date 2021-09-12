@@ -1,16 +1,9 @@
-@unboxed
-type rec any = Any('a): any
-
-type benchmark = {
-  name: string,
-  code: string,
-  f: (. unit) => any,
-}
+open Benchmark
 
 type t = {
   name: string,
   setup: string,
-  benchmarks: array<benchmark>,
+  benchmarks: array<Benchmark.t>,
 }
 
 module A = Belt.Array

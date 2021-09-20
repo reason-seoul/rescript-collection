@@ -19,7 +19,8 @@
   "suffix": ".js",
   "external-stdlib": "@rescript/std",
   "bs-dev-dependencies": [
-    "@dusty-phillips/rescript-zora"
+    "@dusty-phillips/rescript-zora",
+    "rescript-fast-check"
   ],
   "gentypeconfig": {
     "language": "typescript",

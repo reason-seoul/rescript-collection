@@ -6,6 +6,8 @@ import * as Vector from "../src/Vector.js";
 import * as Js_math from "@rescript/std/lib/es6/js_math.js";
 import * as Caml_obj from "@rescript/std/lib/es6/caml_obj.js";
 import * as Belt_Array from "@rescript/std/lib/es6/belt_Array.js";
+import * as Caml_int32 from "@rescript/std/lib/es6/caml_int32.js";
+import * as FastCheck from "fast-check";
 
 function isomorphic(ar) {
   return Caml_obj.caml_equal(Vector.toArray(Vector.fromArray(ar)), ar);
@@ -183,6 +185,46 @@ Zora$1.test("Vector.reduce", (function (t) {
                 t.is(sum, 5050, "sum is 5050");
                 
               }));
+        return Zora.done(undefined);
+      }));
+
+Zora$1.test("Prop test: should always equally sized", (function (t) {
+        var p1 = FastCheck.array(FastCheck.integer(), 0, 10000);
+        var p2 = FastCheck.integer(2, 10);
+        FastCheck.assert(FastCheck.property(p1, p2, (function (xs, prob) {
+                    var a = [];
+                    var v = {
+                      contents: Vector.make(undefined)
+                    };
+                    Belt_Array.forEach(xs, (function (n) {
+                            v.contents = Caml_int32.mod_(n, prob) !== 0 ? (a.push(n), Vector.push(v.contents, n)) : (a.pop(), Vector.pop(v.contents));
+                            if (!Caml_obj.caml_equal(a, Vector.toArray(v.contents))) {
+                              throw {
+                                    RE_EXN_ID: "Assert_failure",
+                                    _1: [
+                                      "vector_test.res",
+                                      171,
+                                      8
+                                    ],
+                                    Error: new Error()
+                                  };
+                            }
+                            if (a.length === Vector.length(v.contents)) {
+                              return ;
+                            }
+                            throw {
+                                  RE_EXN_ID: "Assert_failure",
+                                  _1: [
+                                    "vector_test.res",
+                                    172,
+                                    8
+                                  ],
+                                  Error: new Error()
+                                };
+                          }));
+                    t.equal(a.length, Vector.length(v.contents), "equal length");
+                    return a.length === Vector.length(v.contents);
+                  })));
         return Zora.done(undefined);
       }));
 

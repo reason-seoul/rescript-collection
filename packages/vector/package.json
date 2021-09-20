@@ -53,6 +53,7 @@
     "gentype": "^4.1.0",
     "nanobundle": "^0.0.6",
     "rescript": "^9.1.4",
+    "rescript-fast-check": "^1.0.4",
     "typescript": "^4.3.5",
     "watchlist": "^0.2.3"
   }

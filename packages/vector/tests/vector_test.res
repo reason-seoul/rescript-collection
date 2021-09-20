@@ -148,3 +148,33 @@ zora("Vector.reduce", t => {
 
   done()
 })
+
+zora("Prop test: should always equally sized", t => {
+  open FastCheck
+  open Arbitrary
+  open Property.Sync
+  let p1 = Combinators.arrayWithLength(integer(), 0, 10000) // 
+  let p2 = integerRange(2, 10) // push probability (10% ~ 50%)
+  assert_(
+    property2(p1, p2, (xs, prob) => {
+      let a: array<int> = []
+      let v: ref<V.t<int>> = ref(V.make())
+      A.forEach(xs, n => {
+        v := if mod(n, prob) != 0 {
+            Js.Array2.push(a, n)->ignore
+            V.push(v.contents, n)
+          } else {
+            Js.Array2.pop(a)->ignore
+            V.pop(v.contents)
+          }
+
+        assert (a == V.toArray(v.contents))
+        assert (A.length(a) == V.length(v.contents))
+      })
+
+      t->equal(A.length(a), V.length(v.contents), "equal length")
+      A.length(a) == V.length(v.contents)
+    }),
+  )
+  done()
+})

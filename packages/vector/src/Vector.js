@@ -423,6 +423,20 @@ function shuffle(vec) {
   return Bvt.fromArray(ar);
 }
 
+function concat(to_, from) {
+  return reduceU(from, to_, Bvt.push);
+}
+
+function concatMany(vs) {
+  return vs.reduce((function (acc, v) {
+                return reduceU(v, acc, Bvt.push);
+              }), Bvt.make(undefined));
+}
+
+function pushMany(to_, from) {
+  return from.reduce(Bvt.push, to_);
+}
+
 var make = Bvt.make;
 
 var makeByU = Bvt.makeByU;
@@ -445,7 +459,10 @@ export {
   makeBy ,
   length ,
   size ,
+  concat ,
+  concatMany ,
   push ,
+  pushMany ,
   pop ,
   get ,
   getExn ,

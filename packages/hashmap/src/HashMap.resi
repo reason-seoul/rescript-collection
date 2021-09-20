@@ -1,6 +1,6 @@
 // Bit-partitioned Hash Trie
 
-type hasher<'k> = 'k => int
+type hasher<'k> = (. 'k) => int
 
 type t<'k, 'v>
 

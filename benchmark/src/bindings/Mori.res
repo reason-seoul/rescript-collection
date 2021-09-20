@@ -9,5 +9,7 @@ type t
 @module("mori") external assoc: (t, 'key, 'value) => t = "assoc"
 
 @module("mori") external map: ('a => 'b, t) => t = "map"
+@module("mori") external set: array<'a> => t = "set"
 
 @module("mori") external reduce: ('a => 'b, 'a, t) => 'a = "reduce"
+

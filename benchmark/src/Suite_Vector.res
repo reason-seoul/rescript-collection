@@ -1,20 +1,14 @@
-@unboxed
-type rec any = Any('a): any
-
-type benchmark = {
-  name: string,
-  code: string,
-  f: (. unit) => any,
-}
+open Benchmark
 
 type t = {
   name: string,
   setup: string,
-  benchmarks: array<benchmark>,
+  benchmarks: array<Benchmark.t>,
 }
 
 module A = Belt.Array
 module V = Vector
+module L = ImmutableJs.List
 
 module Create = {
   let n = 1000
@@ -78,28 +72,53 @@ module Push = {
   let smallSuite = {
     name: j`Append last (n=$smallN)`,
     setup: j`let n = $smallN;`,
-    benchmarks: [
-      vectorCase(smallN),
-      immutableJsCase(smallN),
-      moriCase(smallN),
-      {
-        name: "Belt.Array.concat",
-        f: (. ()) => A.range(1, smallN)->A.reduce(A.make(0, 0), (ar, v) => ar->A.concat([v]))->Any,
-        code: j`A.range(1, n)\\n->A.reduce(A.make(0, 0), (ar, v) => ar->A.concat([|v|]))`,
-      },
-      {
-        name: "Js.Array2.concat",
-        f: (. ()) =>
-          A.range(1, smallN)->A.reduce(A.make(0, 0), (ar, v) => ar->Js.Array2.concat([v]))->Any,
-        code: j`A.range(1, n)\\n->A.reduce(A.make(0, 0), (ar, v) => ar->Js.Array2.concat([|v|]))`,
-      },
-    ],
+    benchmarks: [vectorCase(smallN), immutableJsCase(smallN), moriCase(smallN)],
   }
 
   let largeSuite = {
     name: j`Append last (n=$largeN)`,
     setup: j`let n = $largeN;`,
     benchmarks: [vectorCase(largeN), immutableJsCase(largeN), moriCase(largeN)],
+  }
+}
+
+module Concat = {
+  let n = 100
+  let v0 = A.makeBy(n, _ => V.makeBy(n, i => i))
+  let l0 = A.makeBy(n, _ => L.fromArray(A.makeBy(n, i => i)))
+  let a0 = A.makeBy(n, _ => A.makeBy(n, i => i))
+
+  let setup = j`let n = $n
+let v0 = A.makeBy(n, V.makeBy(n, i => i))
+let l0 = A.makeBy(n, _ => L.fromArray(A.makeBy(n, i => i)))`
+
+  let benchmarks = [
+    {
+      name: "Vector.concatMany",
+      f: (. ()) => V.concatMany(v0)->Any,
+      code: "V.concatMany(v0)",
+    },
+    {
+      name: "ImmutableJs.concat",
+      f: (. ()) => L.concatMany(l0)->Any,
+      code: "L.concatMany(l0)",
+    },
+    // {
+    //   name: "Belt.Array.concatMany",
+    //   f: (. ()) => A.concatMany(a0)->Any,
+    //   code: "A.concatMany(a0)",
+    // },
+    // {
+    //   name: "Js.Array2.concat",
+    //   f: (. ()) => Js.Array2.concatMany([], a0)->Any,
+    //   code: "Js.Array2.concatMany([], a0)",
+    // },
+  ]
+
+  let suite = {
+    name: "Concat",
+    setup: setup,
+    benchmarks: benchmarks,
   }
 }
 
@@ -224,6 +243,7 @@ module Routes = {
     | Create
     | PushSmall
     | PushLarge
+    | Concat
     | RandomAccess
     | RandomUpdate
     | Reduce
@@ -236,6 +256,7 @@ module Routes = {
     | Create => {suite: Create.suite, url: "create"}
     | PushSmall => {suite: Push.smallSuite, url: "append-last-small"}
     | PushLarge => {suite: Push.largeSuite, url: "append-last-large"}
+    | Concat => {suite: Concat.suite, url: "concat"}
     | RandomAccess => {suite: AccessUpdate.accessSuite, url: "random-access"}
     | RandomUpdate => {suite: AccessUpdate.updateSuite, url: "random-update"}
     | Reduce => {suite: Reduce.suite, url: "reduce"}
@@ -247,6 +268,7 @@ module Routes = {
     | "create" => Some(Create)
     | "append-last-small" => Some(PushSmall)
     | "append-last-large" => Some(PushLarge)
+    | "concat" => Some(Concat)
     | "random-access" => Some(RandomAccess)
     | "random-update" => Some(RandomUpdate)
     | "reduce" => Some(Reduce)
@@ -255,5 +277,14 @@ module Routes = {
     }
 
   /* The main menu uses this array to list pages. */
-  let routes = [Create, PushSmall, PushLarge, RandomAccess, RandomUpdate, Reduce, ReduceMutable]
+  let routes = [
+    Create,
+    PushSmall,
+    PushLarge,
+    Concat,
+    RandomAccess,
+    RandomUpdate,
+    Reduce,
+    ReduceMutable,
+  ]
 }

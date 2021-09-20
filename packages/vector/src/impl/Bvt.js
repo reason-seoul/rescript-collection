@@ -454,10 +454,6 @@ function toPersistent(v) {
         };
 }
 
-function pushU(_v, _x) {
-  return Pervasives.failwith("not implemented yet");
-}
-
 function push$1(_v, _x) {
   return Pervasives.failwith("not implemented yet");
 }
@@ -465,7 +461,6 @@ function push$1(_v, _x) {
 var Transient = {
   make: make$1,
   toPersistent: toPersistent,
-  pushU: pushU,
   push: push$1
 };
 

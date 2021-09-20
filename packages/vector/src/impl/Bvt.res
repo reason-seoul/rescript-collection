@@ -340,10 +340,6 @@ module Transient = {
     tail: v.tail,
   }
 
-  let pushU = (. _v, _x) => {
-    failwith("not implemented yet")
-  }
-
   let push = (_v, _x) => {
     failwith("not implemented yet")
   }

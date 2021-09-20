@@ -12,7 +12,7 @@ module MyDom = {
 }
 
 module DocTitle = {
-  let prefix = "rescript-vector"
+  let prefix = "rescript-collection"
 
   let set = title => {
     open MyDom
@@ -160,7 +160,7 @@ module SuiteComponent = {
   let make = (~benchmarks, ~suite, ~suiteRunning) =>
     <div>
       {benchmarks
-      ->Array.map(({Suites.name: name, code, f}) =>
+      ->Array.map(({Benchmark.name: name, code, f}) =>
         <Item key=name name code f suite suiteRunning />
       )
       ->React.array}
@@ -219,8 +219,8 @@ module Wrapper = {
           </div>
         </div>
         <dl className="setup__platform">
-          <dt> {"OCaml"->React.string} </dt>
-          <dd> {Sys.ocaml_version->React.string} </dd>
+          // <dt> {"OCaml"->React.string} </dt>
+          // <dd> {Sys.ocaml_version->React.string} </dd>
           <dt> {"Browser"->React.string} </dt>
           {switch B.Browser.platform.B.Platform.name->Js.Nullable.toOption {
           | None => <dd> {"Unknown"->React.string} </dd>
@@ -262,6 +262,24 @@ module Wrapper = {
   }
 }
 
+module Tests = {
+  @react.component
+  let make = (~name, ~menu) => {
+    <>
+      <h2> {name->React.string} </h2>
+      <ul className="menu">
+        {menu
+        ->Array.map(route =>
+          <li className="menu__item" key={Router.toString(route)}>
+            <Router.HashLink to_=route> {Router.name(route)->React.string} </Router.HashLink>
+          </li>
+        )
+        ->React.array}
+      </ul>
+    </>
+  }
+}
+
 @react.component
 let make = () => {
   let url = Router.useUrl()
@@ -274,28 +292,29 @@ let make = () => {
       <header>
         <p className="site-title">
           <Router.HashLink to_=Router.Index className="site-title__link">
-            {"rescript-vector"->React.string}
+            {"rescript-collection"->React.string}
           </Router.HashLink>
         </p>
       </header>
       {switch url {
       | Router.Index => <>
-          //  <Pages.About />
-          <h2 className="index-header"> {"The benchmarks"->React.string} </h2>
-          <ul className="menu">
-            {Router.menu
-            ->Array.map(route =>
-              <li className="menu__item" key={Router.toString(route)}>
-                <Router.HashLink to_=route> {Router.name(route)->React.string} </Router.HashLink>
-              </li>
-            )
-            ->React.array}
-          </ul>
+          <Tests name="rescript-vector" menu=Router.vectorMenu />
+          <Tests name="rescript-hashmap" menu=Router.hashmapMenu />
         </>
-      | Router.Suite(suite) =>
-        let {Suites.benchmarks: benchmarks, setup, name} = Suites.Routes.map(
-          suite,
-        ).Suites.Routes.suite
+
+      | Router.VectorSuite(suite) =>
+        open Suite.Vector
+        let {benchmarks, setup, name} = Routes.map(suite).Routes.suite
+        let suite = B.Suite.make(name)
+        <>
+          <Router.HashLink to_=Router.Index className="go-home">
+            {j`←`->React.string} {Router.name(Router.Index)->React.string}
+          </Router.HashLink>
+          <Wrapper suite benchmarks setup />
+        </>
+      | Router.HashmapSuite(suite) =>
+        open Suite.Hashmap
+        let {benchmarks, setup, name} = Routes.map(suite).Routes.suite
         let suite = B.Suite.make(name)
         <>
           <Router.HashLink to_=Router.Index className="go-home">

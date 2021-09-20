@@ -1,4 +1,4 @@
-let intHasher = x => x
+let intHasher = (. x) => x
 
 let n = 3000000
 

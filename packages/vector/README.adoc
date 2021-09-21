@@ -1,0 +1,60 @@
+= rescript-vector
+
+https://www.npmjs.com/package/rescript-vector[image:https://img.shields.io/npm/v/rescript-vector[Package
+Version]]
+link:#license[image:https://img.shields.io/npm/l/rescript-vector[License]]
+
+`rescript-vector` is a *persistent vector* data structure that can be used in ReScript.
+
+Persistent:: Any function that changes the vector returns a new instance of it not touching the original vector. It is treated as a value, just like a string or number.
+
+Vector:: Similar to Array, but can be dynamically increased or decreased in size. (like JS array!)
+Elements can be added or deleted to the end of the collection. It can be accessed by an integer index.
+
+
+== Rationale
+
+ReScript's standard library `Belt` has persistent data structures like Array and List, which are mature and complete.
+
+However, Belt.Array does not have push/pop functions as Js.Array2 does. This is because pushing/popping while maintaining the persistency cost *a lot*. Specifically, it takes O(n) time and space complexity.
+
+Meanwhile, Belt.List is O(1) fast when adding or deleting elements to the list. However, since it's linked list data structure, `get` function performs very slowly, say O(n).
+
+
+`rescript-vector` do push/pop in amortized O(1), worst case O(log n). Accessing an element takes O(log n) time complexity.
+footnote:[Typically, the base of the log is 32. Because of this nature, even when the vector size is 1 million, log~32~10^6^ is less than 4.]
+
+The reason this is possible is thanks to _bit-partitioned vector trie™️_. You can find more detailed explanation below.
+footnote:[RRB-Vector was not used intentionally. It is more efficient to concat or slice a vector, but it slows general operations down at the same time due to its implementation overhead.]
+
+* https://hypirion.com/musings/understanding-persistent-vector-pt-1[Understanding Clojure’s Persistent Vectors]
+
+
+
+== Binding isn't enough
+
+Yes, there exists prior JavaScript implementations for persistent vector.
+The most famous ones are https://immutable-js.github.io/immutable-js/[ImmutableJs] and https://swannodette.github.io/mori/[mori].
+BTW, Immer is an exception as it works as COW(copy-on-write).
+
+Since their interfaces do not resemble Belt standard,
+if you want to use it through zero-cost binding, your experience shall be uncomfortable with cognitive load.
+
+Last but not least, as a fanatic ReScript user, I had to rewrite it in 100% ReScript.
+
+
+== Benchmarks
+
+In the process of implementing persistent vector,
+some optimizations found could further improve performance compared to other libraries.
+
+As a result, the operations are much faster than others, especially Array conversion, which makes `rescript-vector` is more tolerable in practice.
+
+See https://reason-seoul.github.io/rescript-collection/[benchmarks].
+
+
+
+
+== LICENSE
+
+MIT

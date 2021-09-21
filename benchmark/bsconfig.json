@@ -14,7 +14,8 @@
       "in-source": true
     }
   ],
-  "suffix": ".bs.js",
+  "suffix": ".js",
+  "external-stdlib": "@rescript/std",
   "bs-dependencies": [
     "@rescript/react",
     "rescript-vector",

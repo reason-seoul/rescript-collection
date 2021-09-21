@@ -10,53 +10,67 @@ module A = Belt.Array
 module V = Vector
 module L = ImmutableJs.List
 
+let ar1k = A.range(1, 1000)
+let ar10k = A.range(1, 10000)
+
+let v10k = Vector.fromArray(ar10k)
+let l10k = ImmutableJs.List.fromArray(ar10k)
+let m10k = Mori.into(Mori.vector(), ar10k)
+
 module Create = {
-  let n = 1000
+  let n = 10000
+  let setup = j`let ar10k = A.range(1, 10000)`
   let benchmarks = [
     {
-      name: j`Vector.fromArray`,
-      f: (. ()) => A.range(1, n)->Vector.fromArray->Any,
-      code: j`A.range(1, n)->Vector.fromArray`,
+      name: "Vector.fromArray",
+      f: (. ()) => Vector.fromArray(ar10k)->Any,
+      code: "Vector.fromArray(ar10k)",
     },
     {
-      name: j`ImmutableJs.List.fromArray`,
-      f: (. ()) => A.range(1, n)->ImmutableJs.List.fromArray->Any,
-      code: j`A.range(1, n)->ImmutableJs.List.fromArray`,
+      name: "ImmutableJs.List.fromArray",
+      f: (. ()) => ImmutableJs.List.fromArray(ar10k)->Any,
+      code: "ImmutableJs.List.fromArray(ar10k)",
     },
     {
-      name: j`Mori.into`,
-      f: (. ()) => Any(A.range(1, n) |> Mori.into(Mori.vector())),
-      code: j`A.range(1, n) |> Mori.into(Mori.vector())`,
+      name: "Mori.into",
+      f: (. ()) => Mori.into(Mori.vector(), ar10k)->Any,
+      code: "Mori.into(Mori.vector(), ar10k)",
     },
   ]
 
-  let suite = {name: j`Creation`, setup: "", benchmarks: benchmarks}
+  let suite = {name: "Create (from array)", setup: setup, benchmarks: benchmarks}
+}
+
+module Convert = {
+  let setup = j`let ar10k = A.range(1, 10000)
+
+let v = Vector.fromArray(ar10k)
+let l = ImmutableJs.List.fromArray(ar10k)
+let m = Mori.into(Mori.vector(), ar10k)`
+
+  let benchmarks = [
+    {
+      name: j`Vector.toArray`,
+      f: (. ()) => Any(Vector.toArray(v10k)),
+      code: j`Vector.toArray(v)`,
+    },
+    {
+      name: j`ImmutableJs.List.toArray`,
+      f: (. ()) => Any(ImmutableJs.List.toArray(l10k)),
+      code: j`ImmutableJs.List.toArray(l)`,
+    },
+    {
+      name: j`Mori.intoArray`,
+      f: (. ()) => Any(Mori.intoArray(m10k)),
+      code: j`Mori.intoArray(m)`,
+    },
+  ]
+
+  let suite = {name: j`Convert (to array)`, setup: setup, benchmarks: benchmarks}
 }
 
 module Push = {
-  let smallN = 1000
-  let largeN = 100000
-
-  let vectorCase = n => {
-    name: j`Vector.push`,
-    f: (. ()) => A.range(1, n)->A.reduce(V.make(), (v, i) => V.push(v, i))->Any,
-    code: j`A.range(1, n)\\n->A.reduce(Vector.make(), (v, i) => Vector.push(v, i))`,
-  }
-
-  let immutableJsCase = n => {
-    name: j`ImmutableJs.List.push`,
-    f: (. ()) => {
-      module L = ImmutableJs.List
-      A.range(1, n)->A.reduce(L.fromArray([]), (l, i) => L.push(l, i))->Any
-    },
-    code: j`A.range(1, n)\\n->A.reduce(ImmutableJs.List.fromArray([||]), (l, i) => ImmutableJs.List.push(l, i))`,
-  }
-
-  let moriCase = n => {
-    name: "mori.conj",
-    f: (. ()) => A.range(1, n)->A.reduce(Mori.vector(), (v, i) => Mori.conj(v, i))->Any,
-    code: j`A.range(1, n)\\n->A.reduce(Mori.vector(), (v, i) => Mori.conj(v, i))`,
-  }
+  let setup = j`let ar1k = A.range(1, 1000)`
 
   // let mutableCase = n =>
   //   {
@@ -69,16 +83,65 @@ module Push = {
   //     code: "let ar = [||];\nA.range(1, n)->A.forEach(v => ar->Js.Array2.push(v)->ignore)",
   //   };
 
-  let smallSuite = {
-    name: j`Append last (n=$smallN)`,
-    setup: j`let n = $smallN;`,
-    benchmarks: [vectorCase(smallN), immutableJsCase(smallN), moriCase(smallN)],
+  let suite = {
+    name: j`Push`,
+    setup: setup,
+    benchmarks: [
+      {
+        name: j`Vector.push`,
+        f: (. ()) => A.reduce(ar1k, Vector.make(), (v, i) => Vector.push(v, i + 0))->Any,
+        code: "// Let ReScript compiler doesn't eschew wrapper function.\nA.reduce(ar1k, Vector.make(), (v, i) => Vector.push(v, i + 0))",
+      },
+      {
+        name: j`ImmutableJs.List.push`,
+        f: (. ()) => {
+          A.reduce(ar1k, ImmutableJs.List.make(), (l, i) => ImmutableJs.List.push(l, i))->Any
+        },
+        code: "A.reduce(ar1k, ImmutableJs.List.make(), (l, i) => ImmutableJs.List.push(l, i))",
+      },
+      {
+        name: "mori.conj",
+        f: (. ()) => A.reduce(ar1k, Mori.vector(), (v, i) => Mori.conj(v, i))->Any,
+        code: "A.reduce(ar1k, Mori.vector(), (v, i) => Mori.conj(v, i))",
+      },
+    ],
   }
+}
 
-  let largeSuite = {
-    name: j`Append last (n=$largeN)`,
-    setup: j`let n = $largeN;`,
-    benchmarks: [vectorCase(largeN), immutableJsCase(largeN), moriCase(largeN)],
+module Pop = {
+  let v1k = Vector.fromArray(ar1k)
+  let l1k = ImmutableJs.List.fromArray(ar1k)
+  let m1k = Mori.into(Mori.vector(), ar1k)
+
+  let setup = j`let ar1k = A.range(1, 1000)
+
+let v1k = Vector.fromArray(ar1k)
+let l1k = ImmutableJs.List.fromArray(ar1k)
+let m1k = Mori.into(Mori.vector(), ar1k)
+`
+
+  let suite = {
+    name: j`Pop`,
+    setup: setup,
+    benchmarks: [
+      {
+        name: j`Vector.push`,
+        f: (. ()) => A.reduce(ar1k, v1k, (v, _) => Vector.pop(v))->Any,
+        code: j`A.reduce(ar1k, v1k, (v, _) => Vector.pop(v))`,
+      },
+      {
+        name: j`ImmutableJs.List.push`,
+        f: (. ()) => {
+          A.reduce(ar1k, l1k, (l, _) => ImmutableJs.List.pop(l))->Any
+        },
+        code: j`A.reduce(ar1k, l1k, (l, _) => ImmutableJs.List.pop(l))`,
+      },
+      {
+        name: "mori.conj",
+        f: (. ()) => A.reduce(ar1k, m1k, (m, _) => Mori.pop(m))->Any,
+        code: j`A.reduce(ar1k, m1k, (m, _) => Mori.pop(m))`,
+      },
+    ],
   }
 }
 
@@ -241,8 +304,9 @@ module Routes = {
   /* Register the route to your benchmark by giving it a variant here. */
   type key =
     | Create
-    | PushSmall
-    | PushLarge
+    | Convert
+    | Push
+    | Pop
     | Concat
     | RandomAccess
     | RandomUpdate
@@ -254,8 +318,9 @@ module Routes = {
   let map = x =>
     switch x {
     | Create => {suite: Create.suite, url: "create"}
-    | PushSmall => {suite: Push.smallSuite, url: "append-last-small"}
-    | PushLarge => {suite: Push.largeSuite, url: "append-last-large"}
+    | Convert => {suite: Convert.suite, url: "convert"}
+    | Push => {suite: Push.suite, url: "push"}
+    | Pop => {suite: Pop.suite, url: "pop"}
     | Concat => {suite: Concat.suite, url: "concat"}
     | RandomAccess => {suite: AccessUpdate.accessSuite, url: "random-access"}
     | RandomUpdate => {suite: AccessUpdate.updateSuite, url: "random-update"}
@@ -266,8 +331,9 @@ module Routes = {
   let fromUrl = x =>
     switch x {
     | "create" => Some(Create)
-    | "append-last-small" => Some(PushSmall)
-    | "append-last-large" => Some(PushLarge)
+    | "convert" => Some(Convert)
+    | "push" => Some(Push)
+    | "pop" => Some(Pop)
     | "concat" => Some(Concat)
     | "random-access" => Some(RandomAccess)
     | "random-update" => Some(RandomUpdate)
@@ -279,8 +345,9 @@ module Routes = {
   /* The main menu uses this array to list pages. */
   let routes = [
     Create,
-    PushSmall,
-    PushLarge,
+    Convert,
+    Push,
+    Pop,
     Concat,
     RandomAccess,
     RandomUpdate,

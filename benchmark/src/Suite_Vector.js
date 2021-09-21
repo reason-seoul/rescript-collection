@@ -6,118 +6,192 @@ import * as Immutable from "immutable";
 import * as Belt_Array from "@rescript/std/lib/es6/belt_Array.js";
 import * as ImmutableJs$Benchmark from "./bindings/ImmutableJs.js";
 
+var ar1k = Belt_Array.range(1, 1000);
+
+var ar10k = Belt_Array.range(1, 10000);
+
+var v10k = Vector.fromArray(ar10k);
+
+var l10k = Immutable.List(ar10k);
+
+var m10k = Mori.into(Mori.vector(), ar10k);
+
+var setup = "let ar10k = A.range(1, 10000)";
+
 var benchmarks = [
   {
     name: "Vector.fromArray",
-    code: "A.range(1, n)->Vector.fromArray",
+    code: "Vector.fromArray(ar10k)",
     f: (function () {
-        return Vector.fromArray(Belt_Array.range(1, 1000));
+        return Vector.fromArray(ar10k);
       })
   },
   {
     name: "ImmutableJs.List.fromArray",
-    code: "A.range(1, n)->ImmutableJs.List.fromArray",
+    code: "ImmutableJs.List.fromArray(ar10k)",
     f: (function () {
-        return Immutable.List(Belt_Array.range(1, 1000));
+        return Immutable.List(ar10k);
       })
   },
   {
     name: "Mori.into",
-    code: "A.range(1, n) |> Mori.into(Mori.vector())",
+    code: "Mori.into(Mori.vector(), ar10k)",
     f: (function () {
-        return Mori.into(Mori.vector(), Belt_Array.range(1, 1000));
+        return Mori.into(Mori.vector(), ar10k);
       })
   }
 ];
 
-var suite_name = "Creation";
-
 var suite = {
-  name: suite_name,
-  setup: "",
+  name: "Create (from array)",
+  setup: setup,
   benchmarks: benchmarks
 };
 
 var Create = {
-  n: 1000,
+  n: 10000,
+  setup: setup,
   benchmarks: benchmarks,
   suite: suite
 };
 
-function vectorCase(n) {
-  return {
-          name: "Vector.push",
-          code: "A.range(1, n)\n->A.reduce(Vector.make(), (v, i) => Vector.push(v, i))",
-          f: (function () {
-              return Belt_Array.reduce(Belt_Array.range(1, n), Vector.make(undefined), Vector.push);
-            })
-        };
-}
+var setup$1 = "let ar10k = A.range(1, 10000)\n\nlet v = Vector.fromArray(ar10k)\nlet l = ImmutableJs.List.fromArray(ar10k)\nlet m = Mori.into(Mori.vector(), ar10k)";
 
-function immutableJsCase(n) {
-  return {
-          name: "ImmutableJs.List.push",
-          code: "A.range(1, n)\n->A.reduce(ImmutableJs.List.fromArray([||]), (l, i) => ImmutableJs.List.push(l, i))",
-          f: (function () {
-              return Belt_Array.reduce(Belt_Array.range(1, n), Immutable.List([]), (function (l, i) {
-                            return l.push(i);
-                          }));
-            })
-        };
-}
-
-function moriCase(n) {
-  return {
-          name: "mori.conj",
-          code: "A.range(1, n)\n->A.reduce(Mori.vector(), (v, i) => Mori.conj(v, i))",
-          f: (function () {
-              return Belt_Array.reduce(Belt_Array.range(1, n), Mori.vector(), (function (v, i) {
-                            return Mori.conj(v, i);
-                          }));
-            })
-        };
-}
-
-var smallSuite_name = "Append last (n=" + 1000 + ")";
-
-var smallSuite_setup = "let n = " + 1000 + ";";
-
-var smallSuite_benchmarks = [
-  vectorCase(1000),
-  immutableJsCase(1000),
-  moriCase(1000)
+var benchmarks$1 = [
+  {
+    name: "Vector.toArray",
+    code: "Vector.toArray(v)",
+    f: (function () {
+        return Vector.toArray(v10k);
+      })
+  },
+  {
+    name: "ImmutableJs.List.toArray",
+    code: "ImmutableJs.List.toArray(l)",
+    f: (function () {
+        return l10k.toArray();
+      })
+  },
+  {
+    name: "Mori.intoArray",
+    code: "Mori.intoArray(m)",
+    f: (function () {
+        return Mori.intoArray(m10k);
+      })
+  }
 ];
 
-var smallSuite = {
-  name: smallSuite_name,
-  setup: smallSuite_setup,
-  benchmarks: smallSuite_benchmarks
+var suite_name = "Convert (to array)";
+
+var suite$1 = {
+  name: suite_name,
+  setup: setup$1,
+  benchmarks: benchmarks$1
 };
 
-var largeSuite_name = "Append last (n=" + 100000 + ")";
+var Convert = {
+  setup: setup$1,
+  benchmarks: benchmarks$1,
+  suite: suite$1
+};
 
-var largeSuite_setup = "let n = " + 100000 + ";";
+var setup$2 = "let ar1k = A.range(1, 1000)";
 
-var largeSuite_benchmarks = [
-  vectorCase(100000),
-  immutableJsCase(100000),
-  moriCase(100000)
+var suite_name$1 = "Push";
+
+var suite_benchmarks = [
+  {
+    name: "Vector.push",
+    code: "// Let ReScript compiler doesn't eschew wrapper function.\nA.reduce(ar1k, Vector.make(), (v, i) => Vector.push(v, i + 0))",
+    f: (function () {
+        return Belt_Array.reduce(ar1k, Vector.make(undefined), (function (v, i) {
+                      return Vector.push(v, i + 0 | 0);
+                    }));
+      })
+  },
+  {
+    name: "ImmutableJs.List.push",
+    code: "A.reduce(ar1k, ImmutableJs.List.make(), (l, i) => ImmutableJs.List.push(l, i))",
+    f: (function () {
+        return Belt_Array.reduce(ar1k, new Immutable.List(), (function (l, i) {
+                      return l.push(i);
+                    }));
+      })
+  },
+  {
+    name: "mori.conj",
+    code: "A.reduce(ar1k, Mori.vector(), (v, i) => Mori.conj(v, i))",
+    f: (function () {
+        return Belt_Array.reduce(ar1k, Mori.vector(), (function (v, i) {
+                      return Mori.conj(v, i);
+                    }));
+      })
+  }
 ];
 
-var largeSuite = {
-  name: largeSuite_name,
-  setup: largeSuite_setup,
-  benchmarks: largeSuite_benchmarks
+var suite$2 = {
+  name: suite_name$1,
+  setup: setup$2,
+  benchmarks: suite_benchmarks
 };
 
 var Push = {
-  smallN: 1000,
-  largeN: 100000,
-  vectorCase: vectorCase,
-  immutableJsCase: immutableJsCase,
-  moriCase: moriCase,
-  smallSuite: smallSuite,
-  largeSuite: largeSuite
+  setup: setup$2,
+  suite: suite$2
+};
+
+var v1k = Vector.fromArray(ar1k);
+
+var l1k = Immutable.List(ar1k);
+
+var m1k = Mori.into(Mori.vector(), ar1k);
+
+var setup$3 = "let ar1k = A.range(1, 1000)\n\nlet v1k = Vector.fromArray(ar1k)\nlet l1k = ImmutableJs.List.fromArray(ar1k)\nlet m1k = Mori.into(Mori.vector(), ar1k)\n";
+
+var suite_name$2 = "Pop";
+
+var suite_benchmarks$1 = [
+  {
+    name: "Vector.push",
+    code: "A.reduce(ar1k, v1k, (v, _) => Vector.pop(v))",
+    f: (function () {
+        return Belt_Array.reduce(ar1k, v1k, (function (v, param) {
+                      return Vector.pop(v);
+                    }));
+      })
+  },
+  {
+    name: "ImmutableJs.List.push",
+    code: "A.reduce(ar1k, l1k, (l, _) => ImmutableJs.List.pop(l))",
+    f: (function () {
+        return Belt_Array.reduce(ar1k, l1k, (function (l, param) {
+                      return l.pop();
+                    }));
+      })
+  },
+  {
+    name: "mori.conj",
+    code: "A.reduce(ar1k, m1k, (m, _) => Mori.pop(m))",
+    f: (function () {
+        return Belt_Array.reduce(ar1k, m1k, (function (m, param) {
+                      return Mori.pop(m);
+                    }));
+      })
+  }
+];
+
+var suite$3 = {
+  name: suite_name$2,
+  setup: setup$3,
+  benchmarks: suite_benchmarks$1
+};
+
+var Pop = {
+  v1k: v1k,
+  l1k: l1k,
+  m1k: m1k,
+  setup: setup$3,
+  suite: suite$3
 };
 
 var v0 = Belt_Array.makeBy(100, (function (param) {
@@ -138,9 +212,9 @@ var a0 = Belt_Array.makeBy(100, (function (param) {
                     }));
       }));
 
-var setup = "let n = " + 100 + "\nlet v0 = A.makeBy(n, V.makeBy(n, i => i))\nlet l0 = A.makeBy(n, _ => L.fromArray(A.makeBy(n, i => i)))";
+var setup$4 = "let n = " + 100 + "\nlet v0 = A.makeBy(n, V.makeBy(n, i => i))\nlet l0 = A.makeBy(n, _ => L.fromArray(A.makeBy(n, i => i)))";
 
-var benchmarks$1 = [
+var benchmarks$2 = [
   {
     name: "Vector.concatMany",
     code: "V.concatMany(v0)",
@@ -157,10 +231,10 @@ var benchmarks$1 = [
   }
 ];
 
-var suite$1 = {
+var suite$4 = {
   name: "Concat",
-  setup: setup,
-  benchmarks: benchmarks$1
+  setup: setup$4,
+  benchmarks: benchmarks$2
 };
 
 var Concat = {
@@ -168,9 +242,9 @@ var Concat = {
   v0: v0,
   l0: l0,
   a0: a0,
-  setup: setup,
-  benchmarks: benchmarks$1,
-  suite: suite$1
+  setup: setup$4,
+  benchmarks: benchmarks$2,
+  suite: suite$4
 };
 
 var v0$1 = Belt_Array.range(1, 10000);
@@ -181,7 +255,7 @@ var v2 = Immutable.List(Belt_Array.range(1, 10000));
 
 var v3 = Mori.into(Mori.vector(), Belt_Array.range(1, 10000));
 
-var setup$1 = "let n = 10000;\nlet v0 = A.range(1, n);\nlet v1 = Vector.fromArray(A.range(1, n));\nlet v2 = ImmutableJs.List.fromArray(A.range(1, n));\nlet v3 = Mori.into(Mori.vector(), A.range(1, n));";
+var setup$5 = "let n = 10000;\nlet v0 = A.range(1, n);\nlet v1 = Vector.fromArray(A.range(1, n));\nlet v2 = ImmutableJs.List.fromArray(A.range(1, n));\nlet v3 = Mori.into(Mori.vector(), A.range(1, n));";
 
 var Fixture = {
   n: 10000,
@@ -189,12 +263,12 @@ var Fixture = {
   v1: v1,
   v2: v2,
   v3: v3,
-  setup: setup$1
+  setup: setup$5
 };
 
 var indices = Belt_Array.shuffle(Belt_Array.range(0, 9999));
 
-var setup$2 = setup$1 + "\nlet indices = A.range(0, n - 1)->A.shuffle;";
+var setup$6 = setup$5 + "\nlet indices = A.range(0, n - 1)->A.shuffle;";
 
 var accessSuite_name = "Random Access";
 
@@ -233,7 +307,7 @@ var accessSuite_benchmarks = [
 
 var accessSuite = {
   name: accessSuite_name,
-  setup: setup$2,
+  setup: setup$6,
   benchmarks: accessSuite_benchmarks
 };
 
@@ -271,20 +345,20 @@ var updateSuite_benchmarks = [
 
 var updateSuite = {
   name: updateSuite_name,
-  setup: setup$2,
+  setup: setup$6,
   benchmarks: updateSuite_benchmarks
 };
 
 var AccessUpdate = {
   indices: indices,
-  setup: setup$2,
+  setup: setup$6,
   accessSuite: accessSuite,
   updateSuite: updateSuite
 };
 
-var suite_name$1 = "Reduce";
+var suite_name$3 = "Reduce";
 
-var suite_benchmarks = [
+var suite_benchmarks$2 = [
   {
     name: "Vector.reduce",
     code: "v1->Vector.reduce(0, (+))",
@@ -314,10 +388,10 @@ var suite_benchmarks = [
   }
 ];
 
-var suite$2 = {
-  name: suite_name$1,
-  setup: setup$1,
-  benchmarks: suite_benchmarks
+var suite$5 = {
+  name: suite_name$3,
+  setup: setup$5,
+  benchmarks: suite_benchmarks$2
 };
 
 var suite2_name = "Reduce (vs. mutable)";
@@ -354,13 +428,13 @@ var suite2_benchmarks = [
 
 var suite2 = {
   name: suite2_name,
-  setup: setup$1,
+  setup: setup$5,
   benchmarks: suite2_benchmarks
 };
 
 var Reduce = {
-  setup: setup$1,
-  suite: suite$2,
+  setup: setup$5,
+  suite: suite$5,
   suite2: suite2
 };
 
@@ -371,37 +445,42 @@ function map(x) {
                 suite: suite,
                 url: "create"
               };
-    case /* PushSmall */1 :
-        return {
-                suite: smallSuite,
-                url: "append-last-small"
-              };
-    case /* PushLarge */2 :
-        return {
-                suite: largeSuite,
-                url: "append-last-large"
-              };
-    case /* Concat */3 :
+    case /* Convert */1 :
         return {
                 suite: suite$1,
+                url: "convert"
+              };
+    case /* Push */2 :
+        return {
+                suite: suite$2,
+                url: "push"
+              };
+    case /* Pop */3 :
+        return {
+                suite: suite$3,
+                url: "pop"
+              };
+    case /* Concat */4 :
+        return {
+                suite: suite$4,
                 url: "concat"
               };
-    case /* RandomAccess */4 :
+    case /* RandomAccess */5 :
         return {
                 suite: accessSuite,
                 url: "random-access"
               };
-    case /* RandomUpdate */5 :
+    case /* RandomUpdate */6 :
         return {
                 suite: updateSuite,
                 url: "random-update"
               };
-    case /* Reduce */6 :
+    case /* Reduce */7 :
         return {
-                suite: suite$2,
+                suite: suite$5,
                 url: "reduce"
               };
-    case /* ReduceMutable */7 :
+    case /* ReduceMutable */8 :
         return {
                 suite: suite2,
                 url: "reduce-mutable"
@@ -412,22 +491,24 @@ function map(x) {
 
 function fromUrl(x) {
   switch (x) {
-    case "append-last-large" :
-        return /* PushLarge */2;
-    case "append-last-small" :
-        return /* PushSmall */1;
     case "concat" :
-        return /* Concat */3;
+        return /* Concat */4;
+    case "convert" :
+        return /* Convert */1;
     case "create" :
         return /* Create */0;
+    case "pop" :
+        return /* Pop */3;
+    case "push" :
+        return /* Push */2;
     case "random-access" :
-        return /* RandomAccess */4;
+        return /* RandomAccess */5;
     case "random-update" :
-        return /* RandomUpdate */5;
+        return /* RandomUpdate */6;
     case "reduce" :
-        return /* Reduce */6;
+        return /* Reduce */7;
     case "reduce-mutable" :
-        return /* ReduceMutable */7;
+        return /* ReduceMutable */8;
     default:
       return ;
   }
@@ -435,13 +516,14 @@ function fromUrl(x) {
 
 var routes = [
   /* Create */0,
-  /* PushSmall */1,
-  /* PushLarge */2,
-  /* Concat */3,
-  /* RandomAccess */4,
-  /* RandomUpdate */5,
-  /* Reduce */6,
-  /* ReduceMutable */7
+  /* Convert */1,
+  /* Push */2,
+  /* Pop */3,
+  /* Concat */4,
+  /* RandomAccess */5,
+  /* RandomUpdate */6,
+  /* Reduce */7,
+  /* ReduceMutable */8
 ];
 
 var Routes = {
@@ -460,8 +542,15 @@ export {
   A ,
   V ,
   L ,
+  ar1k ,
+  ar10k ,
+  v10k ,
+  l10k ,
+  m10k ,
   Create ,
+  Convert ,
   Push ,
+  Pop ,
   Concat ,
   Fixture ,
   AccessUpdate ,
@@ -469,4 +558,4 @@ export {
   Routes ,
   
 }
-/* smallSuite Not a pure module */
+/* ar1k Not a pure module */

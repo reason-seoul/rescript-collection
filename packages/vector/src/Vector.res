@@ -22,7 +22,7 @@ let getByU = (vec, pred) => {
   let i = ref(0)
   let r = ref(None)
   while r.contents == None && i.contents < vec.size {
-    let ar = getArrayUnsafe(vec, i.contents)
+    let ar = getLeafUnsafe(vec, i.contents)
     let len = ar->A.length
     for j in 0 to len - 1 {
       let v = A.get(ar, j)
@@ -41,7 +41,7 @@ let getIndexByU = (vec, pred) => {
   let i = ref(0)
   let r = ref(None)
   while r.contents == None && i.contents < vec.size {
-    let ar = getArrayUnsafe(vec, i.contents)
+    let ar = getLeafUnsafe(vec, i.contents)
     let len = ar->A.length
     for j in 0 to len - 1 {
       let v = A.get(ar, j)
@@ -76,7 +76,7 @@ let reduceU = (vec, init, f) => {
   let i = ref(0)
   let acc = ref(init)
   while i.contents < vec.size {
-    let ar = getArrayUnsafe(vec, i.contents)
+    let ar = getLeafUnsafe(vec, i.contents)
     let len = ar->A.length
     for j in 0 to len - 1 {
       acc := f(. acc.contents, A.get(ar, j))
@@ -92,7 +92,7 @@ let reduceWithIndexU = (vec, init, f) => {
   let i = ref(0)
   let acc = ref(init)
   while i.contents < vec.size {
-    let ar = getArrayUnsafe(vec, i.contents)
+    let ar = getLeafUnsafe(vec, i.contents)
     let len = ar->A.length
     for j in 0 to len - 1 {
       acc := f(. acc.contents, A.get(ar, j), i.contents)
@@ -147,7 +147,7 @@ let keepWithIndex = (vec, f) => keepWithIndexU(vec, (. v, i) => f(v, i))
 let forEachU = (vec, f) => {
   let i = ref(0)
   while i.contents < vec.size {
-    let ar = getArrayUnsafe(vec, i.contents)
+    let ar = getLeafUnsafe(vec, i.contents)
     let len = ar->A.length
     for j in 0 to len - 1 {
       f(. A.get(ar, j))
@@ -161,7 +161,7 @@ let forEach = (vec, f) => forEachU(vec, (. x) => f(x))
 let forEachWithIndexU = (vec, f) => {
   let i = ref(0)
   while i.contents < vec.size {
-    let ar = getArrayUnsafe(vec, i.contents)
+    let ar = getLeafUnsafe(vec, i.contents)
     let len = ar->A.length
     for j in 0 to len - 1 {
       f(. A.get(ar, j), i.contents)
@@ -268,8 +268,8 @@ let zipByU = (v1, v2, f) => {
   let i = ref(0)
   let r = ref(make())
   while i.contents < len {
-    let ar1 = getArrayUnsafe(v1, i.contents)
-    let ar2 = getArrayUnsafe(v2, i.contents)
+    let ar1 = getLeafUnsafe(v1, i.contents)
+    let ar2 = getLeafUnsafe(v2, i.contents)
     let l = ar1->A.length
     for j in 0 to l - 1 {
       r := r.contents->push(f(. A.get(ar1, j), A.get(ar2, j)))

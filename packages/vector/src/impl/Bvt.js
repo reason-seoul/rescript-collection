@@ -3,20 +3,12 @@
 import * as JsArray from "./JsArray.js";
 import * as Pervasives from "@rescript/std/lib/es6/pervasives.js";
 
-function cloneNode(x) {
-  if (x.TAG === /* Node */0) {
+function cloneAndSetNode(node, idx, v) {
+  if (node.TAG === /* Node */0) {
     return {
             TAG: /* Node */0,
-            _0: x._0.slice()
+            _0: JsArray.cloneAndSet(node._0, idx, v)
           };
-  }
-  
-}
-
-function setNode(node, idx, v) {
-  if (node.TAG === /* Node */0) {
-    node._0[idx] = v;
-    return ;
   }
   
 }
@@ -29,8 +21,7 @@ function getNode(node, idx) {
 }
 
 var Tree = {
-  cloneNode: cloneNode,
-  setNode: setNode,
+  cloneAndSetNode: cloneAndSetNode,
   getNode: getNode
 };
 
@@ -72,19 +63,16 @@ function newPath(_level, _node) {
 }
 
 function pushTail(size, level, parent, tail) {
-  var ret = cloneNode(parent);
   var subIdx = ((size - 1 | 0) >>> level) & 31;
   if (level === 5) {
-    setNode(ret, subIdx, tail);
-    return ret;
+    return cloneAndSetNode(parent, subIdx, tail);
   }
   if (parent.TAG !== /* Node */0) {
     return ;
   }
   var ar = parent._0;
   var newChild = subIdx < ar.length ? pushTail(size, level - 5 | 0, ar[subIdx], tail) : newPath(level - 5 | 0, tail);
-  setNode(ret, subIdx, newChild);
-  return ret;
+  return cloneAndSetNode(parent, subIdx, newChild);
 }
 
 function push(vec, x) {
@@ -132,7 +120,7 @@ function push(vec, x) {
         };
 }
 
-function getArrayUnsafe(vec, idx) {
+function getLeafUnsafe(vec, idx) {
   if (idx >= tailOffset(vec)) {
     return vec.tail;
   }
@@ -202,7 +190,7 @@ function pop(vec) {
             tail: newTail
           };
   }
-  var newTail$1 = getArrayUnsafe(vec, size - 2 | 0);
+  var newTail$1 = getLeafUnsafe(vec, size - 2 | 0);
   var nr = popTail(size, shift, vec.root);
   var newRoot = nr !== undefined ? nr : ({
         TAG: /* Node */0,
@@ -231,7 +219,7 @@ function pop(vec) {
 }
 
 function getUnsafe(vec, i) {
-  return getArrayUnsafe(vec, i)[i & 31];
+  return getLeafUnsafe(vec, i)[i & 31];
 }
 
 function updatedPath(node, level, i, x) {
@@ -477,7 +465,7 @@ export {
   newPath ,
   pushTail ,
   push ,
-  getArrayUnsafe ,
+  getLeafUnsafe ,
   popTail ,
   pop ,
   getUnsafe ,

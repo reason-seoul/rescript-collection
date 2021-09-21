@@ -44,7 +44,7 @@ function getByU(vec, pred) {
   var i = 0;
   var r;
   while(r === undefined && i < vec.size) {
-    var ar = Bvt.getArrayUnsafe(vec, i);
+    var ar = Bvt.getLeafUnsafe(vec, i);
     var len = ar.length;
     for(var j = 0; j < len; ++j){
       var v = ar[j];
@@ -66,7 +66,7 @@ function getIndexByU(vec, pred) {
   var i = 0;
   var r;
   while(r === undefined && i < vec.size) {
-    var ar = Bvt.getArrayUnsafe(vec, i);
+    var ar = Bvt.getLeafUnsafe(vec, i);
     var len = ar.length;
     for(var j = 0; j < len; ++j){
       var v = ar[j];
@@ -110,7 +110,7 @@ function reduceU(vec, init, f) {
   var i = 0;
   var acc = init;
   while(i < vec.size) {
-    var ar = Bvt.getArrayUnsafe(vec, i);
+    var ar = Bvt.getLeafUnsafe(vec, i);
     var len = ar.length;
     for(var j = 0; j < len; ++j){
       acc = f(acc, ar[j]);
@@ -128,7 +128,7 @@ function reduceWithIndexU(vec, init, f) {
   var i = 0;
   var acc = init;
   while(i < vec.size) {
-    var ar = Bvt.getArrayUnsafe(vec, i);
+    var ar = Bvt.getLeafUnsafe(vec, i);
     var len = ar.length;
     for(var j = 0; j < len; ++j){
       acc = f(acc, ar[j], i);
@@ -208,7 +208,7 @@ function keepWithIndex(vec, f) {
 function forEachU(vec, f) {
   var i = 0;
   while(i < vec.size) {
-    var ar = Bvt.getArrayUnsafe(vec, i);
+    var ar = Bvt.getLeafUnsafe(vec, i);
     var len = ar.length;
     for(var j = 0; j < len; ++j){
       f(ar[j]);
@@ -225,7 +225,7 @@ function forEach(vec, f) {
 function forEachWithIndexU(vec, f) {
   var i = 0;
   while(i < vec.size) {
-    var ar = Bvt.getArrayUnsafe(vec, i);
+    var ar = Bvt.getLeafUnsafe(vec, i);
     var len = ar.length;
     for(var j = 0; j < len; ++j){
       f(ar[j], i);
@@ -367,8 +367,8 @@ function zipByU(v1, v2, f) {
   var i = 0;
   var r = Bvt.make(undefined);
   while(i < len) {
-    var ar1 = Bvt.getArrayUnsafe(v1, i);
-    var ar2 = Bvt.getArrayUnsafe(v2, i);
+    var ar1 = Bvt.getLeafUnsafe(v1, i);
+    var ar2 = Bvt.getLeafUnsafe(v2, i);
     var l = ar1.length;
     for(var j = 0; j < l; ++j){
       r = Bvt.push(r, f(ar1[j], ar2[j]));

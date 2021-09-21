@@ -15,6 +15,7 @@ module List = {
   external first: t<'value> => option<'value> = "first"
   @send external count: t<'value> => int = "count"
   @send external push: (t<'value>, 'value) => t<'value> = "push"
+  @send external pop: t<'value> => t<'value> = "pop"
   @send external isEmpty: t<'value> => bool = "isEmpty"
 
   @send

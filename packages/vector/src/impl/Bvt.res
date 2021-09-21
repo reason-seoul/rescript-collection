@@ -25,15 +25,9 @@ type rec tree<'a> =
   | Leaf(array<'a>)
 
 module Tree = {
-  let cloneNode = x =>
-    switch x {
-    | Node(ar) => Node(ar->A.clone)
-    | Leaf(_) => @coverage(off) absurd
-    }
-
-  let setNode = (node, idx, v) =>
+  let cloneAndSetNode = (node, idx, v) =>
     switch node {
-    | Node(ar) => A.set(ar, idx, v)
+    | Node(ar) => Node(ar->A.cloneAndSet(idx, v))
     | Leaf(_) => @coverage(off) absurd
     }
 
@@ -76,12 +70,9 @@ let rec newPath = (~level, node) =>
   }
 
 let rec pushTail = (~size, ~level, parent, tail) => {
-  let ret = Tree.cloneNode(parent)
   let subIdx = (size - 1)->lsr(level)->land(bitMask)
   if level == numBits {
-    // array will be grown by out of index access. optimize?
-    Tree.setNode(ret, subIdx, tail)
-    ret
+    Tree.cloneAndSetNode(parent, subIdx, tail)
   } else {
     switch parent {
     | Node(ar) =>
@@ -89,8 +80,7 @@ let rec pushTail = (~size, ~level, parent, tail) => {
         subIdx < ar->A.length
           ? pushTail(~size, ~level=level - numBits, A.get(ar, subIdx), tail)
           : newPath(~level=level - numBits, tail)
-      Tree.setNode(ret, subIdx, newChild)
-      ret
+      Tree.cloneAndSetNode(parent, subIdx, newChild)
     | Leaf(_) => @coverage(off) absurd
     }
   }
@@ -124,7 +114,10 @@ let push = ({size, shift, root, tail} as vec, x) =>
     }
   }
 
-let getArrayUnsafe = ({root, shift, tail} as vec, idx) => {
+/**
+ * idx must be within bound
+ */
+let getLeafUnsafe = ({root, shift, tail} as vec, idx) => {
   if idx >= tailOffset(vec) {
     tail
   } else {
@@ -181,7 +174,7 @@ let pop = ({size, shift, root, tail} as vec) =>
     {...vec, size: size - 1, tail: newTail}
   } else {
     // case 2 & 3: tail leaf has an only child
-    let newTail = getArrayUnsafe(vec, size - 2)
+    let newTail = getLeafUnsafe(vec, size - 2)
     let newRoot = switch popTail(~size, ~level=shift, root) {
     | Some(nr) => nr
     | None => Node([]) // root must be consist of at least 1 Node
@@ -197,7 +190,7 @@ let pop = ({size, shift, root, tail} as vec) =>
     }
   }
 
-let getUnsafe = (vec, i) => A.get(getArrayUnsafe(vec, i), i->land(bitMask))
+let getUnsafe = (vec, i) => A.get(getLeafUnsafe(vec, i), i->land(bitMask))
 
 /**
  * Replace i'th index with x and copy the path down to x.

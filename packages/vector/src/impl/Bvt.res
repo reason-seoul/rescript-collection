@@ -311,29 +311,29 @@ let makeByU = (len, f) => {
   }
 }
 
-module Transient = {
-  type tr<'a> = {
-    mutable size: int,
-    mutable shift: int,
-    mutable root: tree<'a>,
-    mutable tail: array<'a>,
-  }
+// module Transient = {
+//   type tr<'a> = {
+//     mutable size: int,
+//     mutable shift: int,
+//     mutable root: tree<'a>,
+//     mutable tail: array<'a>,
+//   }
 
-  let make = (v: t<'a>): tr<'a> => {
-    size: v.size,
-    shift: v.shift,
-    root: v.root,
-    tail: v.tail,
-  }
+//   let make = (v: t<'a>): tr<'a> => {
+//     size: v.size,
+//     shift: v.shift,
+//     root: v.root,
+//     tail: v.tail,
+//   }
 
-  let toPersistent = (v): t<'a> => {
-    size: v.size,
-    shift: v.shift,
-    root: v.root,
-    tail: v.tail,
-  }
+//   let toPersistent = (v): t<'a> => {
+//     size: v.size,
+//     shift: v.shift,
+//     root: v.root,
+//     tail: v.tail,
+//   }
 
-  let push = (_v, _x) => {
-    failwith("not implemented yet")
-  }
-}
+//   let push = (_v, _x) => {
+//     failwith("not implemented yet")
+//   }
+// }

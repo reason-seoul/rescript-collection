@@ -4,7 +4,8 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "benchmark"
+    "benchmark",
+    "website"
   ],
   "scripts": {},
   "devDependencies": {

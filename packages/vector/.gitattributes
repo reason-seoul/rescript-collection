@@ -1,4 +1,3 @@
 src/*.js        linguist-generated
-src/*.gen.ts    linguist-generated
+src/*.tsx       linguist-generated
 tests/*.js      linguist-generated
-tests/*.gen.ts  linguist-generated

@@ -1,0 +1,24 @@
+.heroBanner {
+  background-color: rgb(35, 37, 56);
+  color: #fff;
+  padding: 4rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+html[data-theme='dark'] .heroBanner {
+  background-color: #303846;
+}
+
+@media screen and (max-width: 966px) {
+  .heroBanner {
+    padding: 2rem;
+  }
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

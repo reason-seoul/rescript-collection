@@ -1,6 +1,6 @@
 {
   "name": "rescript-vector",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Persistent Vector implemenetation in ReScript",
   "license": "MIT",
   "author": {

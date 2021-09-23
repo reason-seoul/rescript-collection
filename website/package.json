@@ -3,12 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "postinstall": "rescript build -with-deps",
     "docusaurus": "docusaurus",
     "start": "run-p \"start:*\"",
     "start:docusaurus": "docusaurus start",
     "start:rescript": "rescript build -w",
-    "build": "rescript build && docusaurus build",
+    "build": "rescript build -with-deps && docusaurus build",
     "swizzle": "docusaurus swizzle",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",

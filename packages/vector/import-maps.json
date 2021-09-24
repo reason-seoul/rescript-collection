@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@rescript/std/lib/es6/": {
+      "default": "@rescript/std/lib/es6/",
+      "node": "@rescript/std/lib/js/"
+    }
+  }
+}

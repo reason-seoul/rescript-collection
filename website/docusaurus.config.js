@@ -23,9 +23,25 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/reason-seoul/rescript-collection/edit/main/website/',
         },
+        benchmark: {
+          sitebarPath: require.resolve('./sidebars.js'),
+        },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
+      }),
+    ],
+  ],
+
+  plugins: [
+    [
+      '@docusaurus/plugin-content-docs',
+      /** @type {import('@docusaurus/plugin-content-docs').Options} */
+      ({
+        id: 'benchmark',
+        path: 'benchmark',
+        routeBasePath: 'benchmark',
+        sidebarPath: require.resolve('./sidebarsBenchmark.js'),
       }),
     ],
   ],
@@ -45,6 +61,11 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
             docId: 'intro',
             position: 'left',
             label: 'Docs',
+          },
+          {
+            to: 'benchmark',
+            position: 'left',
+            label: 'Benchmark',
           },
           {
             href: 'https://github.com/reason-seoul/rescript-collection',

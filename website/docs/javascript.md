@@ -1,10 +1,6 @@
----
-sidebar_position: 3
----
-
 # Usage in JavaScript
 
-Written in ReScript isn't mean that only available for ReScript.
+Written in ReScript isn't necessarily mean that only available for ReScript.
 
 Packages are available for plain JavaScript & TypeScript projects.
 
@@ -19,6 +15,25 @@ const pipe = (...fns) => (x) => fns.reduce((v, f) => f(v), x);
 ```
 
 or in TypeScript project. You can use library like [pipe-ts](https://github.com/unsplash/pipe-ts)
+
+## Basic Usage
+
+```js
+import * as Vector from 'rescript-vector';
+
+let vector1 = Vector.make();
+
+let vector2 = pipe(
+  Vector.push(1),
+  Vector.push(2),
+  Vector.push(3),
+)(vector1);
+
+let result = Vector.toArray(vector2);
+
+console.log(result);
+// => [1, 2, 3]
+```
 
 ## TypeScript
 

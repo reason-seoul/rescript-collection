@@ -19,7 +19,7 @@
   "main": "./dist/index.js",
   "exports": {
     ".": {
-      "default": "./dist/index.js",
+      "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
     "./package.json": "./package.json"

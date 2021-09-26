@@ -4,27 +4,10 @@ import * as JsArray from "./JsArray.js";
 import * as Caml_obj from "@rescript/std/lib/es6/caml_obj.js";
 import * as Caml_option from "@rescript/std/lib/es6/caml_option.js";
 
-function make(hash, entries) {
-  return {
-          hash: hash,
-          entries: entries
-        };
-}
-
 function findIndex(param, key) {
   return param.entries.findIndex(function (param) {
               return Caml_obj.caml_equal(param[0], key);
             });
-}
-
-function find(param, key) {
-  var match = param.entries.find(function (param) {
-        return Caml_obj.caml_equal(param[0], key);
-      });
-  if (match !== undefined) {
-    return Caml_option.some(match[1]);
-  }
-  
 }
 
 function assoc(self, key, value) {
@@ -57,15 +40,7 @@ function dissoc(self, key) {
   }
 }
 
-var HashCollision = {
-  make: make,
-  findIndex: findIndex,
-  find: find,
-  assoc: assoc,
-  dissoc: dissoc
-};
-
-function make$1(bitmap, data) {
+function make(bitmap, data) {
   return {
           bitmap: bitmap,
           data: data
@@ -93,7 +68,7 @@ function indexOfBit(bitmap, bit) {
   return ctpop(bitmap & (bit - 1 | 0));
 }
 
-function find$1(_param, _shift, hash, key) {
+function find(_param, _shift, hash, key) {
   while(true) {
     var param = _param;
     var shift = _shift;
@@ -118,7 +93,15 @@ function find$1(_param, _shift, hash, key) {
             return ;
           }
       case /* HashCollision */2 :
-          return find(child._0, key);
+          var param$1 = child._0;
+          var match$2 = param$1.entries.find(function (param) {
+                return Caml_obj.caml_equal(param[0], key);
+              });
+          if (match$2 !== undefined) {
+            return Caml_option.some(match$2[1]);
+          } else {
+            return ;
+          }
       
     }
   };
@@ -322,29 +305,13 @@ function unset(param, bit, idx) {
 }
 
 var BitmapIndexed = {
-  make: make$1,
-  ctpop: ctpop,
-  mask: mask,
-  bitpos: bitpos,
-  indexOfBit: indexOfBit,
-  find: find$1,
+  make: make,
+  find: find,
   assoc: assoc$1,
-  makeNode: makeNode,
-  dissoc: dissoc$1,
-  unset: unset
+  dissoc: dissoc$1
 };
 
-var A;
-
-var numBits = 5;
-
-var maskBits = 31;
-
 export {
-  A ,
-  numBits ,
-  maskBits ,
-  HashCollision ,
   BitmapIndexed ,
   
 }

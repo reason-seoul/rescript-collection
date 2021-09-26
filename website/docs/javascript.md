@@ -24,9 +24,9 @@ import * as Vector from 'rescript-vector';
 let vector1 = Vector.make();
 
 let vector2 = pipe(
-  Vector.push(1),
-  Vector.push(2),
-  Vector.push(3),
+  v => Vector.push(v, 1),
+  v => Vector.push(v, 2),
+  v => Vector.push(v, 3),
 )(vector1);
 
 let result = Vector.toArray(vector2);

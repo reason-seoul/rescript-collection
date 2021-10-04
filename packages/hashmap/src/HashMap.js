@@ -45,7 +45,10 @@ function size(m) {
   return m.count;
 }
 
+var $$String;
+
 export {
+  $$String ,
   make ,
   get ,
   set ,

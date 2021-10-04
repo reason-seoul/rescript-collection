@@ -1,7 +1,7 @@
 type t = {hashMap: HashMap.t<int, option<int>>}
 
 let empty = {
-  hashMap: HashMap.make(~hasher=(. x) => Hash.hashInt(x)),
+  hashMap: HashMap.make(~hasher=Hash.hashInt),
 }
 
 let get = (s, v) => {

@@ -1,3 +1,5 @@
+module String = HashMap_String
+
 type hasher<'k> = (. 'k) => int
 
 type t<'k, 'v> = {

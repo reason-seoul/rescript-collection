@@ -1,4 +1,5 @@
 // Bit-partitioned Hash Trie
+module String = HashMap_String
 
 type hasher<'k> = (. 'k) => int
 

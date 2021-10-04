@@ -47,5 +47,6 @@ module Set = {
 
   @send external add: (t<'value>, 'value) => t<'value> = "add"
 
+  @send external get: (t<'value>, 'value) => option<'value> = "get"
   @send external has: (t<'value>, 'value) => bool = "has"
 }

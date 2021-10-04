@@ -12,20 +12,14 @@ and hashCollisionNode<'k, 'v> = {
   entries: array<mapEntry<'k, 'v>>,
 }
 
-module type BitmapIndexed = {
-  type t<'k, 'v> = bitmapIndexedNode<'k, 'v>
-
-  let make: (int, array<node<'k, 'v>>) => t<'k, 'v>
-  let find: (t<'k, 'v>, ~shift: int, ~hash: int, ~key: 'k) => option<'v>
-  let assoc: (
-    t<'k, 'v>,
-    ~shift: int,
-    ~hasher: (. 'k) => int,
-    ~hash: int,
-    ~key: 'k,
-    ~value: 'v,
-  ) => t<'k, 'v>
-  let dissoc: (t<'k, 'v>, ~shift: int, ~hash: int, ~key: 'k) => option<t<'k, 'v>>
-}
-
-module BitmapIndexed: BitmapIndexed
+let empty: unit => node<'k, 'v>
+let find: (node<'k, 'v>, ~shift: int, ~hash: int, ~key: 'k) => option<'v>
+let assoc: (
+  node<'k, 'v>,
+  ~shift: int,
+  ~hasher: (. 'k) => int,
+  ~hash: int,
+  ~key: 'k,
+  ~value: 'v,
+) => option<node<'k, 'v>>
+let dissoc: (node<'k, 'v>, ~shift: int, ~hash: int, ~key: 'k) => option<node<'k, 'v>>

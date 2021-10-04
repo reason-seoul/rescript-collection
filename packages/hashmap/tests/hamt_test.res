@@ -1,3 +1,9 @@
+/**
+ * 테스트시 numBits, maskBits 를 아래와 같이 설정
+ * let numBits = 2
+ * let maskBits = 0b011 // 1bits
+ */
+
 open Hamt
 
 let testHasher = (. k) => {
@@ -17,6 +23,7 @@ function (n) {
   return "0b" + n.toString(2).padStart(8, '0');
 }
 `)
+
 let bitPositions = bits => {
   let rec f = (bits, ~idx) => {
     if bits == 0 {
@@ -29,6 +36,7 @@ let bitPositions = bits => {
   }
   f(bits, ~idx=0)->Belt.List.toArray
 }
+
 let log = root => {
   let rec p = (root, ~depth) => {
     let log = s => {
@@ -47,30 +55,29 @@ let log = root => {
   }
   p(root, ~depth=0)
 }
-let m = {
+
+let m = BitmapIndexed({
   bitmap: 0b0110,
   data: [MapEntry("Sir Robin", 10), MapEntry("Sir Bedevere", 20)],
-}
+})
 
 let get = (m, k) => {
-  BitmapIndexed.find(m, ~shift=0, ~hash=testHasher(. k), ~key=k)
+  find(m, ~shift=0, ~hash=testHasher(. k), ~key=k)
 }
 
 let set = (m, k, v) => {
-  BitmapIndexed.assoc(m, ~shift=0, ~hasher=testHasher, ~hash=testHasher(. k), ~key=k, ~value=v)
+  assoc(m, ~shift=0, ~hasher=testHasher, ~hash=testHasher(. k), ~key=k, ~value=v)
 }
 
 let remove = (m, k) => {
-  BitmapIndexed.dissoc(m, ~shift=0, ~hash=testHasher(. k), ~key=k)->Belt.Option.getWithDefault(m)
+  dissoc(m, ~shift=0, ~hash=testHasher(. k), ~key=k)->Belt.Option.getWithDefault(m)
 }
 
 assert (get(m, "Sir Robin") == Some(10))
 assert (get(m, "Sir Bedevere") == Some(20))
 assert (get(m, "Sir Lancelot") == None)
 
-let t2 = m->set("Sir Lancelot", 30)
-
-let m2 = {
+let m2 = BitmapIndexed({
   bitmap: 0b0110,
   data: [
     MapEntry("Sir Robin", 10),
@@ -79,17 +86,17 @@ let m2 = {
       data: [MapEntry("Sir Lancelot", 30), MapEntry("Sir Bedevere", 20)],
     }),
   ],
-}
+})
 
-assert (t2 == m2)
-assert (get(m2, "Sir Robin") == Some(10))
-assert (get(m2, "Sir Bedevere") == Some(20))
-assert (get(m2, "Sir Lancelot") == Some(30))
+assert (m->set("Sir Lancelot", 30) == Some(m2))
+assert (m2->get("Sir Robin") == Some(10))
+assert (m2->get("Sir Bedevere") == Some(20))
+assert (m2->get("Sir Lancelot") == Some(30))
 
 // m2->remove("Sir Robin")->log
 // m2->remove("Sir Lancelot")->remove(_, "Sir Bedevere")->log
 
-let m3 = {
+let m3 = BitmapIndexed({
   bitmap: 0b0110,
   data: [
     MapEntry("Sir Robin", 10),
@@ -104,11 +111,11 @@ let m3 = {
       ],
     }),
   ],
-}
+})
 
 // m2->set("Sir Percival", 40)->log
 
-assert (m2->set("Sir Percival", 40) == m3)
+assert (m2->set("Sir Percival", 40) == Some(m3))
 assert (m3->remove("Sir Lancelot")->get("Sir Percival") == Some(40))
 
 // TODO: structural equality 보장할 수 있는가?

@@ -4,47 +4,40 @@ import * as Hamt from "./impl/Hamt.js";
 
 function make(hasher) {
   return {
-          root: Hamt.BitmapIndexed.make(0, []),
+          root: Hamt.empty(undefined),
           count: 0,
           hasher: hasher
         };
 }
 
 function get(param, k) {
-  return Hamt.BitmapIndexed.find(param.root, 0, param.hasher(k), k);
+  return Hamt.find(param.root, 0, param.hasher(k), k);
 }
 
 function set(m, k, v) {
   var hasher = m.hasher;
-  var root = m.root;
-  var root$p = Hamt.BitmapIndexed.assoc(root, 0, hasher, hasher(k), k, v);
-  if (root$p === root) {
-    return m;
-  } else {
+  var root$p = Hamt.assoc(m.root, 0, hasher, hasher(k), k, v);
+  if (root$p !== undefined) {
     return {
             root: root$p,
             count: m.count + 1 | 0,
             hasher: m.hasher
           };
+  } else {
+    return m;
   }
 }
 
 function remove(m, k) {
-  var hasher = m.hasher;
-  var root = m.root;
-  var root$p = Hamt.BitmapIndexed.dissoc(root, 0, hasher(k), k);
+  var root$p = Hamt.dissoc(m.root, 0, m.hasher(k), k);
   if (root$p !== undefined) {
-    if (root$p === root) {
-      return m;
-    } else {
-      return {
-              root: root$p,
-              count: m.count - 1 | 0,
-              hasher: m.hasher
-            };
-    }
+    return {
+            root: root$p,
+            count: m.count - 1 | 0,
+            hasher: m.hasher
+          };
   } else {
-    return make(hasher);
+    return m;
   }
 }
 

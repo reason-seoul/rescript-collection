@@ -26,6 +26,15 @@ function cloneAndAdd(ar, a) {
   return newAr;
 }
 
+function cloneAndInsert(ar, idx, x) {
+  var len = ar.length;
+  var newAr = Array(len + 1 | 0);
+  blit(ar, 0, newAr, 0, idx);
+  newAr[idx] = x;
+  blit(ar, idx, newAr, idx + 1 | 0, len - idx | 0);
+  return newAr;
+}
+
 function cloneWithout(ar, i) {
   var newAr = Array(ar.length - 1 | 0);
   blit(ar, 0, newAr, 0, i);
@@ -38,6 +47,7 @@ export {
   blit ,
   cloneAndSet ,
   cloneAndAdd ,
+  cloneAndInsert ,
   cloneWithout ,
   
 }

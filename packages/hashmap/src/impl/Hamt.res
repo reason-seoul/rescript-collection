@@ -149,20 +149,9 @@ let rec assocBitmapIndexed = ({bitmap, data} as self, ~shift, ~hasher, ~hash, ~k
   switch bitmap->land(bit) {
   | 0 =>
     // insert here!
-
-    let n = ctpop(bitmap)
-    let ar = A.make(n + 1)
-
-    // 1. copy data[0, idx)
-    A.blit(~src=data, ~srcOffset=0, ~dst=ar, ~dstOffset=0, ~len=idx)
-    // 2. set idx
-    A.set(ar, idx, MapEntry(key, value))
-    // 3. copy data[idx, n)
-    A.blit(~src=data, ~srcOffset=idx, ~dst=ar, ~dstOffset=idx + 1, ~len=n - idx)
-
     {
       bitmap: bitmap->lor(bit),
-      data: ar,
+      data: A.cloneAndInsert(data, idx, MapEntry(key, value)),
     }
   | _ =>
     // copy new path then recursively call assoc

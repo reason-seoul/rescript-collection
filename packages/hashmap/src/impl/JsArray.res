@@ -35,6 +35,15 @@ let cloneAndAdd = (ar, a) => {
   newAr
 }
 
+let cloneAndInsert = (ar, idx, x) => {
+  let len = length(ar)
+  let newAr = make(len + 1)
+  blit(~src=ar, ~srcOffset=0, ~dst=newAr, ~dstOffset=0, ~len=idx)
+  set(newAr, idx, x)
+  blit(~src=ar, ~srcOffset=idx, ~dst=newAr, ~dstOffset=idx + 1, ~len=len - idx)
+  newAr
+}
+
 let cloneWithout = (ar, i) => {
   let newAr = make(length(ar) - 1)
   blit(~src=ar, ~srcOffset=0, ~dst=newAr, ~dstOffset=0, ~len=i)

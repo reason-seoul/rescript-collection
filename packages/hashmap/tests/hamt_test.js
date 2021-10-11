@@ -72,38 +72,39 @@ function log(root) {
   return p(root, 0);
 }
 
-var m_data = [
-  {
-    TAG: /* MapEntry */1,
-    _0: [
-      "Sir Robin",
-      10
-    ]
-  },
-  {
-    TAG: /* MapEntry */1,
-    _0: [
-      "Sir Bedevere",
-      20
+var m = {
+  TAG: /* BitmapIndexed */0,
+  _0: {
+    bitmap: 6,
+    data: [
+      {
+        TAG: /* MapEntry */1,
+        _0: [
+          "Sir Robin",
+          10
+        ]
+      },
+      {
+        TAG: /* MapEntry */1,
+        _0: [
+          "Sir Bedevere",
+          20
+        ]
+      }
     ]
   }
-];
-
-var m = {
-  bitmap: 6,
-  data: m_data
 };
 
 function get(m, k) {
-  return Hamt.BitmapIndexed.find(m, 0, testHasher(k), k);
+  return Hamt.find(m, 0, testHasher(k), k);
 }
 
 function set(m, k, v) {
-  return Hamt.BitmapIndexed.assoc(m, 0, testHasher, testHasher(k), k, v);
+  return Hamt.assoc(m, 0, testHasher, testHasher(k), k, v);
 }
 
 function remove(m, k) {
-  return Belt_Option.getWithDefault(Hamt.BitmapIndexed.dissoc(m, 0, testHasher(k), k), m);
+  return Belt_Option.getWithDefault(Hamt.dissoc(m, 0, testHasher(k), k), m);
 }
 
 if (!Caml_obj.caml_equal(get(m, "Sir Robin"), 10)) {
@@ -111,7 +112,7 @@ if (!Caml_obj.caml_equal(get(m, "Sir Robin"), 10)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          67,
+          76,
           0
         ],
         Error: new Error()
@@ -123,7 +124,7 @@ if (!Caml_obj.caml_equal(get(m, "Sir Bedevere"), 20)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          68,
+          77,
           0
         ],
         Error: new Error()
@@ -135,58 +136,57 @@ if (get(m, "Sir Lancelot") !== undefined) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          69,
+          78,
           0
         ],
         Error: new Error()
       };
 }
 
-var t2 = set(m, "Sir Lancelot", 30);
-
-var m2_data = [
-  {
-    TAG: /* MapEntry */1,
-    _0: [
-      "Sir Robin",
-      10
-    ]
-  },
-  {
-    TAG: /* BitmapIndexed */0,
-    _0: {
-      bitmap: 5,
-      data: [
-        {
-          TAG: /* MapEntry */1,
-          _0: [
-            "Sir Lancelot",
-            30
-          ]
-        },
-        {
-          TAG: /* MapEntry */1,
-          _0: [
-            "Sir Bedevere",
-            20
+var m2 = {
+  TAG: /* BitmapIndexed */0,
+  _0: {
+    bitmap: 6,
+    data: [
+      {
+        TAG: /* MapEntry */1,
+        _0: [
+          "Sir Robin",
+          10
+        ]
+      },
+      {
+        TAG: /* BitmapIndexed */0,
+        _0: {
+          bitmap: 5,
+          data: [
+            {
+              TAG: /* MapEntry */1,
+              _0: [
+                "Sir Lancelot",
+                30
+              ]
+            },
+            {
+              TAG: /* MapEntry */1,
+              _0: [
+                "Sir Bedevere",
+                20
+              ]
+            }
           ]
         }
-      ]
-    }
+      }
+    ]
   }
-];
-
-var m2 = {
-  bitmap: 6,
-  data: m2_data
 };
 
-if (!Caml_obj.caml_equal(t2, m2)) {
+if (!Caml_obj.caml_equal(set(m, "Sir Lancelot", 30), m2)) {
   throw {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          84,
+          91,
           0
         ],
         Error: new Error()
@@ -198,7 +198,7 @@ if (!Caml_obj.caml_equal(get(m2, "Sir Robin"), 10)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          85,
+          92,
           0
         ],
         Error: new Error()
@@ -210,7 +210,7 @@ if (!Caml_obj.caml_equal(get(m2, "Sir Bedevere"), 20)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          86,
+          93,
           0
         ],
         Error: new Error()
@@ -222,57 +222,58 @@ if (!Caml_obj.caml_equal(get(m2, "Sir Lancelot"), 30)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          87,
+          94,
           0
         ],
         Error: new Error()
       };
 }
 
-var m3_data = [
-  {
-    TAG: /* MapEntry */1,
-    _0: [
-      "Sir Robin",
-      10
-    ]
-  },
-  {
-    TAG: /* BitmapIndexed */0,
-    _0: {
-      bitmap: 5,
-      data: [
-        {
-          TAG: /* HashCollision */2,
-          _0: {
-            hash: 146,
-            entries: [
-              [
-                "Sir Lancelot",
-                30
-              ],
-              [
-                "Sir Percival",
-                40
+var m3 = {
+  TAG: /* BitmapIndexed */0,
+  _0: {
+    bitmap: 6,
+    data: [
+      {
+        TAG: /* MapEntry */1,
+        _0: [
+          "Sir Robin",
+          10
+        ]
+      },
+      {
+        TAG: /* BitmapIndexed */0,
+        _0: {
+          bitmap: 5,
+          data: [
+            {
+              TAG: /* HashCollision */2,
+              _0: {
+                hash: 146,
+                entries: [
+                  [
+                    "Sir Lancelot",
+                    30
+                  ],
+                  [
+                    "Sir Percival",
+                    40
+                  ]
+                ]
+              }
+            },
+            {
+              TAG: /* MapEntry */1,
+              _0: [
+                "Sir Bedevere",
+                20
               ]
-            ]
-          }
-        },
-        {
-          TAG: /* MapEntry */1,
-          _0: [
-            "Sir Bedevere",
-            20
+            }
           ]
         }
-      ]
-    }
+      }
+    ]
   }
-];
-
-var m3 = {
-  bitmap: 6,
-  data: m3_data
 };
 
 if (!Caml_obj.caml_equal(set(m2, "Sir Percival", 40), m3)) {
@@ -280,7 +281,7 @@ if (!Caml_obj.caml_equal(set(m2, "Sir Percival", 40), m3)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          111,
+          118,
           0
         ],
         Error: new Error()
@@ -292,7 +293,7 @@ if (!Caml_obj.caml_equal(get(remove(m3, "Sir Lancelot"), "Sir Percival"), 40)) {
         RE_EXN_ID: "Assert_failure",
         _1: [
           "hamt_test.res",
-          112,
+          119,
           0
         ],
         Error: new Error()
@@ -308,7 +309,6 @@ export {
   get ,
   set ,
   remove ,
-  t2 ,
   m2 ,
   m3 ,
   

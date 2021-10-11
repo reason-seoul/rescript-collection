@@ -1,13 +1,7 @@
-module Int = HashSet_Int
+type t = {hashMap: HashMap.t<int, option<int>>}
 
-type hasher<'v> = (. 'v) => int
-
-type t<'v> = {hashMap: HashMap.t<'v, option<'v>>}
-
-let make = (~hasher) => {
-  {
-    hashMap: HashMap.make(~hasher),
-  }
+let empty = {
+  hashMap: HashMap.make(~hasher=Hash.hashInt),
 }
 
 let get = (s, v) => {
@@ -30,3 +24,11 @@ let remove = (s, v) => {
 }
 
 let size = s => HashMap.size(s.hashMap)
+
+let fromArray = ar => {
+  let s = ref(empty)
+  JsArray.forEach(ar, x => {
+    s := s.contents->set(x)
+  })
+  s.contents
+}

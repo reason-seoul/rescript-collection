@@ -13,21 +13,10 @@
     "hashmap",
     "hashset"
   ],
-  "main": "./dist/hashset.js",
-  "module": "./dist/hashset.mjs",
-  "exports": {
-    ".": {
-      "require": "./dist/hashset.js",
-      "import": "./dist/hashset.mjs"
-    },
-    "./package.json": "./package.json"
-  },
+  "type": "module",
+  "sideEffects": false,
   "scripts": {
     "build": "rescript build",
-    "bundle": "yarn build && concurrently \"yarn:bundle:*\"",
-    "bundle:cjs": "esbuild src/HashSet.mjs --bundle --sourcemap --minify --format=cjs --platform=node --target=node12 --outfile=dist/hashset.js",
-    "bundle:esm": "esbuild src/HashSet.mjs --bundle --sourcemap --minify --format=esm --outfile=dist/hashset.mjs",
-    "prepack": "yarn build && yarn bundle",
     "start": "rescript build -w",
     "clean": "rescript clean"
   },

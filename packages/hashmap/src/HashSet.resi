@@ -1,3 +1,5 @@
+module Int = HashSet_Int
+
 type hasher<'v> = (. 'v) => int
 
 type t<'v>

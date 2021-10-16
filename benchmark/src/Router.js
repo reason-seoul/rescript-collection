@@ -6,69 +6,33 @@ import * as Belt_Option from "@rescript/std/lib/es6/belt_Option.js";
 import * as Caml_option from "@rescript/std/lib/es6/caml_option.js";
 import * as RescriptReactRouter from "@rescript/react/src/RescriptReactRouter.js";
 import * as Suite_Vector$Benchmark from "./Suite_Vector.js";
-import * as Suite_Hashmap$Benchmark from "./Suite_Hashmap.js";
 
 function toString(x) {
-  if (typeof x === "number") {
-    return "";
-  } else if (x.TAG === /* VectorSuite */0) {
+  if (x) {
     return Suite_Vector$Benchmark.Routes.map(x._0).url;
   } else {
-    return "hashmap/" + Suite_Hashmap$Benchmark.Routes.map(x._0).url;
+    return "";
   }
 }
 
 function fromString(s) {
-  var match = s.split("/");
-  var tmp;
-  var exit = 0;
-  if (match.length !== 2) {
-    exit = 1;
-  } else {
-    var match$1 = match[0];
-    if (match$1 === "hashmap") {
-      var path = match[1];
-      tmp = Belt_Option.map(Suite_Hashmap$Benchmark.Routes.fromUrl(path), (function (x) {
-              return {
-                      TAG: /* HashmapSuite */1,
-                      _0: x
-                    };
-            }));
-    } else {
-      exit = 1;
-    }
-  }
-  if (exit === 1) {
-    tmp = Belt_Option.map(Suite_Vector$Benchmark.Routes.fromUrl(s), (function (x) {
-            return {
-                    TAG: /* VectorSuite */0,
-                    _0: x
-                  };
-          }));
-  }
-  return Belt_Option.getWithDefault(tmp, /* Index */0);
+  return Belt_Option.getWithDefault((s.split("/"), Belt_Option.map(Suite_Vector$Benchmark.Routes.fromUrl(s), (function (x) {
+                      return /* VectorSuite */{
+                              _0: x
+                            };
+                    }))), /* Index */0);
 }
 
 function name(x) {
-  if (typeof x === "number") {
-    return "Index";
-  } else if (x.TAG === /* VectorSuite */0) {
+  if (x) {
     return Suite_Vector$Benchmark.Routes.map(x._0).suite.name;
   } else {
-    return Suite_Hashmap$Benchmark.Routes.map(x._0).suite.name;
+    return "Index";
   }
 }
 
 var vectorMenu = Belt_Array.map(Suite_Vector$Benchmark.Routes.routes, (function (a) {
-        return {
-                TAG: /* VectorSuite */0,
-                _0: a
-              };
-      }));
-
-var hashmapMenu = Belt_Array.map(Suite_Hashmap$Benchmark.Routes.routes, (function (a) {
-        return {
-                TAG: /* HashmapSuite */1,
+        return /* VectorSuite */{
                 _0: a
               };
       }));
@@ -100,7 +64,6 @@ export {
   fromString ,
   name ,
   vectorMenu ,
-  hashmapMenu ,
   useUrl ,
   HashLink ,
   

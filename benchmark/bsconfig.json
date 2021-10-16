@@ -18,8 +18,7 @@
   "external-stdlib": "@rescript/std",
   "bs-dependencies": [
     "@rescript/react",
-    "rescript-vector",
-    "rescript-hashmap"
+    "rescript-vector"
   ],
   "bs-dev-dependencies": [],
   "ppx-flags": [],

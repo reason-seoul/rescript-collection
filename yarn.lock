@@ -4502,7 +4502,6 @@ __metadata:
     react: ^17.0.1
     react-dom: ^17.0.1
     rescript: ^9.1.2
-    rescript-hashmap: "workspace:packages/hashmap"
     rescript-vector: "workspace:packages/vector"
   languageName: unknown
   linkType: soft
@@ -5560,25 +5559,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"concurrently@npm:^6.2.0":
-  version: 6.2.0
-  resolution: "concurrently@npm:6.2.0"
-  dependencies:
-    chalk: ^4.1.0
-    date-fns: ^2.16.1
-    lodash: ^4.17.21
-    read-pkg: ^5.2.0
-    rxjs: ^6.6.3
-    spawn-command: ^0.0.2-1
-    supports-color: ^8.1.0
-    tree-kill: ^1.2.2
-    yargs: ^16.2.0
-  bin:
-    concurrently: bin/concurrently.js
-  checksum: 2934121e6662eccf3381bb73083583dc4cc4bcbf0ac381d69d5e8137fd1f8c305dc62fd3f9982285a17aa9e1878403955ef8a4f9c15ce428e5d9bc967d4476c7
-  languageName: node
-  linkType: hard
-
 "configstore@npm:^5.0.1":
   version: 5.0.1
   resolution: "configstore@npm:5.0.1"
@@ -6199,13 +6179,6 @@ __metadata:
     whatwg-mimetype: ^2.2.0
     whatwg-url: ^7.0.0
   checksum: dc4bd9621df0dff336d7c4c0517c792488ef3cf11cd37e72ab80f3a7f0a0aa14bad677ac97cf22c87c6eb9518e58b98590e1c8c756b56240940f0e470c81612e
-  languageName: node
-  linkType: hard
-
-"date-fns@npm:^2.16.1":
-  version: 2.23.0
-  resolution: "date-fns@npm:2.23.0"
-  checksum: 485216d550255a548552db16379e7a5cd440e262b90fbdc0362f63ee71d0e74bd00ce29ca8d76b343f6df36c1ecb6f22edba0b72848a4c32674e755619695c1f
   languageName: node
   linkType: hard
 
@@ -7088,15 +7061,6 @@ __metadata:
   version: 0.13.2
   resolution: "esbuild-windows-arm64@npm:0.13.2"
   checksum: 8a50f625208af27684329b1c7cc2e896abcfbc76c18cebfcd9b58ed50c6a596bd8008cd74084092fcc2ae303bf7535afc384d0df0054f997e4df66b1400697c4
-  languageName: node
-  linkType: hard
-
-"esbuild@npm:^0.12.17":
-  version: 0.12.25
-  resolution: "esbuild@npm:0.12.25"
-  bin:
-    esbuild: bin/esbuild
-  checksum: fd92b0541c17e6d863d3b1cf628a35c9844831a1f1f2d16c3091bc7a130a601a8164083b84a65cd3178209e7c395fc61d454f92c8b1a4869d443fd0ca5a51a8d
   languageName: node
   linkType: hard
 
@@ -14109,17 +14073,6 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"rescript-hashmap@workspace:packages/hashmap":
-  version: 0.0.0-use.local
-  resolution: "rescript-hashmap@workspace:packages/hashmap"
-  dependencies:
-    "@rescript/std": ^9.1.3
-    concurrently: ^6.2.0
-    esbuild: ^0.12.17
-    rescript: ^9.1.4
-  languageName: unknown
-  linkType: soft
-
 "rescript-vector@workspace:packages/vector":
   version: 0.0.0-use.local
   resolution: "rescript-vector@workspace:packages/vector"
@@ -14936,13 +14889,6 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"spawn-command@npm:^0.0.2-1":
-  version: 0.0.2
-  resolution: "spawn-command@npm:0.0.2"
-  checksum: e35c5d28177b4d461d33c88cc11f6f3a5079e2b132c11e1746453bbb7a0c0b8a634f07541a2a234fa4758239d88203b758def509161b651e81958894c0b4b64b
-  languageName: node
-  linkType: hard
-
 "spawndamnit@npm:^2.0.0":
   version: 2.0.0
   resolution: "spawndamnit@npm:2.0.0"
@@ -15437,7 +15383,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"supports-color@npm:^8.0.0, supports-color@npm:^8.1.0":
+"supports-color@npm:^8.0.0":
   version: 8.1.1
   resolution: "supports-color@npm:8.1.1"
   dependencies:
@@ -15784,15 +15730,6 @@ fsevents@~2.3.2:
   dependencies:
     punycode: ^2.1.0
   checksum: 96d4ed46bc161db75dbf9247a236ea0bfcaf5758baae6749e92afab0bc5a09cb59af21788ede7e55080f2bf02dce3e4a8f2a484cc45164e29f4b5e68f7cbcc1a
-  languageName: node
-  linkType: hard
-
-"tree-kill@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "tree-kill@npm:1.2.2"
-  bin:
-    tree-kill: cli.js
-  checksum: 49117f5f410d19c84b0464d29afb9642c863bc5ba40fcb9a245d474c6d5cc64d1b177a6e6713129eb346b40aebb9d4631d967517f9fbe8251c35b21b13cd96c7
   languageName: node
   linkType: hard
 

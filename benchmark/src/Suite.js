@@ -3,11 +3,8 @@
 
 var Vector;
 
-var Hashmap;
-
 export {
   Vector ,
-  Hashmap ,
   
 }
 /* No side effect */

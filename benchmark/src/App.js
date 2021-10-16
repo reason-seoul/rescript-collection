@@ -9,7 +9,6 @@ import * as Benchmark from "benchmark";
 import * as Belt_Array from "@rescript/std/lib/es6/belt_Array.js";
 import * as Router$Benchmark from "./Router.js";
 import * as Suite_Vector$Benchmark from "./Suite_Vector.js";
-import * as Suite_Hashmap$Benchmark from "./Suite_Hashmap.js";
 
 var Prism = {};
 
@@ -353,15 +352,7 @@ function App(Props) {
           
         }), []);
   var tmp;
-  if (typeof url === "number") {
-    tmp = React.createElement(React.Fragment, undefined, React.createElement(App$Tests, {
-              name: "rescript-vector",
-              menu: Router$Benchmark.vectorMenu
-            }), React.createElement(App$Tests, {
-              name: "rescript-hashmap",
-              menu: Router$Benchmark.hashmapMenu
-            }));
-  } else if (url.TAG === /* VectorSuite */0) {
+  if (url) {
     var match = Suite_Vector$Benchmark.Routes.map(url._0).suite;
     var suite = new Benchmark.Suite(match.name);
     tmp = React.createElement(React.Fragment, undefined, React.createElement(Router$Benchmark.HashLink.make, {
@@ -374,16 +365,9 @@ function App(Props) {
               suite: suite
             }));
   } else {
-    var match$1 = Suite_Hashmap$Benchmark.Routes.map(url._0).suite;
-    var suite$1 = new Benchmark.Suite(match$1.name);
-    tmp = React.createElement(React.Fragment, undefined, React.createElement(Router$Benchmark.HashLink.make, {
-              children: null,
-              to_: /* Index */0,
-              className: "go-home"
-            }, "←", Router$Benchmark.name(/* Index */0)), React.createElement(App$Wrapper, {
-              benchmarks: match$1.benchmarks,
-              setup: match$1.setup,
-              suite: suite$1
+    tmp = React.createElement(React.Fragment, undefined, React.createElement(App$Tests, {
+              name: "rescript-vector",
+              menu: Router$Benchmark.vectorMenu
             }));
   }
   return React.createElement("div", {

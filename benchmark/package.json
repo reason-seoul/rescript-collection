@@ -24,7 +24,6 @@
     "normalize.css": "^8.0.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "rescript-hashmap": "workspace:packages/hashmap",
     "rescript-vector": "workspace:packages/vector"
   }
 }

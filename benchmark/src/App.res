@@ -299,21 +299,11 @@ let make = () => {
       {switch url {
       | Router.Index => <>
           <Tests name="rescript-vector" menu=Router.vectorMenu />
-          <Tests name="rescript-hashmap" menu=Router.hashmapMenu />
+          // <Tests name="rescript-hashmap" menu=Router.hashmapMenu />
         </>
 
       | Router.VectorSuite(suite) =>
         open Suite.Vector
-        let {benchmarks, setup, name} = Routes.map(suite).Routes.suite
-        let suite = B.Suite.make(name)
-        <>
-          <Router.HashLink to_=Router.Index className="go-home">
-            {j`←`->React.string} {Router.name(Router.Index)->React.string}
-          </Router.HashLink>
-          <Wrapper suite benchmarks setup />
-        </>
-      | Router.HashmapSuite(suite) =>
-        open Suite.Hashmap
         let {benchmarks, setup, name} = Routes.map(suite).Routes.suite
         let suite = B.Suite.make(name)
         <>

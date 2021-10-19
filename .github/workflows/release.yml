@@ -28,8 +28,6 @@ jobs:
         run: yarn install --immutable
 
       - name: Create Release Pull Request
-        uses: changesets/action@master
-        with:
-          version: yarn changeset version
+        uses: cometkim/yarn-changeset-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

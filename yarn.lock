@@ -11222,18 +11222,23 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"nanobundle@npm:^0.0.14":
-  version: 0.0.14
-  resolution: "nanobundle@npm:0.0.14"
+"nanobundle@npm:^0.0.19":
+  version: 0.0.19
+  resolution: "nanobundle@npm:0.0.19"
   dependencies:
     browserslist: ^4.0.0
     esbuild: ^0.13.0
     meow: ^10.1.1
     pretty-bytes: ^5.6.0
+    tsconfck: ^1.1.1
+  peerDependencies:
     typescript: ^3.7.0 || ^4.0.0
+  peerDependenciesMeta:
+    typescript:
+      optional: true
   bin:
-    nanobundle: ./bin.mjs
-  checksum: 5c2c4bcc68cd71924aec289b921d5299cec181d833656b6abce5c016d90bf0ae66ac0814d636904ac77a10cac21430f17fd9615b20e2b7c8537c38e4cb43641f
+    nanobundle: bin.mjs
+  checksum: 1be1f811c9e632b17cacfeacc9b46628878f69413a19bbda18ffbdf72c23d523f0a6d2b634d9dadfd6395395d1900100ebd632fe054d0658c32f7e9675bcce7f
   languageName: node
   linkType: hard
 
@@ -14083,7 +14088,7 @@ fsevents@~2.3.2:
     c8: ^7.7.3
     faucet: ^0.0.1
     gentype: ^4.1.0
-    nanobundle: ^0.0.14
+    nanobundle: ^0.0.19
     rescript: ^9.1.4
     rescript-fast-check: ^1.0.4
     typescript: ^4.3.5
@@ -15784,6 +15789,20 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
+"tsconfck@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "tsconfck@npm:1.1.1"
+  peerDependencies:
+    typescript: ^4.3.5
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  bin:
+    tsconfck: bin/tsconfck.js
+  checksum: c63cea15e79d39bfa7eb9c7faa108052450e1952702a8ec80b914d3946727b8714d795f99aa6272f2fe62a4225045c20bd0f6bfa6d0f1e71331e79c6b32fb7e1
+  languageName: node
+  linkType: hard
+
 "tslib@npm:^1.9.0":
   version: 1.14.1
   resolution: "tslib@npm:1.14.1"
@@ -15907,7 +15926,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"typescript@^3.7.0 || ^4.0.0, typescript@^4.3.5":
+typescript@^4.3.5:
   version: 4.4.3
   resolution: "typescript@npm:4.4.3"
   bin:
@@ -15917,7 +15936,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^3.7.0 || ^4.0.0#~builtin<compat/typescript>, typescript@patch:typescript@^4.3.5#~builtin<compat/typescript>":
+"typescript@patch:typescript@^4.3.5#~builtin<compat/typescript>":
   version: 4.4.3
   resolution: "typescript@patch:typescript@npm%3A4.4.3#~builtin<compat/typescript>::version=4.4.3&hash=d8b4e7"
   bin:

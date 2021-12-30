@@ -14,9 +14,15 @@
   ],
   "type": "module",
   "sideEffects": false,
-  "source": "./src/index.js",
+  "source": "./src/index.tsx",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
+  "imports": {
+    "@rescript/std/lib/es6/": {
+      "default": "@rescript/std/lib/es6/",
+      "node": "@rescript/std/lib/js/"
+    }
+  },
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -25,10 +31,8 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "yarn build:res && yarn build:dts",
-    "build:res": "rescript build",
-    "build:dts": "tsc --emitDeclarationOnly",
-    "bundle": "nanobundle build --import-maps=import-maps.json",
+    "build": "rescript build",
+    "bundle": "nanobundle build",
     "prepack": "yarn build && yarn bundle",
     "start": "rescript build -w",
     "clean": "rescript clean",
@@ -51,7 +55,7 @@
     "c8": "^7.7.3",
     "faucet": "^0.0.1",
     "gentype": "^4.1.0",
-    "nanobundle": "^0.0.14",
+    "nanobundle": "^0.0.19",
     "rescript": "^9.1.4",
     "rescript-fast-check": "^1.0.4",
     "typescript": "^4.3.5",

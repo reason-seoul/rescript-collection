@@ -17,18 +17,18 @@
   "source": "./src/index.tsx",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
-  "imports": {
-    "@rescript/std/lib/es6/": {
-      "default": "@rescript/std/lib/es6/",
-      "node": "@rescript/std/lib/js/"
-    }
-  },
   "exports": {
     ".": {
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
     "./package.json": "./package.json"
+  },
+  "imports": {
+    "@rescript/std/lib/es6/": {
+      "default": "@rescript/std/lib/es6/",
+      "node": "@rescript/std/lib/js/"
+    }
   },
   "scripts": {
     "build": "rescript build",

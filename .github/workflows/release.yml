@@ -6,7 +6,86 @@ on:
       - main
 
 jobs:
+  build_linux:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ./packages/vector/ppx_vector
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        ocaml-compiler:
+          - 4.12.1
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use OCaml ${{ matrix.ocaml-compiler}}
+        uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+
+      - name: Install deps
+        run: opam install . --deps-only --with-test
+
+      - name: Build
+        run: opam exec -- dune build
+
+      - name: Copy built PPX file
+        run: |
+          mv ./_build/default/bin/bin.exe ppx.exe
+
+      - name: (only on release) Upload artifacts ${{ matrix.os }}
+        uses: actions/upload-artifact@master
+        with:
+          name: ${{ matrix.os }}
+          path: ./packages/vector/ppx_vector/ppx.exe
+          if-no-files-found: error
+
+  build_macos:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ./packages/vector/ppx_vector
+    strategy:
+      matrix:
+        os: [macOS-latest]
+        ocaml-compiler:
+          - 4.12.1
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use OCaml ${{ matrix.ocaml-compiler}}
+        uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+
+      - name: Install deps
+        run: opam install . --deps-only --with-test
+
+      - name: Build
+        run: opam exec -- dune build
+
+      - name: Copy built PPX file
+        run: |
+          mv ./_build/default/bin/bin.exe ppx.exe
+      
+      - name: ls
+        run: |
+          echo $(ls)
+
+      - name: (only on release) Upload artifacts ${{ matrix.os }}
+        uses: actions/upload-artifact@master
+        with:
+          name: ${{ matrix.os }}
+          path: ./packages/vector/ppx_vector/ppx.exe
+          if-no-files-found: error
+
   release:
+    needs: [build_linux, build_macos]
     name: Release
     runs-on: ubuntu-latest
     permissions:
@@ -23,6 +102,27 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 14.x
+
+      - name: Download linux artifacts
+        if: success()
+        uses: actions/download-artifact@master
+        with:
+          name: ubuntu-18.04
+          path: binaries/linux
+
+      - name: Download macOS artifacts
+        if: success()
+        uses: actions/download-artifact@master
+        with:
+          name: macOS-latest
+          path: binaries/darwin
+
+      - name: Move artifacts
+        if: success()
+        run: |
+          mkdir -p bin
+          mv binaries/linux/ppx.exe ./packages/vector/ppx-linux.exe
+          mv binaries/darwin/ppx.exe ./packages/vector/ppx-osx.exe
 
       - name: Install Dependencies
         run: yarn install --immutable

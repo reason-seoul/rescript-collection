@@ -1630,7 +1630,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@changesets/cli@npm:^2.16.0":
+"@changesets/cli@npm:^2.24.4":
   version: 2.24.4
   resolution: "@changesets/cli@npm:2.24.4"
   dependencies:
@@ -3338,7 +3338,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rescript-collection/project@workspace:."
   dependencies:
-    "@changesets/cli": ^2.16.0
+    "@changesets/cli": ^2.24.4
   languageName: unknown
   linkType: soft
 

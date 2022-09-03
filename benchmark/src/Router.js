@@ -66,6 +66,5 @@ export {
   vectorMenu ,
   useUrl ,
   HashLink ,
-  
 }
 /* vectorMenu Not a pure module */

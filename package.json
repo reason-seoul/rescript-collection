@@ -9,6 +9,6 @@
   ],
   "scripts": {},
   "devDependencies": {
-    "@changesets/cli": "^2.16.0"
+    "@changesets/cli": "^2.24.4"
   }
 }

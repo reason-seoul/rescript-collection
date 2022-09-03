@@ -231,7 +231,7 @@ let fromArray = ar => {
 
     // unroll reduce
     let i = ref(0)
-    let state = ref({...make(), size: tailSize, tail: tail})
+    let state = ref({...make(), size: tailSize, tail})
     while i.contents < tailOffset {
       let offset = i.contents
       let {shift, size, root} as vec = state.contents
@@ -280,7 +280,7 @@ let makeByU = (len, f) => {
 
     // unroll reduce
     let i = ref(0)
-    let state = ref({...make(), size: tailSize, tail: tail})
+    let state = ref({...make(), size: tailSize, tail})
     while i.contents < tailOffset {
       let offset = i.contents
       let {shift, size, root} as vec = state.contents

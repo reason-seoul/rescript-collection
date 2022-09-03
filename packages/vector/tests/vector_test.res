@@ -26,11 +26,13 @@ zora("Vector initialize", t => {
 
 zora("Vector.push", t => {
   t->test("push", t => {
-    A.range(1, 64)->A.forEach(n => {
-      let v1 = A.reduce(A.range(1, n), V.make(), (v, i) => V.push(v, i))
-      let v2 = A.range(1, n)->V.fromArray
-      t->equal(v1, v2, "should be equal")
-    })
+    A.range(1, 64)->A.forEach(
+      n => {
+        let v1 = A.reduce(A.range(1, n), V.make(), (v, i) => V.push(v, i))
+        let v2 = A.range(1, n)->V.fromArray
+        t->equal(v1, v2, "should be equal")
+      },
+    )
 
     done()
   })
@@ -50,9 +52,11 @@ zora("Vector.push", t => {
 
 zora("Vector.pop", t => {
   t->test("pop", t => {
-    [(100, 50), (100, 100), (10000, 5000)]->A.forEach(((n, m)) => {
-      t->equal(pushpop(n, m)->V.toArray, A.range(1, n - m), "should be equal")
-    })
+    [(100, 50), (100, 100), (10000, 5000)]->A.forEach(
+      ((n, m)) => {
+        t->equal(pushpop(n, m)->V.toArray, A.range(1, n - m), "should be equal")
+      },
+    )
     done()
   })
 
@@ -71,10 +75,13 @@ zora("Vector.pop", t => {
 zora("Vector.get", t => {
   let v = pushpop(20000, 10000)
   t->block("random access (10,000 times)", t => {
-    let every = A.every(A.range(1, 10000), _ => {
-      let idx = Js.Math.random_int(0, 10000)
-      V.getExn(v, idx) == idx + 1
-    })
+    let every = A.every(
+      A.range(1, 10000),
+      _ => {
+        let idx = Js.Math.random_int(0, 10000)
+        V.getExn(v, idx) == idx + 1
+      },
+    )
     t->ok(every, "should be succeed")
   })
 
@@ -85,12 +92,14 @@ zora("Vector.get", t => {
   })
 
   t->block("optional get", t => {
-    [-1, 0, 10000]->A.forEach(idx => {
-      switch V.get(v, idx) {
-      | Some(_) => t->ok(idx >= 0 && idx < V.length(v), "should be ok")
-      | None => t->notOk(idx >= 0 && idx < V.length(v), "should not be ok")
-      }
-    })
+    [-1, 0, 10000]->A.forEach(
+      idx => {
+        switch V.get(v, idx) {
+        | Some(_) => t->ok(idx >= 0 && idx < V.length(v), "should be ok")
+        | None => t->notOk(idx >= 0 && idx < V.length(v), "should not be ok")
+        }
+      },
+    )
   })
 
   t->block("out of bounds", t => {
@@ -114,12 +123,14 @@ zora("Vector.set", t => {
   })
 
   t->block("optional set", t => {
-    [-1, 0, 10000]->A.forEach(idx => {
-      switch V.set(v, idx, 42) {
-      | Some(_) => t->ok(idx >= 0 && idx < V.length(v), "should be ok")
-      | None => t->notOk(idx >= 0 && idx < V.length(v), "should not be ok")
-      }
-    })
+    [-1, 0, 10000]->A.forEach(
+      idx => {
+        switch V.set(v, idx, 42) {
+        | Some(_) => t->ok(idx >= 0 && idx < V.length(v), "should be ok")
+        | None => t->notOk(idx >= 0 && idx < V.length(v), "should not be ok")
+        }
+      },
+    )
   })
 
   let ar = A.range(1, size)
@@ -153,24 +164,27 @@ zora("Prop test: should always equally sized", t => {
   open FastCheck
   open Arbitrary
   open Property.Sync
-  let p1 = Combinators.arrayWithLength(integer(), 0, 10000) // 
+  let p1 = Combinators.arrayWithLength(integer(), 0, 10000)
   let p2 = integerRange(2, 10) // push probability (10% ~ 50%)
   assert_(
     property2(p1, p2, (xs, prob) => {
       let a: array<int> = []
       let v: ref<V.t<int>> = ref(V.make())
-      A.forEach(xs, n => {
-        v := if mod(n, prob) != 0 {
-            Js.Array2.push(a, n)->ignore
-            V.push(v.contents, n)
-          } else {
-            Js.Array2.pop(a)->ignore
-            V.pop(v.contents)
-          }
+      A.forEach(
+        xs,
+        n => {
+          v := if mod(n, prob) != 0 {
+              Js.Array2.push(a, n)->ignore
+              V.push(v.contents, n)
+            } else {
+              Js.Array2.pop(a)->ignore
+              V.pop(v.contents)
+            }
 
-        assert (a == V.toArray(v.contents))
-        assert (A.length(a) == V.length(v.contents))
-      })
+          assert (a == V.toArray(v.contents))
+          assert (A.length(a) == V.length(v.contents))
+        },
+      )
 
       t->equal(A.length(a), V.length(v.contents), "equal length")
       A.length(a) == V.length(v.contents)

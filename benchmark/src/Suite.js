@@ -5,6 +5,5 @@ var Vector;
 
 export {
   Vector ,
-  
 }
 /* No side effect */

@@ -37,6 +37,5 @@ export {
   Platform ,
   Support ,
   Browser ,
-  
 }
 /* No side effect */

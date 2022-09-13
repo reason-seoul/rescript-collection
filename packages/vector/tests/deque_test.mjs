@@ -3,6 +3,7 @@
 import * as Deque from "../src/impl/Deque.mjs";
 import * as Belt_Array from "@rescript/std/lib/es6/belt_Array.js";
 import * as Caml_int32 from "@rescript/std/lib/es6/caml_int32.js";
+import * as FingerTree from "../src/impl/FingerTree.mjs";
 import * as Belt_MapInt from "@rescript/std/lib/es6/belt_MapInt.js";
 import * as Caml_option from "@rescript/std/lib/es6/caml_option.js";
 import * as Belt_SortArrayInt from "@rescript/std/lib/es6/belt_SortArrayInt.js";
@@ -110,7 +111,7 @@ function play(circle, numPlayers, lastMarble) {
   };
 }
 
-console.log(play(Deque.pushFront(Deque.empty, 0), 459, 71790));
+console.log(FingerTree.debug(FingerTree.pushl(FingerTree.pushl(FingerTree.pushl(FingerTree.pushl(FingerTree.pushl(FingerTree.pushl(FingerTree.pushl(FingerTree.pushl(FingerTree.pushl(FingerTree.pushl(/* Empty */0, 0), 1), 2), 3), 4), 5), 6), 7), 8), 9)));
 
 export {
   Circle ,

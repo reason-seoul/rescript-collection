@@ -168,3 +168,30 @@ let viewr = tree =>
     Cons(a, v)
   | Deep(pr, m, sf) => Cons(last(sf), Deep(pr, m, toDigit(init(sf))))
   }
+
+let fromNode = (Node3(a, b, c)) => [a, b, c]
+let fromDigit = d =>
+  switch d {
+  | One(a) => [a]
+  | Two(a, b) => [a, b]
+  | Three(a, b, c) => [a, b, c]
+  | Four(a, b, c, d) => [a, b, c, d]
+  }
+
+let rec debug_aux: 'a. tree<node<'a>> => array<'a> = tree => {
+  switch tree {
+  | Empty => []
+  | Single(a) => fromNode(a)
+  | Deep(pr, m, sf) =>
+    Belt.Array.concatMany([fromDigit(pr), debug_aux(m), fromDigit(sf)])->Belt.Array.flatMap(
+      fromNode,
+    )
+  }
+}
+let debug: tree<int> => array<int> = tree => {
+  switch tree {
+  | Empty => []
+  | Single(a) => [a]
+  | Deep(pr, m, sf) => Belt.Array.concatMany([fromDigit(pr), debug_aux(m), fromDigit(sf)])
+  }
+}

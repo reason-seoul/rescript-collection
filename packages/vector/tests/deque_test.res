@@ -57,4 +57,19 @@ let play = (circle, numPlayers, lastMarble) => {
   f(circle, 1, Belt.Map.Int.empty)
 }
 
-play(Circle.make(), 459, 71790)->Js.log
+//play(Circle.make(), 459, 71790)->Js.log
+
+
+FingerTree.Empty
+->FingerTree.pushl(0)
+->FingerTree.pushl(1)
+->FingerTree.pushl(2)
+->FingerTree.pushl(3)
+->FingerTree.pushl(4)
+->FingerTree.pushl(5)
+->FingerTree.pushl(6)
+->FingerTree.pushl(7)
+->FingerTree.pushl(8)
+->FingerTree.pushl(9)
+->FingerTree.debug
+->Js.log

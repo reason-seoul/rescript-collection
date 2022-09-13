@@ -9,7 +9,6 @@ function blit(src, srcOffset, dst, dstOffset, len) {
   for(var i = 0; i < len; ++i){
     dst[dstOffset + i | 0] = src[srcOffset + i | 0];
   }
-  
 }
 
 function cloneAndSet(ar, i, a) {
@@ -39,6 +38,5 @@ export {
   cloneAndSet ,
   cloneAndAdd ,
   cloneWithout ,
-  
 }
 /* No side effect */

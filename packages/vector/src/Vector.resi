@@ -14,7 +14,7 @@ let length: t<'a> => int
 let size: t<'a> => int
 
 let concat: (t<'a>, t<'a>) => t<'a>
-let concatMany: (array<t<'a>>) => t<'a>
+let concatMany: array<t<'a>> => t<'a>
 
 @genType
 let push: (t<'a>, 'a) => t<'a>

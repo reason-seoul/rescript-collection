@@ -18,12 +18,10 @@ var prefix = "rescript-collection";
 
 function set(title) {
   document.setTitle = prefix + (" - " + title);
-  
 }
 
 function reset(param) {
   document.setTitle = prefix;
-  
 }
 
 var DocTitle = {
@@ -118,7 +116,6 @@ function App$Item(Props) {
                     
                   })
               });
-          
         }), [suite]);
   var tmp;
   var exit = 0;
@@ -219,7 +216,7 @@ function getStats(param) {
                 })), (function (param) {
               return Js_dict.get(currentTarget, param);
             })), (function (a, b) {
-          return Caml.caml_float_compare(b.hz, a.hz);
+          return Caml.float_compare(b.hz, a.hz);
         }));
   if (!results) {
     return /* NotStarted */0;
@@ -273,7 +270,6 @@ function App$Wrapper(Props) {
                 }));
           return (function (param) {
                     suite.abort();
-                    
                   });
         }), [suite]);
   React.useEffect((function () {
@@ -312,7 +308,6 @@ function App$Wrapper(Props) {
                           suite.run({
                                 async: true
                               });
-                          
                         })
                     }, tmp$2)), React.createElement(App$SuiteComponent, {
                   benchmarks: benchmarks,
@@ -349,7 +344,6 @@ function App(Props) {
   var url = Router$Benchmark.useUrl(undefined);
   React.useEffect((function () {
           document.setTitle = prefix;
-          
         }), []);
   var tmp;
   if (url) {
@@ -403,6 +397,5 @@ export {
   Wrapper ,
   Tests ,
   make ,
-  
 }
 /* react Not a pure module */

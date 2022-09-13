@@ -81,10 +81,8 @@ var benchmarks$1 = [
   }
 ];
 
-var suite_name = "Convert (to array)";
-
 var suite$1 = {
-  name: suite_name,
+  name: "Convert (to array)",
   setup: setup$1,
   benchmarks: benchmarks$1
 };
@@ -96,8 +94,6 @@ var Convert = {
 };
 
 var setup$2 = "let ar1k = A.range(1, 1000)";
-
-var suite_name$1 = "Push";
 
 var suite_benchmarks = [
   {
@@ -130,7 +126,7 @@ var suite_benchmarks = [
 ];
 
 var suite$2 = {
-  name: suite_name$1,
+  name: "Push",
   setup: setup$2,
   benchmarks: suite_benchmarks
 };
@@ -147,8 +143,6 @@ var l1k = Immutable.List(ar1k);
 var m1k = Mori.into(Mori.vector(), ar1k);
 
 var setup$3 = "let ar1k = A.range(1, 1000)\n\nlet v1k = Vector.fromArray(ar1k)\nlet l1k = ImmutableJs.List.fromArray(ar1k)\nlet m1k = Mori.into(Mori.vector(), ar1k)\n";
-
-var suite_name$2 = "Pop";
 
 var suite_benchmarks$1 = [
   {
@@ -181,7 +175,7 @@ var suite_benchmarks$1 = [
 ];
 
 var suite$3 = {
-  name: suite_name$2,
+  name: "Pop",
   setup: setup$3,
   benchmarks: suite_benchmarks$1
 };
@@ -268,9 +262,7 @@ var Fixture = {
 
 var indices = Belt_Array.shuffle(Belt_Array.range(0, 9999));
 
-var setup$6 = setup$5 + "\nlet indices = A.range(0, n - 1)->A.shuffle;";
-
-var accessSuite_name = "Random Access";
+var setup$6 = setup$5 + "\\nlet indices = A.range(0, n - 1)->A.shuffle;";
 
 var accessSuite_benchmarks = [
   {
@@ -279,7 +271,6 @@ var accessSuite_benchmarks = [
     f: (function () {
         return Belt_Array.forEach(indices, (function (i) {
                       Vector.getExn(v1, i);
-                      
                     }));
       })
   },
@@ -289,7 +280,6 @@ var accessSuite_benchmarks = [
     f: (function () {
         return Belt_Array.forEach(indices, (function (i) {
                       v2.get(i);
-                      
                     }));
       })
   },
@@ -299,19 +289,16 @@ var accessSuite_benchmarks = [
     f: (function () {
         return Belt_Array.forEach(indices, (function (i) {
                       Mori.nth(v3, i);
-                      
                     }));
       })
   }
 ];
 
 var accessSuite = {
-  name: accessSuite_name,
+  name: "Random Access",
   setup: setup$6,
   benchmarks: accessSuite_benchmarks
 };
-
-var updateSuite_name = "Random Update";
 
 var updateSuite_benchmarks = [
   {
@@ -325,7 +312,7 @@ var updateSuite_benchmarks = [
   },
   {
     name: "ImmutableJs.List.set",
-    code: "indices\n->A.reduce(v2, (v, i) => ImmutableJs.List.set(v, i, -1))",
+    code: "indices\\n->A.reduce(v2, (v, i) => ImmutableJs.List.set(v, i, -1))",
     f: (function () {
         return Belt_Array.reduce(indices, v2, (function (v, i) {
                       return v.set(i, -1);
@@ -344,7 +331,7 @@ var updateSuite_benchmarks = [
 ];
 
 var updateSuite = {
-  name: updateSuite_name,
+  name: "Random Update",
   setup: setup$6,
   benchmarks: updateSuite_benchmarks
 };
@@ -355,8 +342,6 @@ var AccessUpdate = {
   accessSuite: accessSuite,
   updateSuite: updateSuite
 };
-
-var suite_name$3 = "Reduce";
 
 var suite_benchmarks$2 = [
   {
@@ -389,12 +374,10 @@ var suite_benchmarks$2 = [
 ];
 
 var suite$5 = {
-  name: suite_name$3,
+  name: "Reduce",
   setup: setup$5,
   benchmarks: suite_benchmarks$2
 };
-
-var suite2_name = "Reduce (vs. mutable)";
 
 var suite2_benchmarks = [
   {
@@ -427,7 +410,7 @@ var suite2_benchmarks = [
 ];
 
 var suite2 = {
-  name: suite2_name,
+  name: "Reduce (vs. mutable)",
   setup: setup$5,
   benchmarks: suite2_benchmarks
 };
@@ -556,6 +539,5 @@ export {
   AccessUpdate ,
   Reduce ,
   Routes ,
-  
 }
 /* ar1k Not a pure module */

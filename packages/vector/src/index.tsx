@@ -7,7 +7,7 @@ import * as Curry__Es6Import from '@rescript/std/lib/es6/curry.js';
 const Curry: any = Curry__Es6Import;
 
 // @ts-ignore: Implicit any on import
-import * as indexBS__Es6Import from './index.js';
+import * as indexBS__Es6Import from './index.mjs';
 const indexBS: any = indexBS__Es6Import;
 
 import type {t as Vector_t} from './Vector';

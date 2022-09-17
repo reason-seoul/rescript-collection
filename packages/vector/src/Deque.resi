@@ -10,3 +10,5 @@ let popBack: t<'a> => t<'a>
 
 let peekFront: t<'a> => option<'a>
 let peekBack: t<'a> => option<'a>
+
+let toArray: t<'a> => array<'a>

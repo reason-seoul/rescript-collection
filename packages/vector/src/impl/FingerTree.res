@@ -10,7 +10,7 @@ type rec tree<'a> =
   | Single('a)
   | Deep(digit<'a>, tree<node<'a>>, digit<'a>)
 
-let rec pushl_aux: 'a. (tree<node<'a>>, node<'a>) => tree<node<'a>> = (tree, x) =>
+let rec pushl: 'a. (tree<'a>, 'a) => tree<'a> = (tree, x) =>
   switch tree {
   | Empty => Single(x)
   | Single(a) => Deep(One(x), Empty, One(a))
@@ -19,46 +19,20 @@ let rec pushl_aux: 'a. (tree<node<'a>>, node<'a>) => tree<node<'a>> = (tree, x) 
     | One(a) => Deep(Two(x, a), m, sf)
     | Two(a, b) => Deep(Three(x, a, b), m, sf)
     | Three(a, b, c) => Deep(Four(x, a, b, c), m, sf)
-    | Four(a, b, c, d) => Deep(Two(x, a), pushl_aux(m, Node3(b, c, d)), sf)
+    | Four(a, b, c, d) => Deep(Two(x, a), pushl(m, Node3(b, c, d)), sf)
     }
   }
 
-let pushl = (tree, x) =>
+let rec pushr: 'a. (tree<'a>, 'a) => tree<'a> = (tree, x) =>
   switch tree {
   | Empty => Single(x)
-  | Single(a) => Deep(One(x), Empty, One(a))
-  | Deep(pr, m, sf) =>
-    switch pr {
-    | One(a) => Deep(Two(x, a), m, sf)
-    | Two(a, b) => Deep(Three(x, a, b), m, sf)
-    | Three(a, b, c) => Deep(Four(x, a, b, c), m, sf)
-    | Four(a, b, c, d) => Deep(Two(x, a), pushl_aux(m, Node3(b, c, d)), sf)
-    }
-  }
-
-let rec pushr_aux: 'a. (tree<node<'a>>, node<'a>) => tree<node<'a>> = (tree, x) =>
-  switch tree {
-  | Empty => Single(x)
-  | Single(a) => Deep(One(x), Empty, One(a))
+  | Single(a) => Deep(One(a), Empty, One(x))
   | Deep(pr, m, sf) =>
     switch sf {
     | One(a) => Deep(pr, m, Two(a, x))
     | Two(a, b) => Deep(pr, m, Three(a, b, x))
     | Three(a, b, c) => Deep(pr, m, Four(a, b, c, x))
-    | Four(a, b, c, d) => Deep(pr, pushr_aux(m, Node3(a, b, c)), Two(d, x))
-    }
-  }
-
-let pushr = (tree, x) =>
-  switch tree {
-  | Empty => Single(x)
-  | Single(a) => Deep(One(x), Empty, One(a))
-  | Deep(pr, m, sf) =>
-    switch sf {
-    | One(a) => Deep(pr, m, Two(a, x))
-    | Two(a, b) => Deep(pr, m, Three(a, b, x))
-    | Three(a, b, c) => Deep(pr, m, Four(a, b, c, x))
-    | Four(a, b, c, d) => Deep(pr, pushr_aux(m, Node3(a, b, c)), Two(d, x))
+    | Four(a, b, c, d) => Deep(pr, pushr(m, Node3(a, b, c)), Two(d, x))
     }
   }
 
@@ -118,24 +92,12 @@ let toTree = d =>
 
 type view<'a, 'rest> = Nil | Cons('a, 'rest)
 
-let rec viewl_aux: 'a. tree<node<'a>> => view<node<'a>, tree<node<'a>>> = tree =>
+let rec viewl: 'a. tree<'a> => view<'a, tree<'a>> = tree =>
   switch tree {
   | Empty => Nil
   | Single(a) => Cons(a, Empty)
   | Deep(One(a), m, sf) =>
-    let v = switch viewl_aux(m) {
-    | Nil => toTree(sf)
-    | Cons(a, m') => Deep(toDigitNode(a), m', sf)
-    }
-    Cons(a, v)
-  | Deep(pr, m, sf) => Cons(head(pr), Deep(toDigit(tail(pr)), m, sf))
-  }
-let viewl = tree =>
-  switch tree {
-  | Empty => Nil
-  | Single(a) => Cons(a, Empty)
-  | Deep(One(a), m, sf) =>
-    let v = switch viewl_aux(m) {
+    let v = switch viewl(m) {
     | Nil => toTree(sf)
     | Cons(a, m') => Deep(toDigitNode(a), m', sf)
     }
@@ -143,25 +105,12 @@ let viewl = tree =>
   | Deep(pr, m, sf) => Cons(head(pr), Deep(toDigit(tail(pr)), m, sf))
   }
 
-let rec viewr_aux: 'a. tree<node<'a>> => view<node<'a>, tree<node<'a>>> = tree =>
+let rec viewr: 'a. tree<'a> => view<'a, tree<'a>> = tree =>
   switch tree {
   | Empty => Nil
   | Single(a) => Cons(a, Empty)
   | Deep(pr, m, One(a)) =>
-    let v = switch viewr_aux(m) {
-    | Nil => toTree(pr)
-    | Cons(a, m') => Deep(pr, m', toDigitNode(a))
-    }
-    Cons(a, v)
-  | Deep(pr, m, sf) => Cons(last(sf), Deep(pr, m, toDigit(init(sf))))
-  }
-
-let viewr = tree =>
-  switch tree {
-  | Empty => Nil
-  | Single(a) => Cons(a, Empty)
-  | Deep(pr, m, One(a)) =>
-    let v = switch viewr_aux(m) {
+    let v = switch viewr(m) {
     | Nil => toTree(pr)
     | Cons(a, m') => Deep(pr, m', toDigitNode(a))
     }
@@ -177,21 +126,3 @@ let fromDigit = d =>
   | Three(a, b, c) => [a, b, c]
   | Four(a, b, c, d) => [a, b, c, d]
   }
-
-let rec debug_aux: 'a. tree<node<'a>> => array<'a> = tree => {
-  switch tree {
-  | Empty => []
-  | Single(a) => fromNode(a)
-  | Deep(pr, m, sf) =>
-    Belt.Array.concatMany([fromDigit(pr), debug_aux(m), fromDigit(sf)])->Belt.Array.flatMap(
-      fromNode,
-    )
-  }
-}
-let debug: tree<int> => array<int> = tree => {
-  switch tree {
-  | Empty => []
-  | Single(a) => [a]
-  | Deep(pr, m, sf) => Belt.Array.concatMany([fromDigit(pr), debug_aux(m), fromDigit(sf)])
-  }
-}

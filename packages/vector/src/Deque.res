@@ -28,3 +28,25 @@ let peekBack = tree =>
   | Nil => None
   | Cons(a, _) => Some(a)
   }
+
+let rec toArray_aux: 'a. t<FingerTree.node<'a>> => array<'a> = tree => {
+  switch tree {
+  | Empty => []
+  | Single(a) => FingerTree.fromNode(a)
+  | Deep(pr, m, sf) =>
+    Belt.Array.concatMany([
+      FingerTree.fromDigit(pr),
+      toArray_aux(m),
+      FingerTree.fromDigit(sf),
+    ])->Belt.Array.flatMap(FingerTree.fromNode)
+  }
+}
+
+let toArray: t<'a> => array<'a> = tree => {
+  switch tree {
+  | Empty => []
+  | Single(a) => [a]
+  | Deep(pr, m, sf) =>
+    Belt.Array.concatMany([FingerTree.fromDigit(pr), toArray_aux(m), FingerTree.fromDigit(sf)])
+  }
+}

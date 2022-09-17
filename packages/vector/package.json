@@ -50,7 +50,7 @@
     "@rescript/std": "^10.0.1"
   },
   "devDependencies": {
-    "@dusty-phillips/rescript-zora": "^3.0.1",
+    "@dusty-phillips/rescript-zora": "git+https://github.com/reason-seoul/rescript-zora",
     "browserslist": "^4.21.3",
     "c8": "^7.12.0",
     "faucet": "^0.0.1",

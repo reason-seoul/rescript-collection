@@ -31,11 +31,11 @@
     }
   },
   "scripts": {
-    "build": "rescript build",
+    "res:build": "rescript build -with-deps",
+    "res:watch": "rescript build -w",
+    "res:clean": "rescript clean",
     "bundle": "nanobundle build",
-    "prepack": "yarn build && yarn bundle",
-    "start": "rescript build -w",
-    "clean": "rescript clean",
+    "prepack": "yarn res:build && yarn bundle",
     "test": "node tests/vector_test.mjs | faucet",
     "test:watch": "yarn test || true && watchlist src tests -- yarn test",
     "test:coverage": "c8 -r text -r lcov yarn test"
@@ -50,7 +50,7 @@
     "@rescript/std": "^10.0.1"
   },
   "devDependencies": {
-    "@dusty-phillips/rescript-zora": "^3.0.1",
+    "@dusty-phillips/rescript-zora": "git+https://github.com/reason-seoul/rescript-zora",
     "browserslist": "^4.21.3",
     "c8": "^7.12.0",
     "faucet": "^0.0.1",

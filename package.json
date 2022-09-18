@@ -7,8 +7,8 @@
     "benchmark",
     "website"
   ],
-  "scripts": {},
   "devDependencies": {
     "@changesets/cli": "^2.24.4"
-  }
+  },
+  "packageManager": "yarn@3.2.3"
 }

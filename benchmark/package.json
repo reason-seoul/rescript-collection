@@ -13,17 +13,17 @@
   "devDependencies": {
     "benchmark": "^2.1.4",
     "gh-pages": "^4.0.0",
-    "parcel": "^2.7.0",
+    "parcel": "^2.8.2",
     "rescript": "^10.1.0"
   },
   "dependencies": {
     "@rescript/react": "^0.10.3",
     "@rescript/std": "^10.1.0",
-    "immutable": "^4.1.0",
+    "immutable": "^4.2.1",
     "mori": "^0.3.2",
     "normalize.css": "^8.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rescript-vector": "workspace:packages/vector"
+    "rescript-vector": "workspace:^"
   }
 }

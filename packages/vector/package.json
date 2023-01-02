@@ -45,16 +45,15 @@
     "bsconfig.json"
   ],
   "dependencies": {
-    "@rescript/std": "^10.0.1"
+    "@rescript/std": "^10.1.0"
   },
   "devDependencies": {
     "@dusty-phillips/rescript-zora": "git+https://github.com/reason-seoul/rescript-zora",
     "browserslist": "^4.21.3",
     "c8": "^7.12.0",
     "faucet": "^0.0.1",
-    "gentype": "^4.5.0",
     "nanobundle": "^1.1.0",
-    "rescript": "^10.0.1",
+    "rescript": "^10.1.0",
     "rescript-fast-check": "^1.1.1",
     "typescript": "^4.8.2",
     "watchlist": "^0.3.1"

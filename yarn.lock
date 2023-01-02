@@ -3513,10 +3513,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rescript/std@npm:^10.0.1":
-  version: 10.0.1
-  resolution: "@rescript/std@npm:10.0.1"
-  checksum: 7d55aa9b75654d8179f81b2d3c4d4114ae08a2d66395b39fa809a97f4b2f97ce35f297603142fdcd59a509309d0d4c3dac847eeb5c6d3f6d7eae090cf89d62ad
+"@rescript/std@npm:^10.1.0":
+  version: 10.1.0
+  resolution: "@rescript/std@npm:10.1.0"
+  checksum: dd284d2ebaa6ebf96aff37c9cd012fb9557a52d1a225d2685448b904cd129a8629a4debe8ed4fe0e4532e43db472fe2e3febf7f84a8cd2f1b8671afcd552aa1a
   languageName: node
   linkType: hard
 
@@ -4748,7 +4748,7 @@ __metadata:
   resolution: "benchmark@workspace:benchmark"
   dependencies:
     "@rescript/react": ^0.10.3
-    "@rescript/std": ^10.0.1
+    "@rescript/std": ^10.1.0
     benchmark: ^2.1.4
     gh-pages: ^4.0.0
     immutable: ^4.1.0
@@ -4757,7 +4757,7 @@ __metadata:
     parcel: ^2.7.0
     react: ^18.2.0
     react-dom: ^18.2.0
-    rescript: ^10.0.1
+    rescript: ^10.1.0
     rescript-vector: "workspace:packages/vector"
   languageName: unknown
   linkType: soft
@@ -7735,15 +7735,6 @@ fsevents@~2.3.2:
   version: 1.0.0-beta.2
   resolution: "gensync@npm:1.0.0-beta.2"
   checksum: a7437e58c6be12aa6c90f7730eac7fa9833dc78872b4ad2963d2031b00a3367a93f98aec75f9aaac7220848e4026d67a8655e870b24f20a543d103c0d65952ec
-  languageName: node
-  linkType: hard
-
-"gentype@npm:^4.5.0":
-  version: 4.5.0
-  resolution: "gentype@npm:4.5.0"
-  bin:
-    gentype: gentype.exe
-  checksum: 982241d3046cb681db6e3196019059d2d450d902a94255bcc18dceff7f27f422839aaddf6605c851337b61aeda8afa534049e68e60213012c4bd05954129d34d
   languageName: node
   linkType: hard
 
@@ -13313,40 +13304,27 @@ fsevents@~2.3.2:
   resolution: "rescript-vector@workspace:packages/vector"
   dependencies:
     "@dusty-phillips/rescript-zora": "git+https://github.com/reason-seoul/rescript-zora"
-    "@rescript/std": ^10.0.1
+    "@rescript/std": ^10.1.0
     browserslist: ^4.21.3
     c8: ^7.12.0
     faucet: ^0.0.1
-    gentype: ^4.5.0
     nanobundle: ^1.1.0
-    rescript: ^10.0.1
+    rescript: ^10.1.0
     rescript-fast-check: ^1.1.1
     typescript: ^4.8.2
     watchlist: ^0.3.1
   languageName: unknown
   linkType: soft
 
-"rescript@npm:^10.0.1":
-  version: 10.0.1
-  resolution: "rescript@npm:10.0.1"
+"rescript@npm:^10.1.0":
+  version: 10.1.0
+  resolution: "rescript@npm:10.1.0"
   bin:
     bsc: bsc
     bsrefmt: bsrefmt
     bstracing: lib/bstracing
     rescript: rescript
-  checksum: 59ae153c7f6c8ab7130becffc0ae6bcf0cfb21517ff6587548d74ed68fcd5f4e48f14e5de823f71edbc4d0f65b629c132d2a553467bd7c8c2f31ed9d5fb2881c
-  languageName: node
-  linkType: hard
-
-"rescript@npm:^9.1.4":
-  version: 9.1.4
-  resolution: "rescript@npm:9.1.4"
-  bin:
-    bsc: bsc
-    bsrefmt: bsrefmt
-    bstracing: lib/bstracing
-    rescript: rescript
-  checksum: 3c503580f968b4d4409830093c57f85b5590f7372250345427b3a7c1f5ccb08009e1edd89b4a3dcbb3ee95ee4dcad9c337ece4d1f8fdaa10e22ed04b8a7495c0
+  checksum: b0b6ffbe7e6fc52098ccdeea30dff886dff4cf09c8cd85bdfa2b6cd7a854f35c167aa96e03f1590070315c344b85f24f311aa8ac26d3e96a763730a03bb99d7d
   languageName: node
   linkType: hard
 
@@ -15879,7 +15857,7 @@ typescript@^4.8.2:
     prism-react-renderer: ^1.2.1
     react: ^17.0.1
     react-dom: ^17.0.1
-    rescript: ^9.1.4
+    rescript: ^10.1.0
     url-loader: ^4.1.1
   languageName: unknown
   linkType: soft

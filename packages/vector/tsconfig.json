@@ -7,8 +7,7 @@
     "composite": true,
     "incremental": true,
     "rootDir": "src",
-    "outDir": "dist",
-    "declarationDir": "dist"
+    "outDir": "dist"
   },
   "include": ["src"]
 }

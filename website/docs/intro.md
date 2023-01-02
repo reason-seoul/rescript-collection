@@ -8,6 +8,9 @@ Fast and efficient immutable collection written in 100% ReScript!
 
 Available packages:
 - [Vector](/docs/packages/vector)
+
+TBD:
+
 - [HashMap](/docs/packages/hashmap)
 - [HashSet](/docs/packages/hashset)
 

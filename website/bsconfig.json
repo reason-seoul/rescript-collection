@@ -13,13 +13,14 @@
       "in-source": true
     }
   ],
+  "bsc-flags": [],
+  "ppx-flags": [],
+  "jsx": {
+    "version": 4,
+    "mode": "automatic"
+  },
   "suffix": ".js",
   "bs-dependencies": [
     "@rescript/react"
-  ],
-  "bsc-flags": [],
-  "ppx-flags": [],
-  "reason": {
-    "react-jsx": 3
-  }
+  ]
 }

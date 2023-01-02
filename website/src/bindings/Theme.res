@@ -1,10 +1,9 @@
 module Layout = {
-  let makeProps = (~title: string, ~description: string, ~children: React.element, ()) =>
-    {
-      "title": title,
-      "description": description,
-      "children": children,
-    }
+  type props = {
+    title: string,
+    description: string,
+    children: React.element,
+  }
 
-  @module("@theme/Layout") external make: React.component<'a> = "default"
+  @module("@theme/Layout") external make: React.component<props> = "default"
 }

@@ -13,13 +13,12 @@ type docusaurusContext = {siteConfig: docusaurusSiteConfig}
 external useDocusaurusContext: unit => docusaurusContext = "default"
 
 module Link = {
-  let makeProps = (~to_: string, ~className: option<string>=?, ~children: React.element, ()) =>
-    {
-      "to": to_,
-      "className": className,
-      "children": children,
-    }
+  type props = {
+    to_: string,
+    children: React.element,
+    className?: string,
+  }
 
   @module("@docusaurus/Link")
-  external make: React.component<'a> = "default"
+  external make: React.component<props> = "default"
 }

@@ -1,7 +1,3 @@
----
-sidebar_position: 1
----
-
 # Introduction
 
 Fast and efficient immutable collection written in 100% ReScript!

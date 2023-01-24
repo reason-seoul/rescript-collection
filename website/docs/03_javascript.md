@@ -1,7 +1,3 @@
----
-sidebar_position: 3
----
-
 # Usage in JavaScript
 
 Written in ReScript isn't mean that only available for ReScript.
@@ -15,10 +11,10 @@ ReScript is a functional language. Most of operations is provided through functi
 You might need a pipe operator to compose operations.
 
 ```js
-const pipe = (...fns) => (x) => fns.reduce((v, f) => f(v), x);
+const pipe = (x) => (...fns) => fns.reduce((v, f) => f(v), x);
 ```
 
-or in TypeScript project. You can use library like [pipe-ts](https://github.com/unsplash/pipe-ts)
+Or, You can use library like [Remeda](https://remedajs.com/)
 
 ## TypeScript
 

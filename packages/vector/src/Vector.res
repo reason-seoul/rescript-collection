@@ -312,6 +312,7 @@ let concatMany = vs => {
   // )->Transient.toPersistent
 }
 
+// TODO: this can be optimized for batched push operations
 let pushMany = (to_, from) => {
   Js.Array2.reduce(from, push, to_)
   // Js.Array2.reduce(from, Transient.push, to_->Transient.make)->Transient.toPersistent

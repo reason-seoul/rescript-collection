@@ -14,7 +14,7 @@ external useDocusaurusContext: unit => docusaurusContext = "default"
 
 module Link = {
   type props = {
-    to_: string,
+    @as("to") to_: string,
     children: React.element,
     className?: string,
   }

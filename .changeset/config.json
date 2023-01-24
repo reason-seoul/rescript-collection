@@ -8,6 +8,7 @@
   "updateInternalDependencies": "patch",
   "ignore": [
     "benchmark",
-    "website"
+    "website",
+    "example-ts-rescript-vector"
   ]
 }

@@ -1,0 +1,17 @@
+{
+  "name": "example-ts-rescript-vector",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "tsm src/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "tsm": "^2.3.0",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "remeda": "^1.6.0",
+    "rescript-vector": "workspace:^"
+  }
+}

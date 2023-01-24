@@ -1,4 +1,4 @@
-# rescript-vector
+# ReScript Vector
 
 [![Package Version](https://img.shields.io/npm/v/rescript-vector)](https://www.npmjs.com/package/rescript-vector)
 [![License - MIT](https://img.shields.io/npm/l/rescript-vector)](#license)

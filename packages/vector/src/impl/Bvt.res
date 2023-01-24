@@ -38,11 +38,14 @@ module Tree = {
     }
 }
 
-type t<'a> = {
+type rec t<'a> = {
   size: int,
   shift: int,
   root: tree<'a>,
   tail: array<'a>,
+  // cached props for pattern matching
+  init: list<t<'a>>,
+  last: option<'a>,
 }
 
 let make = () => {
@@ -50,6 +53,8 @@ let make = () => {
   shift: numBits,
   root: Node([]),
   tail: [],
+  init: list{},
+  last: None,
 }
 
 let tailOffset = ({size}) =>
@@ -90,9 +95,10 @@ let push = ({size, shift, root, tail} as vec, x) =>
   // case 1: when tail has room to append
   if tail->A.length < numBranches {
     // copy and append
-    let newTail = tail->A.cloneAndAdd(x)
+    let tail = tail->A.cloneAndAdd(x)
+    let last = tail->A.get(tail->A.length - 1)
 
-    {...vec, size: size + 1, tail: newTail}
+    {...vec, size: size + 1, tail, init: vec.init->Belt.List.add(vec), last: Some(last)}
   } else {
     // case 2 & 3
     // sz >= b^(depth+1) + b
@@ -106,11 +112,13 @@ let push = ({size, shift, root, tail} as vec, x) =>
         shift: vec.shift + numBits,
         root: newRoot,
         tail: [x],
+        init: list{vec},
+        last: Some(x),
       }
     } else {
       // case 2: all leaf nodes are full but we have room for a new inner node.
       let newRoot = pushTail(~size, ~level=shift, root, Leaf(tail))
-      {...vec, size: size + 1, root: newRoot, tail: [x]}
+      {...vec, size: size + 1, root: newRoot, tail: [x], init: list{vec}, last: Some(x)}
     }
   }
 
@@ -170,22 +178,24 @@ let pop = ({size, shift, root, tail} as vec) =>
     make()
   } else if tail->A.length > 1 {
     // case 1: tail has more than 1 elements
-    let newTail = tail->A.slice(~offset=0, ~len=A.length(tail) - 1)
-    {...vec, size: size - 1, tail: newTail}
+    let tail = tail->A.slice(~offset=0, ~len=A.length(tail) - 1)
+    let last = tail->A.get(tail->A.length - 1)
+    {...vec, size: size - 1, tail, init: vec.init->List.tl, last: Some(last)}
   } else {
     // case 2 & 3: tail leaf has an only child
-    let newTail = getLeafUnsafe(vec, size - 2)
-    let newRoot = switch popTail(~size, ~level=shift, root) {
+    let tail = getLeafUnsafe(vec, size - 2)
+    let last = tail->A.get(tail->A.length - 1)
+    let root = switch popTail(~size, ~level=shift, root) {
     | Some(nr) => nr
     | None => Node([]) // root must be consist of at least 1 Node
     }
 
-    switch newRoot {
+    switch root {
     | Node(ar) =>
       let isRootUnderflow = shift > numBits && ar->A.length == 1
       isRootUnderflow
-        ? {shift: shift - numBits, size: size - 1, root: A.get(ar, 0), tail: newTail}
-        : {...vec, size: size - 1, root: newRoot, tail: newTail}
+        ? {shift: shift - numBits, size: size - 1, root: A.get(ar, 0), tail, init: vec.init->List.tl, last: Some(last)}
+        : {...vec, size: size - 1, root, tail, init: vec.init->List.tl, last: Some(last)}
     | Leaf(_) => @coverage(off) absurd
     }
   }
@@ -228,10 +238,14 @@ let fromArray = ar => {
     let tailSize = len->land(bitMask) == 0 ? numBranches : len->land(bitMask)
     let tailOffset = len - tailSize
     let tail = A.slice(ar, ~offset=tailOffset, ~len=tailSize)
+    let last = switch tail->A.length >= 1 {
+      | true => Some(tail->A.get(tail->A.length - 1))
+      | false => None
+    }
 
     // unroll reduce
     let i = ref(0)
-    let state = ref({...make(), size: tailSize, tail})
+    let state = ref({...make(), size: tailSize, tail, last})
     while i.contents < tailOffset {
       let offset = i.contents
       let {shift, size, root} as vec = state.contents

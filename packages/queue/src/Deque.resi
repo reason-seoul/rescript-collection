@@ -1,3 +1,9 @@
+/**
+Persistent Deque
+
+See FingerTree.res for implementation.
+For pushing, popping, peeking, time complexity is O(1) amortized.
+*/
 type t<'a>
 
 let empty: t<'a>

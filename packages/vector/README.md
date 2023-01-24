@@ -5,11 +5,11 @@
 
 `rescript-vector` is a **persistent vector** data structure that can be used in ReScript.
 
-_Persistent_
+**_Persistent_**
 
 Any function that changes the vector returns a new instance of it while not modifying the original vector. Just like any strings or numbers, vectors are treated as never-changing values.
 
-_Vector_
+**_Vector_**
 
 Similar to Array, but vectors can be dynamically increased or decreased in size. (in this sense, JS arrays are better called vectors)
 Elements can be added or deleted to the end of the vector, and you can access them in constant time.

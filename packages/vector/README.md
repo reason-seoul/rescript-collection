@@ -18,11 +18,11 @@ Elements can be added or deleted to the end of the vector, and you can access th
 
 ReScript's standard library `Belt` has persistent data structures like Array and List, which are mature and complete.
 
-However, `Belt.Array` does not have push/pop functions like Js.Array2 does. This is because pushing/popping while maintaining the persistency cost **a lot**. Specifically, it takes O(n) time and space complexity.
+However, `Belt.Array` does not have push/pop functions like Js.Array2 does. This is because pushing/popping while maintaining the persistency cost **a lot**. Specifically, it takes _O(n)_ time and space complexity.
 
-`Belt.List` can add or delete elements in O(1), but its access time is O(n) which could cause another latent performance issue.
+`Belt.List` can add or delete elements in _O(1)_, but its access time is _O(n)_ which could cause another latent performance issue.
 
-`rescript-vector` do push/pop in amortized O(1) and O(log n) at worst. Accessing an element takes O(log n) time complexity. [^footnote]
+`rescript-vector` do push/pop in amortized _O(1)_ and _O(log n)_ at worst. Accessing an element takes _O(log n)_ time complexity. [^footnote]
 
 While gaining persistency, this is also a good trade-off in most cases.
 

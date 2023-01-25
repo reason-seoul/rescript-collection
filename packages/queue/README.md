@@ -3,7 +3,7 @@
 [![Package Version](https://img.shields.io/npm/v/rescript-qeueue)](https://www.npmjs.com/package/rescript-queue)
 [![License - MIT](https://img.shields.io/npm/l/rescript-queue)](#license)
 
-`rescript-queue` is a **persistent queue** data structure that can be used in ReScript and JavaScript.
+`rescript-queue` is a **persistent queue and deque** data structure that can be used in ReScript and JavaScript.
 
 **_Persistent_**
 
@@ -12,6 +12,10 @@ Any function that changes the queue returns a new instance of it while not modif
 **_Queue_**
 
 A queue is a data structure that follows the First-In-First-Out (FIFO) principle. This means that the first element added to the queue will be the first one to be removed.
+
+**_Deque_**
+
+A deque, short for "double-ended queue", is a data structure that allows elements to be inserted and removed from both ends. Like a regular queue, it follows the FIFO principle, but it also allows for elements to be added and removed from the back, making it a "double-ended" data structure.
 
 ## Rationale
 

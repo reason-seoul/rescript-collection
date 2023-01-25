@@ -33,7 +33,7 @@ zora("toArray", t => {
     ->Deque.pushFront(8)
     ->Deque.pushFront(9)
     ->Deque.toArray
-  t->is(true, dq == [9,8,7,6,5,4,3,2,0,1], "")
+  t->is(true, dq == [9, 8, 7, 6, 5, 4, 3, 2, 0, 1], "")
   done()
 })
 

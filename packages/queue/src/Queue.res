@@ -4,6 +4,8 @@
 type t<'a> = (list<'a>, list<'a>)
 
 let empty = (list{}, list{})
+let make = () => empty
+
 let isEmpty = ((f, _)) => Belt.List.size(f) == 0
 
 let checkf = fr =>

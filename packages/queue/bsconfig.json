@@ -20,5 +20,10 @@
   "external-stdlib": "@rescript/std",
   "bs-dev-dependencies": [
     "@dusty-phillips/rescript-zora"
-  ]
+  ],
+  "gentypeconfig": {
+    "language": "typescript",
+    "shims": {},
+    "generatedFileExtension": ""
+  }
 }

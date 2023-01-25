@@ -4,6 +4,7 @@ Fast and efficient immutable collection written in 100% ReScript!
 
 Available packages:
 - [Vector](/docs/packages/vector)
+- [Queue & Deque](/docs/packages/queue)
 
 TBD:
 

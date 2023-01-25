@@ -72,6 +72,10 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
                 to: '/docs/packages/vector',
               },
               {
+                label: 'Queue',
+                to: '/docs/packages/queue',
+              },
+              {
                 label: 'HashMap',
                 to: '/docs/packages/hashmap',
               },

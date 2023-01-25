@@ -21,7 +21,7 @@ A deque, short for "double-ended queue", is a data structure that allows element
 
 ### Finger Tree
 
-The [Finger Tree](https://en.wikipedia.org/wiki/Finger_tree) data structure is a persistent data structure that allows for efficient insertion and deletion at the front and back of the queue or deque. The finger tree is divided into "fingers" which are small, constant-size sub-trees and "digits" which are individual elements. The fingers are used to represent the larger elements in the tree, while the digits are used to represent the smaller elements.
+The [**Finger Tree**](https://en.wikipedia.org/wiki/Finger_tree) data structure is a persistent data structure that allows for efficient insertion and deletion at the front and back of the queue or deque. The finger tree is divided into "fingers" which are small, constant-size sub-trees and "digits" which are individual elements. The fingers are used to represent the larger elements in the tree, while the digits are used to represent the smaller elements.
 
 It allows for better efficiency and better space complexity than the list when implementing queue and deque.
 
@@ -33,7 +33,7 @@ It allows for better efficiency and better space complexity than the list when i
 
 ### Batch Queue
 
-`rescript-queue` also provides a **Batch Queue** implementation, which is introduced from [[Purely Functional Data Structures]](https://doc.lagout.org/programmation/Functional%20Programming/Chris_Okasaki-Purely_Functional_Data_Structures-Cambridge_University_Press%281998%29.pdf) by Chris Okasaki.
+`rescript-queue` provides a **Batch Queue** implementation, which is introduced from [Purely Functional Data Structures](https://doc.lagout.org/programmation/Functional%20Programming/Chris_Okasaki-Purely_Functional_Data_Structures-Cambridge_University_Press%281998%29.pdf) by Chris Okasaki.
 
 The Batch Queue is based on the idea of "batches" of elements, which are grouped together to form a single unit.
 

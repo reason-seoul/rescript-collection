@@ -11,7 +11,7 @@
     "deploy": "yarn build && gh-pages -d dist"
   },
   "devDependencies": {
-    "benchmark": "^2.1.4",
+    "benchmark": "^0.0.0",
     "gh-pages": "^4.0.0",
     "parcel": "^2.8.2",
     "rescript": "^10.1.0"

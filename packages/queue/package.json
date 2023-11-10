@@ -1,6 +1,6 @@
 {
   "name": "rescript-queue",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Persistent Queue & Deque implementation in ReScript",
   "license": "MIT",
   "author": {

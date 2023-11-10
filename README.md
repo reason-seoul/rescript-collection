@@ -4,9 +4,10 @@ Fast and efficiant immutable collection for ReScript/TypeScript/JavaScript writt
 
 ## Packages
 
-| Package                            | Description                      |     |
-| :--------------------------------- | :------------------------------- | --- |
-| [rescript-vector](packages/vector) | Persistent Vector                | [![Package Version](https://img.shields.io/npm/v/rescript-vector)](https://www.npmjs.com/package/rescript-vector) |
+| Package                            | Description                      |                                                                                                                                   |
+| :--------------------------------- | :------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| [rescript-vector](packages/vector) | Persistent Vector                | [![rescript-vector package version](https://img.shields.io/npm/v/rescript-vector)](https://www.npmjs.com/package/rescript-vector) |
+| [rescript-queue](packages/queue)   | Persistent Queue & Deque         | [![rescript-queue package version](https://img.shields.io/npm/v/rescript-queue)](https://www.npmjs.com/package/rescript-queue)    |
 
 ## License
 

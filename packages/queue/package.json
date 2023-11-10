@@ -1,0 +1,53 @@
+{
+  "name": "rescript-queue",
+  "version": "0.1.0",
+  "description": "Persistent Queue & Deque implementation in ReScript",
+  "license": "MIT",
+  "author": {
+    "name": "Hyunwoo Nam"
+  },
+  "keywords": [
+    "rescript",
+    "data-structure",
+    "immutable",
+    "queue",
+    "deque"
+  ],
+  "sideEffects": false,
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "res:build": "rescript build -with-deps",
+    "res:watch": "rescript build -w",
+    "res:clean": "rescript clean",
+    "bundle": "nanobundle build --clean",
+    "prepack": "yarn res:build && yarn bundle",
+    "test": "node tests/deque_test.mjs | faucet"
+  },
+  "files": [
+    "dist",
+    "src/*.res",
+    "src/*.resi",
+    "bsconfig.json"
+  ],
+  "dependencies": {
+    "@rescript/std": "^10.1.0"
+  },
+  "devDependencies": {
+    "@dusty-phillips/rescript-zora": "git+https://github.com/reason-seoul/rescript-zora",
+    "c8": "^7.12.0",
+    "faucet": "^0.0.3",
+    "nanobundle": "^1.3.6",
+    "rescript": "^10.0.1",
+    "typescript": "^4.9.4"
+  }
+}

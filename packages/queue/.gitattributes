@@ -1,0 +1,3 @@
+src/*.mjs       linguist-generated
+src/*.tsx       linguist-generated
+tests/*.mjs     linguist-generated

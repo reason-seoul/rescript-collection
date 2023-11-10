@@ -1,6 +1,7 @@
 type t<'a> = FingerTree.tree<'a>
 
 let empty = FingerTree.Empty
+let make = () => empty
 
 let pushFront = (tree, x) => FingerTree.pushl(tree, x)
 let pushBack = (tree, x) => FingerTree.pushr(tree, x)

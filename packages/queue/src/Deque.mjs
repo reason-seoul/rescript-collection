@@ -4,6 +4,10 @@ import * as Belt_Array from "@rescript/std/lib/es6/belt_Array.js";
 import * as FingerTree from "./impl/FingerTree.mjs";
 import * as Caml_option from "@rescript/std/lib/es6/caml_option.js";
 
+function make(param) {
+  return /* Empty */0;
+}
+
 var pushFront = FingerTree.pushl;
 
 var pushBack = FingerTree.pushr;
@@ -74,6 +78,7 @@ var empty = /* Empty */0;
 
 export {
   empty ,
+  make ,
   pushFront ,
   pushBack ,
   popFront ,

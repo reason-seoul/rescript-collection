@@ -1,0 +1,9 @@
+(library
+ (name ppx_vector)
+ (public_name ppx_vector)
+ (kind ppx_rewriter)
+ (libraries ppxlib str)
+ (flags
+  (:standard -w -9))
+ (preprocess
+  (pps ppxlib.metaquot ppx_inline_test ppx_expect ppx_deriving.show)))

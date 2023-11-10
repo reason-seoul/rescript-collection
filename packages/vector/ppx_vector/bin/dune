@@ -1,0 +1,5 @@
+(executable
+ (package ppx_vector)
+ (name bin)
+ (public_name ppx_vector)
+ (libraries ppx_vector))

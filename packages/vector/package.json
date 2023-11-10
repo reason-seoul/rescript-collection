@@ -38,7 +38,8 @@
     "prepack": "yarn res:build && yarn bundle",
     "test": "node tests/vector_test.mjs | faucet",
     "test:watch": "yarn test || true && watchlist src tests -- yarn test",
-    "test:coverage": "c8 -r text -r lcov yarn test"
+    "test:coverage": "c8 -r text -r lcov yarn test",
+    "postinstall": "node ./postInstall.js"
   },
   "files": [
     "dist",
